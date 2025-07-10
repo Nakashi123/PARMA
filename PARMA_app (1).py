@@ -11,6 +11,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['font.family'] = 'IPAPGothic' 
 # --- PERMA分類（例：各要素の該当インデックス）---
 perma_indices = {
     'Positive Emotion': [0, 1, 2],
