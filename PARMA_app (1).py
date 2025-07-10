@@ -84,13 +84,22 @@ st.subheader("5つの要素の意味")
 for key in labels:
     st.markdown(f"**{key} ({full_labels[key]})**: {descriptions[key]}")
 
-# --- 育て方ヒント（満点未満のみ表示）---
-st.subheader("あなたに合ったヒント")
-for key in labels:
-    if results[full_labels[key]] < 10:
+# --- あなたに合ったヒント ---
+low_keys = [key for key in labels if results[full_labels[key]] < 5]
+
+if low_keys:
+    st.subheader("あなたに合ったヒント")
+    for key in low_keys:
         st.markdown(f"### {key} ({full_labels[key]}) を育てるヒント")
         for tip in tips[key]:
             st.markdown(f"- {tip}")
+else:
+    st.subheader("あなたは十分あなたらしく過ごせているようです")
+    st.markdown("ここに、より豊かに過ごすためのヒントも載せておきます。")
+    for key in labels:
+        st.markdown(f"### {key} ({full_labels[key]})")
+        st.markdown(", ".join(tips[key]))
+
 
 # --- フッター ---
 st.markdown("---")
