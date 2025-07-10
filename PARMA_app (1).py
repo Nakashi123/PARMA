@@ -32,8 +32,17 @@ results = {}
 for key, idxs in perma_indices.items():
     results[key] = scores[idxs].mean()
 
-# --- レーダーチャート用データ ---
-labels = list(results.keys())
+
+# --- レーダーチャート用データ（説明入りラベル） ---
+descriptions = {
+    'Positive Emotion': 'P: うれしい、たのしい、にっこりする気持ちのこと',
+    'Engagement': 'E: 何かに夢中になったり、いきいきと取りくむこと',
+    'Relationships': 'R: 人とのつながり、支えあいのこと',
+    'Meaning': 'M: だれかの役になっていると感じること',
+    'Accomplishment': 'A: 何かをやりとげたり、自分の成長を感じること'
+}
+
+labels = [f"{k}\n{descriptions[k]}" for k in results.keys()]
 values = list(results.values())
 values += values[:1]  # 閉じる
 
@@ -41,7 +50,7 @@ values += values[:1]  # 閉じる
 angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
 angles += angles[:1]
 
-fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
 ax.plot(angles, values, linewidth=2, linestyle='solid')
 ax.fill(angles, values, alpha=0.3)
 ax.set_thetagrids(np.degrees(angles[:-1]), labels)
@@ -49,14 +58,5 @@ ax.set_ylim(0, 10)
 
 st.pyplot(fig)
 
-# --- やさしい解説 ---
-st.subheader("それぞれの意味（やさしい説明）")
-descriptions = {
-    'Positive Emotion': 'うれしい、たのしい、にっこりする気持ちのことです。',
-    'Engagement': '何かに夢中になったり、いきいきと取りくむことです。',
-    'Relationships': '人とのつながり、支えあいのことです。',
-    'Meaning': 'じぶんのいみや、だれかのためになっているかんじのことです。',
-    'Accomplishment': 'やりとげたことや、自分の成長を感じることです。'
-}
-for k, v in descriptions.items():
-    st.markdown(f"**{k}**: {v}")
+
+
