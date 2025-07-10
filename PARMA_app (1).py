@@ -75,7 +75,7 @@ ax.plot(angles, values, linewidth=2)
 ax.fill(angles, values, alpha=0.25)
 ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=16)
 ax.set_ylim(0, 10)
-ax.set_title("PERMAプロフィール", size=18, pad=20)
+ax.set_title("PERMA figure", size=18, pad=20)
 
 st.pyplot(fig)
 
