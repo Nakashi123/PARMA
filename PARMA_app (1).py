@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.rcParams['font.family'] = 'IPAexGothic'  # または 'Meiryo', 'Noto Sans CJK JP'
+import matplotlib  # ← 追加
+matplotlib.rcParams['font.family'] = 'IPAexGothic'  
 
 
 import streamlit as st
