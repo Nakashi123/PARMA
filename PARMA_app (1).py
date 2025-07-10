@@ -56,7 +56,7 @@ angles += angles[:1]
 fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
 ax.plot(angles, values, linewidth=2, linestyle='solid')
 ax.fill(angles, values, alpha=0.3)
-ax.set_thetagrids(np.degrees(angles[:-1]), labels)
+ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=14)  # フォントサイズを指定
 ax.set_ylim(0, 10)
 
 st.pyplot(fig)
@@ -65,3 +65,39 @@ st.pyplot(fig)
 st.subheader("それぞれの意味（やさしい説明）")
 for k in results.keys():
     st.markdown(f"**{short_labels[k]}**: {descriptions[k]}")
+
+
+advice = {
+    'Positive Emotion': [
+        '大切な人と過ごす時間を作りましょう。',
+        '好きな音楽を聴いたり、自然を感じる時間を取りましょう。',
+        '感謝の気持ちを日々ノートに書いてみましょう。'
+    ],
+    'Engagement': [
+        '夢中になれる趣味や活動を見つけて続けましょう。',
+        '今この瞬間に集中する練習（マインドフルネス）をしましょう。',
+        '自分の得意なこと（強み）を活かせる場を探してみましょう。'
+    ],
+    'Relationships': [
+        '近くの人と話す時間を作ってみましょう。',
+        '教室や地域のグループに参加して交流しましょう。',
+        '昔の友人に手紙や電話をしてみましょう。'
+    ],
+    'Meaning': [
+        'ボランティアや地域の活動に関わってみましょう。',
+        '自分の好きなことを誰かのために活かしてみましょう。',
+        '自分の大切にしていることについて考えてみましょう。'
+    ],
+    'Accomplishment': [
+        '小さな目標を立てて、できたら記録に残しましょう。',
+        '過去の「がんばったこと」を思い出して振り返りましょう。',
+        '達成できたら、自分をほめてお祝いしましょう。'
+    ]
+}
+
+st.subheader("あなたのPERMAを高めるヒント")
+for key, value in results.items():
+    if value < 10:  # 満点未満の項目にのみ表示
+        st.markdown(f"### {key}")
+        for tip in advice[key]:
+            st.markdown(f"- {tip}")
