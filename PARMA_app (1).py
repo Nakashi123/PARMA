@@ -7,15 +7,22 @@ st.set_page_config(page_title="PERMAプロファイラー", layout="centered")
 
 # --- タイトル・説明 ---
 st.title('PERMA: じぶんらしく生きるための5つの要素')
-st.markdown("以下の図は、あなたが現在の生活で「じぶんらしく生きるための時間を、どのくらい過ごせているか」を5つの要素から表したものです。")
+st.markdown("以下の図は、あなたが**現在の生活でどの種類の幸せな時間をどの程度過ごせているか**を表したものです。")
 
-# --- 入力フォーム ---
-st.subheader('23の質問に0〜10の点数で答えてください（数字を入力）')
+# --- 点数入力 ---
+st.subheader('23の質問に、今の気持ちを 0〜10 の中から選んでください')
 
 scores = []
+cols = st.columns(1)
 for i in range(23):
-    score = st.number_input(f"Q{i+1}", min_value=0.0, max_value=10.0, value=5.0, step=0.1, key=f"q{i+1}")
-    scores.append(score)
+    with cols[0]:
+        score = st.radio(
+            f"Q{i+1}", 
+            options=list(range(11)), 
+            horizontal=True, 
+            key=f"q{i+1}"
+        )
+        scores.append(score)
 
 scores = np.array(scores)
 
@@ -66,7 +73,7 @@ angles += angles[:1]
 fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
 ax.plot(angles, values, linewidth=2)
 ax.fill(angles, values, alpha=0.25)
-ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=14)
+ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=16)
 ax.set_ylim(0, 10)
 ax.set_title("PERMAプロフィール", size=18, pad=20)
 
