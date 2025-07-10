@@ -2,19 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib  # ← 追加
-matplotlib.rcParams['font.family'] = 'IPAexGothic'  
 
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.rcParams['font.family'] = 'IPAPGothic' 
-# --- PERMA分類（例：各要素の該当インデックス）---
+# --- PERMA分類（各要素の該当インデックス） ---
 perma_indices = {
     'Positive Emotion': [0, 1, 2],
     'Engagement': [3, 4, 5],
@@ -25,7 +14,7 @@ perma_indices = {
 
 st.title('あなたのPERMAプロファイル')
 
-# --- 入力 ---
+# --- スコア入力 ---
 st.subheader('23の質問にスコア（0〜10）で答えてください')
 scores = []
 for i in range(23):
@@ -38,8 +27,15 @@ results = {}
 for key, idxs in perma_indices.items():
     results[key] = scores[idxs].mean()
 
+# --- ラベルとやさしい説明 ---
+short_labels = {
+    'Positive Emotion': 'P (Positive Emotion)',
+    'Engagement': 'E (Engagement)',
+    'Relationships': 'R (Relationships)',
+    'Meaning': 'M (Meaning)',
+    'Accomplishment': 'A (Accomplishment)'
+}
 
-# --- レーダーチャート用データ（説明入りラベル） ---
 descriptions = {
     'Positive Emotion': 'P: うれしい、たのしい、にっこりする気持ちのこと',
     'Engagement': 'E: 何かに夢中になったり、いきいきと取りくむこと',
@@ -48,14 +44,15 @@ descriptions = {
     'Accomplishment': 'A: 何かをやりとげたり、自分の成長を感じること'
 }
 
-labels = [f"{k}\n{descriptions[k]}" for k in results.keys()]
+# --- レーダーチャートデータ作成 ---
+labels = [short_labels[k] for k in results.keys()]
 values = list(results.values())
-values += values[:1]  # 閉じる
+values += values[:1]  # 閉じるために最初の値を追加
 
-# --- レーダーチャート描画 ---
 angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
 angles += angles[:1]
 
+# --- レーダーチャート描画 ---
 fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
 ax.plot(angles, values, linewidth=2, linestyle='solid')
 ax.fill(angles, values, alpha=0.3)
@@ -64,5 +61,7 @@ ax.set_ylim(0, 10)
 
 st.pyplot(fig)
 
-
-
+# --- やさしい説明を下に表示 ---
+st.subheader("それぞれの意味（やさしい説明）")
+for k in results.keys():
+    st.markdown(f"**{short_labels[k]}**: {descriptions[k]}")
