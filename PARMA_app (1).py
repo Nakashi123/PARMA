@@ -1,3 +1,7 @@
+streamlit
+pandas
+numpy
+matplotlib
 
 import streamlit as st
 import pandas as pd
