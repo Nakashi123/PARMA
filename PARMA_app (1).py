@@ -37,8 +37,37 @@ st.title("あなたのPERMAプロファイル")
 st.markdown("### PERMA：じぶんらしく生きるための5つの要素")
 st.markdown("以下の図は、あなたが現在の生活でどの種類の幸せな時間をどの程度過ごせているかを表したものです。")
 
-# --- ファイルアップロード ---
-uploaded_file = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください", type="xlsx")
+import streamlit as st
+import pandas as pd
+
+#  ① ここに手動IDリストを先に定義しておく
+manual_ids = [1, 3, 4, 5, 11, 15, 18, 19, 3659, 2896, 3089, 3336,
+              3129, 3713, 3264, 3015, 3786, 3104, 3443, 3003,
+              3788, 3646, 15, 3, 5, 19, 11, 2005]
+
+#  ② ファイルアップロードUI（これは固定）
+uploaded_file = st.file_uploader("Excelファイルをアップロードしてください", type=["xlsx"])
+
+#  ③ ファイルがアップロードされたときの処理
+if uploaded_file is not None:
+    # Excel読み込み（1行目をヘッダーと仮定）
+    df = pd.read_excel(uploaded_file, header=0)
+
+    #  ④ 1列目（ID列）を抽出し、NaNを除去、int型に変換
+    excel_ids = df.iloc[:, 0].dropna().astype(int).tolist()
+
+    #  ⑤ 手動IDとExcelから取得したIDを結合し、重複削除＋ソート
+    combined_ids = sorted(set(excel_ids + manual_ids))
+
+    #  ⑥ selectboxでIDを選ばせる
+    selected_id = st.selectbox("IDを選んでください", options=combined_ids)
+
+    #  ⑦ 選択されたIDを表示
+    st.write(f"選択されたID: {selected_id}")
+
+    # （任意）選択IDに対応する行を表示したい場合はここでフィルタする
+    selected_row = df[df.iloc[:, 0] == selected_id]
+    st.write("選択されたIDのデータ:", selected_row)
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
