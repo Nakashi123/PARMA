@@ -20,33 +20,30 @@ if uploaded_file is not None:
     selected_row = df[df.iloc[:, 0] == selected_id]
     st.write("選択されたIDのデータ:", selected_row)
 
-    # ✅ レーダーチャート描画（PERMA）
-    # PERMAの5つの要素と説明
-    labels = [
-        "Positive Emotion（楽しい気持ち）",
-        "Engagement（集中して没頭する）",
-        "Relationships（人とのつながり）",
-        "Meaning（人生の意味・目的）",
-        "Accomplishment（達成感）"
-    ]
+   # PERMAの5つの要素と説明つきラベル
+labels = [
+    "Positive Emotion（楽しい気持ち）",
+    "Engagement（集中して没頭する）",
+    "Relationships（人とのつながり）",
+    "Meaning（人生の意味・目的）",
+    "Accomplishment（達成感）"
+]
 
-    # 該当列のスコアを取得（仮にDataFrameに対応する列名が "PE", "EN", "RE", "ME", "AC" の場合）
-    try:
-        scores = selected_row[["PE", "EN", "RE", "ME", "AC"]].values.flatten().tolist()
-        scores += scores[:1]  # レーダーの円を閉じる
+# 対応するスコア列を抽出（あなたの列名に応じて変更）
+scores = selected_row[["PE", "EN", "RE", "ME", "AC"]].values.flatten().tolist()
+scores += scores[:1]  # 円を閉じる
 
-        # 角度を計算
-        angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-        angles += angles[:1]
+# ラベルと同じ数だけ角度を作る
+angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
+angles += angles[:1]
 
-        # 描画
-        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-        ax.plot(angles, scores, linewidth=2, linestyle='solid')
-        ax.fill(angles, scores, alpha=0.3)
+# 描画
+fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+ax.plot(angles, scores, linewidth=2, linestyle='solid')
+ax.fill(angles, scores, alpha=0.3)
 
-        ax.set_thetagrids(np.degrees(angles[:-1]), labels)
-        ax.set_title("PERMAレーダーチャート", fontsize=16)
-        st.pyplot(fig)
+# ✅ 日本語つきのラベルを使う
+ax.set_thetagrids(np.degrees(angles[:-1]), labels)
+ax.set_title("PERMAレーダーチャート（やさしい説明つき）", fontsize=16)
+st.pyplot(fig)
 
-    except KeyError:
-        st.error("PERMAの5要素（PE, EN, RE, ME, AC）が見つかりません。列名を確認してください。")
