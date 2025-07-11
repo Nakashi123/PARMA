@@ -76,7 +76,7 @@ if uploaded_file:
     perma_short_keys = ['P', 'E', 'R', 'M', 'A']
     low_keys = [k for k in perma_short_keys if results[full_labels[k]] < 5]
 
-    st.subheader("あなたにヒント")
+    st.subheader("あなたに合ったヒント")
     if low_keys:
         for key in low_keys:
             st.markdown(f"### {key} ({full_labels[key]}) を育てるヒント")
