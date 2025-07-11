@@ -35,9 +35,9 @@ tips = {
     'M': ['意義ある団体や活動に参加', '情熱を他者のために使う', '創作活動で意味を見出す'],
     'A': ['SMARTな目標を立てる', '成功体験を振り返る', '成果を祝う']
 }
-colors = ['red', 'orange', 'green', 'blue', 'purple']  # PERMA色分け用
+colors = ['red', 'orange', 'green', 'blue', 'purple']
 
-# --- タイトル ---
+# --- タイトル・導入 ---
 st.title("あなたのPERMAプロファイル")
 st.markdown("### PERMA：じぶんらしく生きるための5つの要素")
 st.markdown("以下の図は、あなたが現在の生活でどの種類の幸せな時間をどの程度過ごせているかを表したものです。")
@@ -85,7 +85,7 @@ if uploaded_file:
             ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=3)
         ax.plot(angles, values, color='gray', alpha=0.2)
         ax.fill(angles, values, alpha=0.1)
-        ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=14)
+        ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=16)
         ax.set_ylim(0, 10)
         st.pyplot(fig)
 
@@ -94,21 +94,22 @@ if uploaded_file:
         for key in perma_short_keys:
             st.markdown(f"**{key} - {full_labels[key]}**：{descriptions[key]}")
 
-        # --- ヒント表示 ---
-        st.subheader("あなたに合ったヒント")
-        low_keys = [k for k in perma_short_keys if results[full_labels[k]] < 5]
+        # --- 活動のヒントセクション ---
+        st.subheader("🧩 英語（やさしい日本語）で表したあなたらしさを育むための活動の例")
+        low_keys = [k for k, v in zip(perma_short_keys, results.values()) if v < 5]
 
         if low_keys:
             for key in low_keys:
-                st.markdown(f"### {key} - {full_labels[key]}")
+                st.markdown(f"#### {key}：{full_labels[key]}")
                 for tip in tips[key]:
                     st.markdown(f"- {tip}")
         else:
-            st.markdown("あなたはすべての要素でバランスよく過ごせています！")
-            st.markdown("さらに豊かにするためのヒントはこちら：")
+            st.markdown("すべての項目がバランスよく育っています。")
+            st.markdown("これからもあなたらしく過ごしていくために、以下のような活動が役立ちます。")
             for key in perma_short_keys:
-                st.markdown(f"### {key} - {full_labels[key]}")
-                st.markdown(", ".join(tips[key]))
+                st.markdown(f"#### {key}：{full_labels[key]}")
+                for tip in tips[key]:
+                    st.markdown(f"- {tip}")
 
         st.markdown("---")
         st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
