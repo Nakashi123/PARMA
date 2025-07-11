@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm  # ✅ フォントを最初にインポート
 
-# 日本語フォント指定
-plt.rcParams['font.family'] = 'IPAexGothic'
+# ✅ 日本語フォント指定（環境に応じてパスを変更してください）
+jp_font = fm.FontProperties(fname='/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc')
 
-# PERMAインデックス定義（6_1〜6_23 に対応）
+# PERMAインデックス（6_1〜6_23を5要素に分ける）
 perma_indices = {
     'Positive Emotion': [0, 1, 2],
     'Engagement': [3, 4, 5],
@@ -15,7 +16,7 @@ perma_indices = {
     'Accomplishment': [12, 13, 14]
 }
 
-# 表示用ラベルとヒント
+# ラベル・ヒント設定
 perma_short_keys = ['P', 'E', 'R', 'M', 'A']
 full_labels = {
     'P': 'Positive Emotion',
@@ -39,7 +40,7 @@ tips = {
     'A': ['SMARTな目標を立てる', '成功体験を振り返る', '成果を祝う']
 }
 
-# --- UI ---
+# --- タイトル ---
 st.title("あなたのPERMAプロファイル")
 st.markdown("### PERMA：じぶんらしく生きるための5つの要素")
 st.markdown("以下の図は、あなたが現在の生活でどの種類の幸せな時間をどの程度過ごせているかを表したものです。")
@@ -52,11 +53,11 @@ if uploaded_file:
         df = pd.read_excel(uploaded_file)
         st.success("データ読み込み成功！")
 
-        # IDリスト（1列目をIDとみなす）
+        # ID列取得（1列目をIDと仮定）
         id_list = df.iloc[:, 0].dropna().astype(str).tolist()
         selected_id = st.selectbox("IDを選んでください", options=id_list)
 
-        # 選択された行を取得
+        # 選択された行の抽出
         selected_row = df[df.iloc[:, 0].astype(str) == selected_id]
         if selected_row.empty:
             st.warning("選択されたIDに該当する行がありません。")
@@ -65,9 +66,8 @@ if uploaded_file:
         # スコア抽出（6_1〜6_23）
         score_columns = [col for col in df.columns if str(col).startswith("6_")]
         scores_raw = selected_row[score_columns].values.flatten()
-
-        # 数値化と欠損処理
         scores = pd.to_numeric(scores_raw, errors='coerce')
+
         if len(scores) < 23:
             st.error("6_1〜6_23 のスコアが不足しています。")
             st.stop()
@@ -80,7 +80,7 @@ if uploaded_file:
 
         # --- レーダーチャート ---
         values = list(results.values())
-        values += values[:1]
+        values += values[:1]  # 円を閉じる
         angles = np.linspace(0, 2 * np.pi, len(perma_short_keys), endpoint=False).tolist()
         angles += angles[:1]
         labels = [label_names[k] for k in perma_short_keys]
@@ -88,14 +88,11 @@ if uploaded_file:
         fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
         ax.plot(angles, values, linewidth=2, linestyle='solid')
         ax.fill(angles, values, alpha=0.3)
-from matplotlib import font_manager as fm
-jp_font = fm.FontProperties(fname='/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc')  # 環境に応じて変更
-ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontproperties=jp_font)
-
+        ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontproperties=jp_font)  # ✅ 日本語フォント適用
         ax.set_ylim(0, 10)
         st.pyplot(fig)
 
-        # --- ヒント表示 ---
+        # --- ヒントの表示 ---
         st.subheader("あなたに合ったヒント")
         low_keys = [k for k in perma_short_keys if results[full_labels[k]] < 5]
 
@@ -116,4 +113,4 @@ ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontproperties=jp_font)
         st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
 
     except Exception as e:
-        st.error(f"データ処理中にエラーが発生しました：{e}")
+        st.error(f"エラーが発生しました: {e}")
