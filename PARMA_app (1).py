@@ -1,32 +1,12 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# --- ページ設定 ---
-st.set_page_config(page_title="PERMAプロファイラー", layout="centered")
+# 日本語フォント指定（文字化け防止）
+plt.rcParams['font.family'] = 'IPAexGothic'
 
-# --- タイトル・説明 ---
-st.title('PERMA: じぶんらしく生きるための5つの要素')
-st.markdown("以下の図は、あなたが**現在の生活でどの種類の幸せな時間をどの程度過ごせているか**を表したものです。")
-
-# --- 点数入力 ---
-st.subheader('23の質問に、今の気持ちを 0〜10 の中から選んでください')
-
-scores = []
-cols = st.columns(1)
-for i in range(23):
-    with cols[0]:
-        score = st.radio(
-            f"Q{i+1}", 
-            options=list(range(11)), 
-            horizontal=True, 
-            key=f"q{i+1}"
-        )
-        scores.append(score)
-
-scores = np.array(scores)
-
-# --- PERMA分類インデックス ---
+# PERMAインデックス定義
 perma_indices = {
     'Positive Emotion': [0, 1, 2],
     'Engagement': [3, 4, 5],
@@ -35,10 +15,7 @@ perma_indices = {
     'Accomplishment': [12, 13, 14]
 }
 
-# --- 各スコア計算 ---
-results = {k: scores[idxs].mean() for k, idxs in perma_indices.items()}
-
-# --- ラベルと説明 ---
+# ラベルとヒント
 labels = ['P', 'E', 'R', 'M', 'A']
 full_labels = {
     'P': 'Positive Emotion',
@@ -47,60 +24,71 @@ full_labels = {
     'M': 'Meaning',
     'A': 'Accomplishment'
 }
-
-descriptions = {
-    'P': 'うれしい、たのしい、にっこりする気持ちのこと',
-    'E': '何かに夢中になったり、いきいきと取りくむこと',
-    'R': '人とのつながり、支えあいのこと',
-    'M': 'だれかの役になっていると感じること',
-    'A': '何かをやりとげたり、自分の成長を感じること'
-}
-
 tips = {
-    'P': ['・大切な人と過ごす', '・感謝を日々振り返る', '・音楽や趣味を楽しむ'],
-    'E': ['・夢中になれる活動を見つける', '・今に集中する練習をする', '・自然の中で感覚に集中'],
-    'R': ['・教室や集まりに参加する', '・昔の知人に連絡をとる', '・知人と会話してつながる'],
-    'M': ['・意義ある活動に参加する', '・人のために力を活かす', '・新しいことに挑戦する'],
-    'A': ['・小さな目標を立てる', '・成功体験を思い出す', '・努力を自分らしく祝う']
+    'P': ['大切な人と過ごす', '趣味や創造的活動', '音楽を聴く', '感謝を日々振り返る'],
+    'E': ['夢中になれる活動に参加', '今に集中する練習', '自然の中で観察', '自分の強みを活かす'],
+    'R': ['教室やグループに参加', '相手に質問して関係を深める', '昔の知人に連絡する'],
+    'M': ['意義ある団体や活動に参加', '情熱を他者のために使う', '創作活動で意味を見出す'],
+    'A': ['SMARTな目標を立てる', '成功体験を振り返る', '成果を祝う']
 }
 
-# --- レーダーチャート ---
-values = [results[full_labels[l]] for l in labels]
-values += values[:1]
-angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-angles += angles[:1]
+# --- タイトル ---
+st.title("あなたのPERMAプロファイル")
+st.markdown("### PERMA：じぶんらしく生きるための5つの要素")
+st.markdown("以下の図は、あなたが現在の生活でどの種類の幸せな時間をどの程度過ごせているかを表したものです。")
 
-fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-ax.plot(angles, values, linewidth=2)
-ax.fill(angles, values, alpha=0.25)
-ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=16)
-ax.set_ylim(0, 10)
-ax.set_title("PERMA figure", size=18, pad=20)
+# --- ファイルアップロード ---
+uploaded_file = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください", type="xlsx")
 
-st.pyplot(fig)
+if uploaded_file:
+    df = pd.read_excel(uploaded_file)
+    st.success("データ読み込み成功！")
 
-# --- やさしい説明 ---
-st.subheader("5つの要素の意味")
-for key in labels:
-    st.markdown(f"**{key} ({full_labels[key]})**: {descriptions[key]}")
+    # IDの選択
+    ids = df.index.tolist()
+    selected_index = st.selectbox("IDを選んでください", options=ids)
+    row = df.iloc[selected_index]
 
-# --- あなたに合ったヒント ---
-low_keys = [key for key in labels if results[full_labels[key]] < 5]
+    # スコア抽出（6_1〜6_23）
+    scores = row.filter(like="6_").values[:23]
+    scores = np.array(scores, dtype=float)
 
-if low_keys:
+    # 各PERMAスコア計算
+    results = {}
+    for key, idxs in perma_indices.items():
+        results[key] = scores[idxs].mean()
+
+    # --- レーダーチャート ---
+    perma_labels = list(results.keys())
+    values = list(results.values())
+    values += values[:1]
+    angles = np.linspace(0, 2 * np.pi, len(perma_labels), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    ax.plot(angles, values, linewidth=2, linestyle='solid')
+    ax.fill(angles, values, alpha=0.3)
+    ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=16)
+    ax.set_ylim(0, 10)
+    st.pyplot(fig)
+
+    # --- あなたに合ったヒント ---
+    perma_short_keys = ['P', 'E', 'R', 'M', 'A']
+    low_keys = [k for k in perma_short_keys if results[full_labels[k]] < 5]
+
     st.subheader("あなたに合ったヒント")
-    for key in low_keys:
-        st.markdown(f"### {key} ({full_labels[key]}) を育てるヒント")
-        for tip in tips[key]:
-            st.markdown(f"- {tip}")
-else:
-    st.subheader("あなたは十分あなたらしく過ごせているようです")
-    st.markdown("ここに、より豊かに過ごすためのヒントも載せておきます。")
-    for key in labels:
-        st.markdown(f"### {key} ({full_labels[key]})")
-        st.markdown(", ".join(tips[key]))
+    if low_keys:
+        for key in low_keys:
+            st.markdown(f"### {key} ({full_labels[key]}) を育てるヒント")
+            for tip in tips[key]:
+                st.markdown(f"- {tip}")
+    else:
+        st.markdown("あなたは十分あなたらしく過ごせているようです。")
+        st.markdown("ここに、さらに豊かに過ごすためのヒントを載せておきます。")
+        for key in perma_short_keys:
+            st.markdown(f"### {key} ({full_labels[key]})")
+            st.markdown(", ".join(tips[key]))
 
-
-# --- フッター ---
-st.markdown("---")
-st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
+    # --- フッター ---
+    st.markdown("---")
+    st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
