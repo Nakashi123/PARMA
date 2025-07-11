@@ -95,7 +95,7 @@ if uploaded_file:
             st.markdown(f"**{key} - {full_labels[key]}**：{descriptions[key]}")
 
         # --- 活動のヒントセクション ---
-        st.subheader("🧩 英語（やさしい日本語）で表したあなたらしさを育むための活動の例")
+        st.subheader("☺あなたらしさを育むための活動の例")
         low_keys = [k for k, v in zip(perma_short_keys, results.values()) if v < 5]
 
         if low_keys:
