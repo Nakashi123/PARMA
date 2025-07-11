@@ -88,7 +88,10 @@ if uploaded_file:
         fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
         ax.plot(angles, values, linewidth=2, linestyle='solid')
         ax.fill(angles, values, alpha=0.3)
-        ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=14)
+from matplotlib import font_manager as fm
+jp_font = fm.FontProperties(fname='/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc')  # 環境に応じて変更
+ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontproperties=jp_font)
+
         ax.set_ylim(0, 10)
         st.pyplot(fig)
 
