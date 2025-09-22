@@ -109,50 +109,32 @@ tips = {
 }
 
 # ===== 画像パス（プロジェクト内 assets を絶対パス化して安全に参照） =====
-from pathlib import Path  # もう入っていればOK
-
 from pathlib import Path
+import sys, os
 
-BASE_DIR = Path(__file__).parent        # ← ここがポイント！実行環境に依存しない
-ASSETS_DIR = BASE_DIR / "assets"
-def _render_activity_block(k: str, items: list):
-    left_col, right_col = st.columns([3, 2])
+BASE_DIR = Path(__file__).parent
 
-    # 左カラム：テキスト
-    with left_col:
-        st.markdown(f"**{_ja_only(full_labels[k])}**")
-        for tip in items:
-            st.markdown(f"- {tip}")
+# 候補: 1) アプリ横の assets, 2) あなたの C:\ の assets
+CANDIDATE_ASSETS = [
+    BASE_DIR / "assets",
+    Path(r"C:\Users\guest_user\Desktop\PARMA\assets"),
+]
 
-    # 右カラム：画像
-    img_path = illustrations.get(k, "")
-    with right_col:
-        if img_path and Path(img_path).exists():
-            st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
-        else:
-            st.caption(f"（画像が見つかりません：{ASSETS_DIR} 内の {k}）")
+# 最初に存在する場所を採用
+ASSETS_DIR = next((p for p in CANDIDATE_ASSETS if p.exists()), CANDIDATE_ASSETS[0])
 
-
-
-# 指定キーの画像を assets から自動探索（拡張子・大文字小文字ゆるく）
 def pick_image(key: str) -> str:
     exts = (".png", ".jpg", ".jpeg", ".webp", ".gif")
-    # 1) まずは P.png / p.png などの直接一致を優先
     for ext in exts:
-        p = ASSETS_DIR / f"{key}{ext}"
-        if p.exists():
-            return str(p)
-        p2 = ASSETS_DIR / f"{key.lower()}{ext}"
-        if p2.exists():
-            return str(p2)
-        p3 = ASSETS_DIR / f"{key.upper()}{ext}"
-        if p3.exists():
-            return str(p3)
-    # 2) ファイル名にキーが含まれているもの（例: perma_P.png）
+        for name in (key, key.lower(), key.upper()):
+            p = ASSETS_DIR / f"{name}{ext}"
+            if p.exists():
+                return str(p.resolve())
     for p in ASSETS_DIR.glob("*"):
         if p.is_file() and (p.suffix.lower() in exts) and (key.lower() in p.stem.lower()):
             return str(p.resolve())
-    return ""  # 見つからなければ空文字
+    return ""
+
 
 # P/E/R/M/A 用にディクショナリ作成
 illustrations = {k: pick_image(k) for k in ['P', 'E', 'R', 'M', 'A']}
