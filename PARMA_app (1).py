@@ -185,23 +185,23 @@ st.caption("※ 本ツールはスクリーニングであり医療的診断で�
 
 uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
 
-if uploaded:
-    try:
-        df = pd.read_excel(uploaded)
+if uploaded:                              # 0スペース
+    try:                                  # 4スペース
+        df = pd.read_excel(uploaded)      # 8スペース
         id_list = df.iloc[:, 0].dropna().astype(str).tolist()
         sid = st.selectbox("IDを選んでください", options=id_list, index=0)
         selected_row = df[df.iloc[:, 0].astype(str) == sid]
 
-        if selected_row.empty:
-            st.warning("選択されたIDに該当する行がありません。")
-                else:
-            results = compute_results(selected_row)
+        if selected_row.empty:            # 8スペース
+            st.warning("選択されたIDに該当する行がありません。")   # 12スペース
+        else:                             # 8スペース ←ここ重要
+            results = compute_results(selected_row)   # 12スペース
             summary = summarize(results)
 
-            # ---------- ページ1：レーダー + 各要素 ----------
+            # ---------- ページ1 ----------
             st.markdown('<div class="page-1">', unsafe_allow_html=True)
 
-            # レーダーチャート + 説明（横並び）
+            # レーダーチャート + 説明
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
 
@@ -215,6 +215,9 @@ if uploaded:
                     "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
                 )
             st.markdown('</div>', unsafe_allow_html=True)
+
+    except Exception as e:                # 4スペース
+        st.error(f"データ読み込み時にエラーが発生しました：{e}")  # 8スペース
 
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
