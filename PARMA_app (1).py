@@ -131,6 +131,13 @@ def pick_image(key: str) -> str:
 
 illustrations = {k: pick_image(k) for k in ['P', 'E', 'R', 'M', 'A']}
 
+cd C:\Users\guest_user\Desktop\PARMA
+streamlit run PERMA_app.py
+
+ASSETS_DIR: C:\Users\guest_user\Desktop\PARMA\assets exists: True
+assets内: ['P.png', 'E.png', 'R.png', 'M.png', 'A.png']
+
+
 # 何を見に行ってるか確認（一時的に表示してOK）
 with st.expander("画像パスの確認", expanded=True):
     st.write("ASSETS_DIR:", str(ASSETS_DIR), "exists:", ASSETS_DIR.exists())
