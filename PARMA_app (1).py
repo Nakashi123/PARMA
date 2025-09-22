@@ -156,17 +156,25 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(4.2, 4.2), subplot_kw=dict(polar=True))
+    # ★ 以前 4.2→【2.1インチ】に縮小（実質1/2）
+    fig, ax = plt.subplots(figsize=(2.1, 2.1), subplot_kw=dict(polar=True), dpi=200)
+
+    # 細めの線・小さめフォントで視認性維持
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
-                color=colors[i], linewidth=2.4)
+                color=colors[i], linewidth=1.6)
     ax.fill(angles, values, alpha=0.10, color="#888")
+
     ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
-                      fontsize=int(13*FONT_SCALE), fontweight='bold')
+                      fontsize=max(9, int(10*FONT_SCALE)), fontweight='bold')
     ax.set_ylim(0, 10)
-    ax.set_rticks([2,4,6,8,10])
-    fig.tight_layout()
-    st.pyplot(fig)
+    ax.set_rticks([2, 6, 10])         # 目盛りを間引いて省スペース
+    ax.tick_params(axis='y', labelsize=max(8, int(9*FONT_SCALE)))
+    ax.grid(alpha=0.3, linewidth=0.8)
+
+    fig.tight_layout(pad=0.2)
+    st.pyplot(fig, use_container_width=False)
+
 
 # =========================
 # 本体
