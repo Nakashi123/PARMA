@@ -3,4 +3,9 @@ pandas
 numpy
 matplotlib
 openpyxl
+streamlit
+pandas
+numpy
+matplotlib
+reportlab
 
