@@ -200,15 +200,23 @@ if uploaded:
             # ---------- ページ1 ----------
             st.markdown('<div class="page-1">', unsafe_allow_html=True)
 
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
-            st.markdown(
-    "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
-    "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
-    "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
-)
-            plot_radar(results)
-            st.markdown('</div>', unsafe_allow_html=True)
+            # レーダーチャート
+st.markdown('<div class="section-card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
+
+# 🔽 2列に分ける（左：チャート、右：説明文）
+col1, col2 = st.columns([2, 3])  # 左右の比率は調整可
+with col1:
+    plot_radar(results)
+with col2:
+    st.markdown(
+        "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
+        "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
+        "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
+    )
+
+st.markdown('</div>', unsafe_allow_html=True)
+
 
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
