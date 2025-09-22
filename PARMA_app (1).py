@@ -22,9 +22,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-# 日本語フォントを登録
-pdfmetrics.registerFont(TTFont("IPAexGothic", "/usr/share/fonts/truetype/ipaexg/ipaexg.ttf"))
-
 
 
 
