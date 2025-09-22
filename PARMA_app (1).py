@@ -159,11 +159,16 @@ def summarize(results):
             "下の活動例を取り入れてみましょう。"
         )
 
-    return {
-        "avg": avg, "std": std,
+        return {
+        "avg": avg,
+        "std": std,
         "by_short": by_short,
-        "strong": strong, "growth": growth, "middle": middle,
-        "summary_text": "
+        "strong": strong,
+        "growth": growth,
+        "middle": middle,
+        "summary_text": "\n\n".join(lines)
+    }
+
 
 ".join(lines)
     }
