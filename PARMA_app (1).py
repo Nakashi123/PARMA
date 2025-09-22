@@ -457,8 +457,8 @@ if st.session_state.get("summary"):
         img_b64 = make_radar_png_base64(st.session_state.results)
         scores_html = make_scores_table_html(st.session_state.results)
         tips_html = make_tips_html(st.session_state.summary)
-        summary_html = st.session_state.summary.get('summary_text','').replace("
-", "<br>")
+        summary_html = st.session_state.summary.get('summary_text','').replace("\n", "<br>")
+
 
         pages = 1 if mode == "1ページに圧縮" else 2
         page_break = "" if pages == 1 else "page"
