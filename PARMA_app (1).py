@@ -109,12 +109,13 @@ tips = {
 
 # ===== デスクトップの画像パス（文言は変えず、定義を1回に） =====
 illustrations = {
-    'P': r"C:\Users\guest_user\Desktop\P.png",  # 前向きな気持ち
-    'E': r"C:\Users\guest_user\Desktop\E.png",  # 集中して取り組む
-    'R': r"C:\Users\guest_user\Desktop\R.png",  # 人間関係
-    'M': r"C:\Users\guest_user\Desktop\M.png",  # 意味づけ
-    'A': r"C:\Users\guest_user\Desktop\A.png",  # 達成感
+    'P': r"C:\Users\guest_user\Desktop\PARMA_image\P.png",
+    'E': r"C:\Users\guest_user\Desktop\PARMA_image\E.png",
+    'R': r"C:\Users\guest_user\Desktop\PARMA_image\R.png",
+    'M': r"C:\Users\guest_user\Desktop\PARMA_image\M.png",
+    'A': r"C:\Users\guest_user\Desktop\PARMA_image\A.png",
 }
+
 
 # 高コントラストの色
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
