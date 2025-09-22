@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os  
+
 
 # =========================
 # アプリ設定
@@ -108,6 +110,16 @@ tips = {
     'M': ['意義を感じる活動に関わる', '情熱を誰かの役に立つ形にする', '小さな創作・記録で意味を言語化'],
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
+
+# 各要素のイラスト画像（ローカルファイル or 画像URL）
+illustrations = {
+    'P': 'assets/perma_P.png',  # 前向きな気持ち
+    'E': 'assets/perma_E.png',  # 集中して取り組む
+    'R': 'assets/perma_R.png',  # 人間関係
+    'M': 'assets/perma_M.png',  # 意味づけ
+    'A': 'assets/perma_A.png',  # 達成感
+}
+
 # 高コントラストの色（色弱にも配慮して彩度高め）
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
 
@@ -250,30 +262,40 @@ if uploaded_file:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # =========================
-        # 3) 活動例（カード表示）
-        # =========================
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動（各領域）</h3></div>', unsafe_allow_html=True)
+# 3) 活動例（各領域）※右側にイラスト表示
+# =========================
+st.subheader("あなたに合わせたおすすめ行動（各領域）")
 
-        if growth_keys:
-            for k in perma_short_keys:
-                if k in growth_keys:
-                    st.markdown(f"**{full_labels[k]}**")
-                    for tip in tips[k][:3]:
-                        st.markdown(f"- {tip}")
-        else:
-            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
-            for k in perma_short_keys:
-                st.markdown(f"**{full_labels[k]}**")
-                for tip in tips[k][:2]:
-                    st.markdown(f"- {tip}")
+def _render_activity_block(k: str, items: list):
+    # 左：提案、右：イラスト
+    left, right = st.columns([3, 2])
+    with left:
+        st.markdown(f"**{_ja_only(full_labels[k])}**")
+        for tip in items:
+            st.markdown(f"- {tip}")
+    with right:
+        img_path = illustrations.get(k)
+        if img_path:
+            # URL ならそのまま、ローカルなら存在チェックして表示
+            if img_path.startswith("http") or os.path.isfile(img_path):
+                st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+if growth_keys:
+    # 伸ばしたい領域のみ、各2〜3件
+    for k in perma_short_keys:
+        if k in growth_keys:
+            _render_activity_block(k, tips[k][:3])
+else:
+    # 偏りがない場合は全領域を軽く提示（各2件）
+    st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
+    for k in perma_short_keys:
+        _render_activity_block(k, tips[k][:2])
+
 
         # =========================
         # スタッフ向けメモ（折りたたみ）
         # =========================
-        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
+        with st.expander("注意事項"):
             st.markdown(
                 "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、ご自身の生活史・価値観に照らして解釈。\n"
                 "- 新たに活動を取り入れる場合は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ　など）。\n"
