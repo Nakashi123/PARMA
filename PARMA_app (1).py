@@ -244,8 +244,8 @@ if uploaded_file:
             for k in perma_short_keys:
                 _render_activity_block(k, tips[k][:2])
 
-        # スタッフ向けメモ
-        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
+        # 備考
+        with st.expander("本結果の解釈にあたっての注意事項"):
             st.markdown(
                 "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、自分の生活史・価値観に照らして解釈しましょう。\n"
                 "- 活動を新たに取り入れる時は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
