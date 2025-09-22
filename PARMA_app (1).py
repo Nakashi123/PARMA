@@ -108,13 +108,22 @@ tips = {
 }
 
 # ===== デスクトップの画像パス（文言は変えず、定義を1回に） =====
+C:\Users\guest_user\Desktop\parma\
+├── PERMA_app.py
+└── assets\
+    ├── P.png
+    ├── E.png
+    ├── R.png
+    ├── M.png
+    └── A.png
 illustrations = {
-    'P': r"C:\Users\guest_user\Desktop\PARMA_image\P.png",
-    'E': r"C:\Users\guest_user\Desktop\PARMA_image\E.png",
-    'R': r"C:\Users\guest_user\Desktop\PARMA_image\R.png",
-    'M': r"C:\Users\guest_user\Desktop\PARMA_image\M.png",
-    'A': r"C:\Users\guest_user\Desktop\PARMA_image\A.png",
+    'P': 'assets/P.png',
+    'E': 'assets/E.png',
+    'R': 'assets/R.png',
+    'M': 'assets/M.png',
+    'A': 'assets/A.png',
 }
+
 
 
 # 高コントラストの色
