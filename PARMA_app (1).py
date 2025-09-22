@@ -17,7 +17,7 @@ perma_indices = {
     'Accomplishment': [12, 13, 14]
 }
 
-# ラベル・ヒント設定
+# ラベル・ヒント設定（表示は日本語優先）
 perma_short_keys = ['P', 'E', 'R', 'M', 'A']
 full_labels = {
     'P': '前向きな気持ち（Positive Emotion）',
@@ -26,7 +26,6 @@ full_labels = {
     'M': '意味づけ（Meaning）',
     'A': '達成感（Accomplishment）'
 }
-# 日本語での要素説明（英語は出さない）
 descriptions = {
     'P': '楽しい気持ちや感謝、安心感など、気分の明るさや心のゆとりが感じられること。',
     'E': '物事に没頭し、時間を忘れて集中している感覚があること。',
@@ -48,7 +47,7 @@ colors = ['red', 'orange', 'green', 'blue', 'purple']  # レーダー用の色
 # =========================
 st.title("あなたのPERMAプロファイル")
 st.markdown("### PERMA：しあわせを支える5つの要素")
-st.markdown("以下の図は、あなたが現在の生活でどの種類のしあわせな時間をどの程度過ごせているかを表しています。")
+st.markdown("この図は、あなたが現在の生活でどの種類のしあわせな時間をどの程度過ごせているかを表しています。")
 
 # =========================
 # ファイルアップロード
@@ -85,6 +84,15 @@ if uploaded_file:
             valid_scores = [scores[i] for i in idxs if not np.isnan(scores[i])]
             results[key] = float(np.mean(valid_scores)) if valid_scores else 0.0
 
+        # 表示順用の短縮キー→値
+        value_by_short = {
+            'P': results['Positive Emotion'],
+            'E': results['Engagement'],
+            'R': results['Relationships'],
+            'M': results['Meaning'],
+            'A': results['Accomplishment'],
+        }
+
         # =========================
         # レーダーチャート
         # =========================
@@ -103,7 +111,14 @@ if uploaded_file:
         st.pyplot(fig)
 
         # =========================
-        # 結果のまとめコメント（レーダー直下・日本語のみ）
+        # 1) 各要素の説明（レーダー直下）
+        # =========================
+        st.subheader("各要素の説明")
+        for key in perma_short_keys:
+            st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
+
+        # =========================
+        # 2) 結果のまとめコメント（日本語のみ）
         # =========================
         def _jp_list(items):
             """日本語の自然な列挙（最後は「と」）"""
@@ -113,7 +128,6 @@ if uploaded_file:
                 return items[0]
             return "、".join(items[:-1]) + " と " + items[-1]
 
-        # 数値の要約
         avg_score = float(np.mean(list(results.values())))
         std_score = float(np.std(list(results.values())))
 
@@ -121,14 +135,6 @@ if uploaded_file:
         STRONG_THR = 7.0      # 強み
         GROWTH_THR = 5.0      # これから育てたい領域
 
-        # 判定用マップと値
-        value_by_short = {
-            'P': results['Positive Emotion'],
-            'E': results['Engagement'],
-            'R': results['Relationships'],
-            'M': results['Meaning'],
-            'A': results['Accomplishment'],
-        }
         strong_keys = [k for k in perma_short_keys if value_by_short[k] >= STRONG_THR]
         growth_keys = [k for k in perma_short_keys if value_by_short[k] < GROWTH_THR]
         middle_keys = [k for k in perma_short_keys if GROWTH_THR <= value_by_short[k] < STRONG_THR]
@@ -137,7 +143,6 @@ if uploaded_file:
         growth_labels = [full_labels[s] for s in perma_short_keys if s in growth_keys]
         middle_labels = [full_labels[s] for s in perma_short_keys if s in middle_keys]
 
-        # バランス評価コメント
         if std_score < 1.0:
             balance_comment = "全体としてバランスよく整っています。"
         elif std_score < 2.0:
@@ -145,15 +150,8 @@ if uploaded_file:
         else:
             balance_comment = "要素間の強弱が比較的大きい状態です。"
 
-        # --- 5要素の意味（日本語のみ、冒頭で簡潔に） ---
         st.subheader("結果のまとめコメント")
-        intro_lines = []
-        intro_lines.append("**PERMAの5要素（意味）**")
-        for k in perma_short_keys:
-            intro_lines.append(f"- **{full_labels[k]}**：{descriptions[k]}")
-        st.markdown("\n".join(intro_lines))
 
-        # --- 個別サマリー（体験・習慣ベースの日本語） ---
         summary_lines = []
         summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点（ばらつき {std_score:.1f}）。{balance_comment}")
 
@@ -165,53 +163,47 @@ if uploaded_file:
             )
         if middle_keys:
             summary_lines.append(
-                f"**{_jp_list(middle_labels)}** は日常の中で一定の満足があり、"
-                "おおむね安定しています。無理のない範囲で、関連する時間や機会を少し増やすと、"
-                "全体の底上げにつながります。"
+                f"**{_jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。"
+                "無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。"
             )
         if growth_keys:
             summary_lines.append(
                 f"一方で、**{_jp_list(growth_labels)}** に関する習慣や体験はやや少ないかもしれません。"
                 "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
-                "以下の活動を取り入れてみることをおすすめします。"
+                "下の活動例を取り入れてみることをおすすめします。"
             )
 
         st.markdown("\n\n".join(summary_lines))
 
-        # 伸びしろに応じた具体的ヒント（各領域2つ）
+        # =========================
+        # 3) 活動例（各領域）※冗長な1行は出さない
+        # =========================
+        st.subheader("あなたに合わせたおすすめ行動（各領域）")
         if growth_keys:
-            st.markdown("#### あなたに合わせたおすすめ行動（各領域）")
+            # 伸ばしたい領域のみ、各2〜3件の具体例を提示
             for k in perma_short_keys:
                 if k in growth_keys:
-                    st.markdown(f"- **{full_labels[k]}**： " + " / ".join(tips[k][:2]))
-
-        # =========================
-        # 各構成要素の説明（再掲）
-        # =========================
-        st.subheader("各要素の説明")
-        for key in perma_short_keys:
-            st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
-
-        # =========================
-        # 活動のヒント（全体）
-        # =========================
-        st.subheader("☺ あなたらしさを育むための活動の例")
-        low_keys = [k for k in perma_short_keys if value_by_short[k] < 5]
-
-        if low_keys:
-            for key in low_keys:
-                st.markdown(f"#### {full_labels[key]}")
-                for tip in tips[key]:
-                    st.markdown(f"- {tip}")
+                    st.markdown(f"**{full_labels[k]}**")
+                    for tip in tips[k][:3]:
+                        st.markdown(f"- {tip}")
         else:
-            st.markdown("すべての項目がバランスよく育っています。")
-            st.markdown("これからもあなたらしく過ごしていくために、以下のような活動が役立ちます。")
-            for key in perma_short_keys:
-                st.markdown(f"#### {full_labels[key]}")
-                for tip in tips[key]:
+            # 伸ばしたい領域がない場合は、各領域の軽い提案を提示
+            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
+            for k in perma_short_keys:
+                st.markdown(f"**{full_labels[k]}**")
+                for tip in tips[k][:2]:
                     st.markdown(f"- {tip}")
 
-        
+        # =========================
+        # スタッフ向けメモ（折りたたみ）
+        # =========================
+        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
+            st.markdown(
+                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、生活史・価値観に照らして解釈。\n"
+                "- **関係性の強み**が高い方には、意味や達成への橋渡しとして“誰かと一緒に取り組む小目標”を提案。\n"
+                "- **ばらつきが大きい**場合は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
+                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合は専門職へ。"
+            )
 
         st.markdown("---")
         st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
