@@ -138,9 +138,9 @@ def summarize(results):
     growth_labels = [ja_only(full_labels[s]) for s in growth]
     middle_labels = [ja_only(full_labels[s]) for s in middle]
 
-    lines = [f"**総合評価**：平均 {avg:.1f} 点（ばらつき {std:.1f}）。{balance}"]
+    lines = [f"**総合評価**：平均 {avg:.1f} 点。{balance}"]
     if strong:
-        lines.append(f"あなたは **{jp_list(strong_labels)}** に関して、その要素に沿った時間を比較的しっかり過ごせており、穏やかさや前向きさ、行動のしやすさが感じられている可能性が高いです。")
+        lines.append(f"判定は、各要素の平均が7点以上の場合、「強み」5~7点で「一定の満足あり」5点未満で「改善余地あり」としています。本結果によると、あなたは **{jp_list(strong_labels)}** に関して、その要素に沿った時間を比較的しっかり過ごせており、穏やかさや前向きさ、行動のしやすさが感じられている可能性が高いです。")
     if middle:
         lines.append(f"**{jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。")
     if growth:
