@@ -9,18 +9,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # =========================
-# 基本設定（レイアウト & フォント）
+# 基本設定
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
 BASE_FONT_PX   = 20
 H1_REM, H2_REM, H3_REM = 2.4, 2.0, 1.7
 LINE_HEIGHT    = 1.9
-WIDGET_REM     = 1.2
 CARD_RADIUS_PX = 14
 CARD_PAD_REM   = 1.0
+FONT_SCALE     = 1.25
 
-FONT_SCALE = 1.25
 plt.rcParams.update({
     "font.size": int(14 * FONT_SCALE),
     "axes.titlesize": int(18 * FONT_SCALE),
@@ -45,26 +44,20 @@ html, body, [class*="css"] {{
                "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial",sans-serif !important;
   color: #111 !important;
 }}
-h1 {{ font-size: {H1_REM}rem !important; font-weight: 800; }}
+h1 {{ font-size: {H1_REM}rem !important; font-weight: 800; text-align:center; }}
 h2 {{ font-size: {H2_REM}rem !important; font-weight: 700; }}
 h3 {{ font-size: {H3_REM}rem !important; font-weight: 700; }}
 .section-card {{
   background:#fff; border:1px solid #e6e6e6; border-radius:{CARD_RADIUS_PX}px;
-  padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.3}rem; margin:0.75rem 0 1rem 0;
+  padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.3}rem; margin:1.2rem 0;
   box-shadow:0 2px 8px rgba(0,0,0,.06);
 }}
 .section-title {{ border-bottom:2px solid #f0f0f0; padding-bottom:.25rem; margin-bottom:.6rem; }}
-.main-wrap {{ max-width: 980px; margin: 0 auto; }}
+.main-wrap {{ max-width: 900px; margin: 0 auto; }}
 @media print {{
-  @page {{ size: A4; margin: 12mm; }}
-  header, footer,
-  .stApp [data-testid="stToolbar"],
-  .stApp [data-testid="stDecoration"],
-  .stApp [data-testid="stStatusWidget"],
-  .stApp [data-testid="stSidebar"],
-  .stApp [data-testid="collapsedControl"] {{ display: none !important; }}
+  @page {{ size: A4; margin: 14mm; }}
+  header, footer, .stApp [data-testid="stSidebar"], .no-print {{ display: none !important; }}
   .stApp {{ padding: 0 !important; }}
-  .no-print {{ display: none !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -158,7 +151,7 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(8.2, 8.2), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(8,8), subplot_kw=dict(polar=True))
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=4)
     ax.plot(angles, values, color="#444", alpha=0.35, linewidth=2)
@@ -173,7 +166,7 @@ def plot_radar(results):
     st.pyplot(fig)
 
 # =========================
-# 1ページに全表示
+# 本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
@@ -193,44 +186,26 @@ if uploaded:
             results = compute_results(selected_row)
             summary = summarize(results)
 
-            # レーダーチャート
+            # 1ページ目
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
             plot_radar(results)
             st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # スコア一覧
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>スコア一覧</h3></div>', unsafe_allow_html=True)
-            mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
-            cols = st.columns([2,1])
-            for short, key in mapping:
-                label = full_labels[short].split('（')[0]
-                cols[0].markdown(f"・{label}")
-                cols[1].markdown(f"<div style='text-align:right;font-weight:700'>{results.get(key,0.0):.1f}</div>", unsafe_allow_html=True)
-            avg = float(np.mean(list(results.values())))
-            st.markdown("<hr style='margin:8px 0 6px 0;border:none;border-top:2px solid #ddd'>", unsafe_allow_html=True)
-            cols = st.columns([2,1])
-            cols[0].markdown("平均")
-            cols[1].markdown(f"<div style='text-align:right;font-weight:800'>{avg:.1f}</div>", unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # 各要素の説明
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             for k in perma_short_keys:
                 st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # まとめコメント
+            # 2ページ目
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
             st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
             st.markdown(summary["summary_text"])
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # おすすめ行動
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
             growth_keys = summary["growth"]
@@ -248,20 +223,18 @@ if uploaded:
                         st.markdown(f"- {tip}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # スタッフ向けメモ
-            with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
-                st.markdown(
-                    "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱います。\n"
-                    "- 活動を取り入れる際は、まず **最小行動** から始めましょう。（例：1日5分の散歩 など）\n"
-                    "- 本ツールは **スクリーニング** であり医療的診断ではありません。"
-                )
-
-            # 印刷ボタン
-            st.markdown("---")
-            if st.button("🖨️ このページを印刷（PDF保存も可）", type="primary"):
-                st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
+            st.markdown(
+                "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱います。\n"
+                "- 活動を取り入れる際は、まず **最小行動** から始めましょう。（例：1日5分の散歩 など）\n"
+                "- 本ツールは **スクリーニング** であり医療的診断ではありません。"
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"データ読み込み時にエラーが発生しました：{e}")
 else:
     st.info("まずはExcel（.xlsx）をアップロードしてください。")
+
+st.markdown('</div>', unsafe_allow_html=True)
