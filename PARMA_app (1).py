@@ -108,56 +108,6 @@ tips = {
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
 
-# ===== 画像パス（プロジェクト内 assets を絶対パス化して安全に参照） =====
-from pathlib import Path
-import os
-
-# この .py ファイルがあるフォルダを基準に assets を参照（実行場所に依存しない）
-BASE_DIR = Path(__file__).resolve().parent
-ASSETS_DIR = (BASE_DIR / "assets").resolve()
-def pick_image(key: str) -> str:
-    exts = (".png", ".jpg", ".jpeg", ".webp", ".gif")
-    # 直接一致（P.png / p.PNG など）
-    for ext in exts:
-        for name in (key, key.lower(), key.upper()):
-            p = ASSETS_DIR / f"{name}{ext}"
-            if p.exists():
-                return str(p.resolve())
-    # 部分一致（perma_P.jpg など）
-    for p in ASSETS_DIR.glob("*"):
-        if p.is_file() and (p.suffix.lower() in exts) and (key.lower() in p.stem.lower()):
-            return str(p.resolve())
-    return ""
-
-illustrations = {k: pick_image(k) for k in ['P', 'E', 'R', 'M', 'A']}
-
-cd C:\Users\guest_user\Desktop\PARMA
-streamlit run PERMA_app.py
-
-ASSETS_DIR: C:\Users\guest_user\Desktop\PARMA\assets exists: True
-assets内: ['P.png', 'E.png', 'R.png', 'M.png', 'A.png']
-
-
-# 何を見に行ってるか確認（一時的に表示してOK）
-with st.expander("画像パスの確認", expanded=True):
-    st.write("ASSETS_DIR:", str(ASSETS_DIR), "exists:", ASSETS_DIR.exists())
-    st.write("assets内:", [p.name for p in ASSETS_DIR.glob("*") if p.is_file()])
-    st.write({k: {"path": v, "exists": (Path(v).exists() if v else False)} for k, v in illustrations.items()})
-def _render_activity_block(k: str, items: list):
-    left_col, right_col = st.columns([3, 2])
-
-    with left_col:
-        st.markdown(f"**{_ja_only(full_labels[k])}**")
-        for tip in items:
-            st.markdown(f"- {tip}")
-
-    img_path = illustrations.get(k, "")
-    with right_col:
-        if img_path and os.path.isfile(img_path):
-            st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
-        else:
-            st.caption(f"（画像が見つかりません：{k} / {ASSETS_DIR}）")
-
 
 # 高コントラストの色
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
