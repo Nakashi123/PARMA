@@ -350,10 +350,71 @@ elif st.session_state.page == 6:
             st.rerun()
 
 # ===== フッター：結果の保存／PDF出力タブ =====
-# ===== フッター：結果の保存タブ（ビルトイン機能のみ） =====
+# ===== フッター：結果の保存タブ（ビルトイン機能＋1〜2枚PDF印刷） =====
+import io, base64, datetime as _dt
+from textwrap import shorten
+
+# レーダー図をPNG(Base64)で取得（印刷用）
+def make_radar_png_base64(results):
+    labels = list(results.keys())
+    values = list(results.values())
+    values += values[:1]
+    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(6.5, 6.5), subplot_kw=dict(polar=True), dpi=180)
+    for i in range(len(labels)):
+        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=3)
+    ax.plot(angles, values, color="#444", alpha=0.35, linewidth=1.6)
+    ax.fill(angles, values, alpha=0.10, color="#888")
+    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
+                      fontsize=int(16*FONT_SCALE), fontweight='bold')
+    ax.set_ylim(0, 10)
+    ax.set_rticks([2,4,6,8,10])
+    ax.tick_params(axis='y', labelsize=int(12*FONT_SCALE))
+    ax.grid(alpha=0.25, linewidth=1.0)
+    fig.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    return f"data:image/png;base64,{b64}"
+
+# スコア表HTMLを作成
+
+def make_scores_table_html(results):
+    rows = []
+    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
+    for short, key in mapping:
+        label = full_labels[short].split('（')[0]
+        val = results.get(key, 0.0)
+        rows.append(f"<tr><td>{label}</td><td style='text-align:right;font-weight:700'>{val:.1f}</td></tr>")
+    avg = float(np.mean(list(results.values())))
+    rows.append(f"<tr><td style='border-top:2px solid #ddd'>平均</td><td style='text-align:right;font-weight:800;border-top:2px solid #ddd'>{avg:.1f}</td></tr>")
+    return """
+    <table style='width:100%; border-collapse:collapse; font-size:12pt;'>
+      <thead><tr><th style='text-align:left'>領域</th><th style='text-align:right'>スコア(0-10)</th></tr></thead>
+      <tbody>{rows}</tbody>
+    </table>
+    """.replace("{rows}", "".join(rows))
+
+# 推奨行動（成長領域のみ、文字数制御）
+
+def make_tips_html(summary):
+    growth = summary.get('growth', [])
+    if not growth:
+        return "<p>現在は大きな偏りは見られません。維持のため、日常に小さな取り組みを続けましょう。</p>"
+    blocks = []
+    for k in perma_short_keys:
+        if k in growth and k in tips:
+            tip_items = ''.join([f"<li>{shorten(t, width=36, placeholder='…')}</li>" for t in tips[k][:3]])
+            blocks.append(f"<div class='tip'><div class='tip-h'>{full_labels[k]}</div><ul>{tip_items}</ul></div>")
+    return "".join(blocks)
+
 if st.session_state.get("summary"):
     export_text = st.session_state.summary.get("summary_text", "")
-    tab1, tab2 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF"]) 
+    tab1, tab2, tab3 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF (簡易)", "🖨️ 1〜2枚PDF用レイアウト"])
 
     with tab1:
         st.text_area("コピー用（全体まとめ）", value=export_text, height=260)
@@ -364,6 +425,7 @@ if st.session_state.get("summary"):
             mime="text/plain"
         )
 
+    # 既存の簡易印刷（そのまま残す）
     with tab2:
         st.markdown(
             """
@@ -373,10 +435,9 @@ if st.session_state.get("summary"):
               header, footer,
               .stApp [data-testid="stToolbar"],
               .stApp [data-testid="stDecoration"],
-              .stApp [data-testid="stStatusWidget"] ,
-              .stApp [data-testid="stSidebar"] ,
-              .stApp [data-testid="collapsedControl"]
-              { display: none !important; }
+              .stApp [data-testid="stStatusWidget"],
+              .stApp [data-testid="stSidebar"],
+              .stApp [data-testid="collapsedControl"] { display: none !important; }
               .stApp { padding: 0 !important; }
             }
             </style>
@@ -386,3 +447,80 @@ if st.session_state.get("summary"):
         st.write("印刷プレビューからPDFに保存できます（各ブラウザの印刷機能を使用）。")
         if st.button("印刷ダイアログを開く"):
             st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
+
+    # 1〜2枚に収める専用レイアウト
+    with tab3:
+        # 設定
+        mode = st.radio("レイアウト", ["1ページに圧縮", "2ページ（ゆったり）"], horizontal=True)
+        today = _dt.date.today().strftime('%Y-%m-%d')
+        sid = str(st.session_state.get('selected_id') or '-')
+        img_b64 = make_radar_png_base64(st.session_state.results)
+        scores_html = make_scores_table_html(st.session_state.results)
+        tips_html = make_tips_html(st.session_state.summary)
+        summary_html = st.session_state.summary.get('summary_text','').replace("
+", "<br>")
+
+        pages = 1 if mode == "1ページに圧縮" else 2
+        page_break = "" if pages == 1 else "page"
+
+        html = f"""
+        <style>
+          @page {{ size: A4; margin: 12mm; }}
+          .sheet {{ width: 190mm; margin: 0 auto; }}
+          .page {{ page-break-after: always; }}
+          .title {{ font-size: 22pt; font-weight: 800; margin: 0 0 6px 0; }}
+          .meta {{ font-size: 11pt; color:#555; margin-bottom: 10px; }}
+          .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; align-items: start; }}
+          .card {{ border:1px solid #e6e6e6; border-radius: 10px; padding: 8mm; box-shadow:0 1px 4px rgba(0,0,0,.06); }}
+          .h3 {{ font-weight: 700; font-size: 14pt; border-bottom: 2px solid #f0f0f0; margin: 0 0 6px 0; padding-bottom: 3px; }}
+          .summary {{ font-size: 11.5pt; line-height: 1.6; }}
+          .tips .tip { margin-bottom: 6px; }
+          .tips .tip-h { font-weight:700; margin-bottom: 2px; }
+          .tips ul { margin: 0 0 6px 1em; }
+          .footer { font-size: 9pt; color:#666; margin-top: 6mm; }
+          img.chart { width: 100%; height: auto; display: block; }
+        </style>
+        <div class='sheet {page_break}'>
+          <div class='title'>PERMAプロファイル</div>
+          <div class='meta'>ID: {sid} ／ 日付: {today}</div>
+          <div class='grid'>
+            <div class='card'>
+              <div class='h3'>レーダーチャート</div>
+              <img class='chart' src='{img_b64}' />
+            </div>
+            <div class='card'>
+              <div class='h3'>スコア一覧</div>
+              {scores_html}
+              <div style='height:6mm'></div>
+              <div class='h3'>まとめ</div>
+              <div class='summary'>{summary_html}</div>
+            </div>
+          </div>
+          <div class='card' style='margin-top:8mm;'>
+            <div class='h3'>あなたに合わせたおすすめ行動</div>
+            <div class='tips'>{tips_html}</div>
+          </div>
+          <div class='footer'>※ 本資料はスクリーニング結果です。医療的診断ではありません。</div>
+        </div>
+        { ("" if pages==1 else f"""
+        <div class='sheet'>
+          <div class='card'>
+            <div class='h3'>各要素の説明</div>
+            <div style='font-size:11.5pt; line-height:1.6'>
+              <p><b>{full_labels['P']}</b>：{descriptions['P']}</p>
+              <p><b>{full_labels['E']}</b>：{descriptions['E']}</p>
+              <p><b>{full_labels['R']}</b>：{descriptions['R']}</p>
+              <p><b>{full_labels['M']}</b>：{descriptions['M']}</p>
+              <p><b>{full_labels['A']}</b>：{descriptions['A']}</p>
+            </div>
+          </div>
+        </div>
+        """) }
+        <script>
+          function openPrint(){ window.print(); }
+        </script>
+        """
+        st.markdown(html, unsafe_allow_html=True)
+        st.caption("A4サイズで最適化しています。ブラウザの印刷設定で余白を最小/ヘッダー・フッター非表示にすると綺麗です。")
+        if st.button("このレイアウトをPDF保存（印刷ダイアログを開く）"):
+            st.markdown("<script>openPrint();</script>", unsafe_allow_html=True)
