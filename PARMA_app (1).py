@@ -4,11 +4,80 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # =========================
-# 設定・定義
+# アプリ設定
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-# PERMAインデックス（6_1〜6_23のうち、各領域3項目ぶんを集計）
+# ===== アクセシビリティ設定（必要なら数値を調整） =====
+BASE_FONT_PX = 20          # 文章の基準サイズ（px）
+H1_REM = 2.1               # 見出しサイズ倍率（rem）
+H2_REM = 1.7
+H3_REM = 1.4
+LINE_HEIGHT = 1.75         # 行間
+WIDGET_REM = 1.2           # セレクトボックス等の文字拡大
+CARD_PADDING_REM = 1.0     # カード内余白
+CARD_RADIUS_PX = 14
+
+# Matplotlibのフォント/サイズ（日本語優先フォントを並べる）
+FONT_SCALE = 1.25  # 図中の文字拡大倍率
+plt.rcParams.update({
+    "font.size": int(14 * FONT_SCALE),
+    "axes.titlesize": int(18 * FONT_SCALE),
+    "axes.labelsize": int(16 * FONT_SCALE),
+    "xtick.labelsize": int(14 * FONT_SCALE),
+    "ytick.labelsize": int(14 * FONT_SCALE),
+    "legend.fontsize": int(14 * FONT_SCALE),
+    "font.sans-serif": [
+        "Yu Gothic UI", "Hiragino Kaku Gothic ProN", "Meiryo",
+        "Noto Sans CJK JP", "Noto Sans JP", "Helvetica", "Arial", "DejaVu Sans"
+    ],
+    "axes.unicode_minus": False,
+})
+
+# ===== 大きめフォントと余白のCSS（高コントラスト） =====
+st.markdown(f"""
+<style>
+html, body, [class*="css"] {{
+  font-size: {BASE_FONT_PX}px !important;
+  line-height: {LINE_HEIGHT} !important;
+  font-family: "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
+               "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial",sans-serif !important;
+  color: #111 !important;
+}}
+h1 {{ font-size: {H1_REM}rem !important; font-weight: 800 !important; letter-spacing: .02em; }}
+h2 {{ font-size: {H2_REM}rem !important; font-weight: 700 !important; }}
+h3 {{ font-size: {H3_REM}rem !important; font-weight: 700 !important; }}
+
+p, li, label, span, div, th, td {{ font-weight: 500; }}
+small {{ font-size: 0.95rem !important; }}
+
+.block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; }}
+
+.stSelectbox label, .stFileUploader label, .stRadio label, .stCheckbox label {{
+  font-size: {WIDGET_REM}rem !important;
+}}
+div[data-baseweb="select"] * {{
+  font-size: {WIDGET_REM}rem !important;
+}}
+input, textarea {{ font-size: {WIDGET_REM}rem !important; }}
+
+.section-card {{
+  background: #fff; border: 1px solid #e6e6e6; border-radius: {CARD_RADIUS_PX}px;
+  padding: {CARD_PADDING_REM}rem {CARD_PADDING_REM+0.3}rem; margin: 0.75rem 0 1rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}}
+/* 箇条書きの行間を広めに */
+.section-card ul {{ line-height: {LINE_HEIGHT+0.1}; }}
+/* リンクは下線で識別しやすく */
+a {{ text-decoration: underline; }}
+/* セクション見出しの下に薄い区切り線 */
+.section-title {{ border-bottom: 2px solid #f0f0f0; padding-bottom: .25rem; margin-bottom: .6rem; }}
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# データ・定義
+# =========================
 perma_indices = {
     'Positive Emotion': [0, 1, 2],
     'Engagement': [3, 4, 5],
@@ -17,14 +86,13 @@ perma_indices = {
     'Accomplishment': [12, 13, 14]
 }
 
-# ラベル・ヒント設定（表示は日本語優先）
 perma_short_keys = ['P', 'E', 'R', 'M', 'A']
 full_labels = {
-    'P': 'Pー前向きな気持ち（Positive Emotion）',
-    'E': 'Eー集中して取り組む（Engagement）',
-    'R': 'Rー人間関係（Relationships）',
-    'M': 'Mー意味づけ（Meaning）',
-    'A': 'Aー達成感（Accomplishment）'
+    'P': '前向きな気持ち（Positive Emotion）',
+    'E': '集中して取り組む（Engagement）',
+    'R': '人間関係（Relationships）',
+    'M': '意味づけ（Meaning）',
+    'A': '達成感（Accomplishment）'
 }
 descriptions = {
     'P': '楽しい気持ちや感謝、安心感など、気分の明るさや心のゆとりが感じられること。',
@@ -40,10 +108,11 @@ tips = {
     'M': ['意義を感じる活動に関わる', '情熱を誰かの役に立つ形にする', '小さな創作・記録で意味を言語化'],
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
-colors = ['red', 'orange', 'green', 'blue', 'purple']  # レーダー用の色
+# 高コントラストの色（色弱にも配慮して彩度高め）
+colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
 
 # =========================
-# タイトル・導入
+# タイトル
 # =========================
 st.title("あなたのPERMAプロファイル")
 st.markdown("### PERMA：しあわせを支える5つの要素")
@@ -84,7 +153,6 @@ if uploaded_file:
             valid_scores = [scores[i] for i in idxs if not np.isnan(scores[i])]
             results[key] = float(np.mean(valid_scores)) if valid_scores else 0.0
 
-        # 表示順用の短縮キー→値
         value_by_short = {
             'P': results['Positive Emotion'],
             'E': results['Engagement'],
@@ -94,46 +162,50 @@ if uploaded_file:
         }
 
         # =========================
-        # レーダーチャート
+        # レーダーチャート（大きめ＆読みやすく）
         # =========================
         values = list(results.values())
-        values += values[:1]  # 円を閉じる
+        values += values[:1]
         angles = np.linspace(0, 2 * np.pi, len(perma_short_keys), endpoint=False).tolist()
         angles += angles[:1]
 
-        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(7.8, 7.8), subplot_kw=dict(polar=True))
         for i in range(len(perma_short_keys)):
-            ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=3)
-        ax.plot(angles, values, color='gray', alpha=0.2)
-        ax.fill(angles, values, alpha=0.1)
-        ax.set_thetagrids(np.degrees(angles[:-1]), perma_short_keys, fontsize=16)
+            ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=4)
+        ax.plot(angles, values, color='#444', alpha=0.3, linewidth=2)
+        ax.fill(angles, values, alpha=0.10, color='#888')
+
+        # 方位ラベルを大きく・太め
+        ax.set_thetagrids(np.degrees(angles[:-1]), perma_short_keys, fontsize=int(18 * FONT_SCALE), fontweight='bold')
         ax.set_ylim(0, 10)
+        # 目盛りを明確に
+        ax.set_rticks([2, 4, 6, 8, 10])
+        ax.tick_params(axis='y', labelsize=int(14 * FONT_SCALE))
+        ax.grid(alpha=0.25, linewidth=1.2)
+
         st.pyplot(fig)
 
         # =========================
-        # 1) 各要素の説明（レーダー直下）
+        # 1) 各要素の説明（レーダー直下／カード表示）
         # =========================
-        st.subheader("各要素の説明")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
         for key in perma_short_keys:
             st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # =========================
-        # 2) 結果のまとめコメント（日本語のみ）
+        # 2) 結果のまとめコメント（カード表示）
         # =========================
         def _jp_list(items):
-            """日本語の自然な列挙（最後は「と」）"""
-            if not items:
-                return ""
-            if len(items) == 1:
-                return items[0]
-            return "、".join(items[:-1]) + " と " + items[-1]
+            if not items: return ""
+            return items[0] if len(items)==1 else "、".join(items[:-1]) + " と " + items[-1]
 
         avg_score = float(np.mean(list(results.values())))
         std_score = float(np.std(list(results.values())))
 
-        # 閾値（必要に応じて調整可能）
-        STRONG_THR = 7.0      # 強み
-        GROWTH_THR = 5.0      # これから育てたい領域
+        STRONG_THR = 7.0
+        GROWTH_THR = 5.0
 
         strong_keys = [k for k in perma_short_keys if value_by_short[k] >= STRONG_THR]
         growth_keys = [k for k in perma_short_keys if value_by_short[k] < GROWTH_THR]
@@ -150,7 +222,11 @@ if uploaded_file:
         else:
             balance_comment = "要素間の強弱が比較的大きい状態です。"
 
-        st.subheader("結果のまとめコメント")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
+
+        summary_lines = []
+        summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点（ばらつき {std_score:.1f}）。{balance_comment}")
 
         if strong_keys:
             summary_lines.append(
@@ -171,34 +247,38 @@ if uploaded_file:
             )
 
         st.markdown("\n\n".join(summary_lines))
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # =========================
-        # 3) 活動例（各領域）※冗長な1行は出さない
+        # 3) 活動例（カード表示）
         # =========================
-        st.subheader("あなたに合わせたおすすめ行動（各領域）")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動（各領域）</h3></div>', unsafe_allow_html=True)
+
         if growth_keys:
-            # 伸ばしたい領域のみ、各2〜3件の具体例を提示
             for k in perma_short_keys:
                 if k in growth_keys:
                     st.markdown(f"**{full_labels[k]}**")
                     for tip in tips[k][:3]:
                         st.markdown(f"- {tip}")
         else:
-            # 伸ばしたい領域がない場合は、各領域の軽い提案を提示
             st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
             for k in perma_short_keys:
                 st.markdown(f"**{full_labels[k]}**")
                 for tip in tips[k][:2]:
                     st.markdown(f"- {tip}")
 
+        st.markdown('</div>', unsafe_allow_html=True)
+
         # =========================
         # スタッフ向けメモ（折りたたみ）
         # =========================
         with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
             st.markdown(
-                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、自分の生活史・価値観に照らして解釈しましょう。\n"
-                "- 活動を新たに取り入れる時に、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
-                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合はご受診を検討してください。"
+                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、生活史・価値観に照らして解釈。\n"
+                "- **関係性の強み**が高い方には、意味や達成への橋渡しとして“誰かと一緒に取り組む小目標”を提案。\n"
+                "- **ばらつきが大きい**場合は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
+                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合は専門職へ。"
             )
 
         st.markdown("---")
