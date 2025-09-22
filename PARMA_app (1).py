@@ -6,6 +6,15 @@ import matplotlib.pyplot as plt
 import io, base64, datetime as _dt
 from textwrap import shorten
 from string import Template
+# PDF生成用
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
+
 
 # =========================
 # 基本設定
@@ -403,6 +412,191 @@ def make_tips_html(summary):
             blocks.append(f"<div class='tip'><div class='tip-h'>{full_labels[k]}</div><ul>{tip_items}</ul></div>")
     return "".join(blocks)
 
+
+def _register_jp_font(uploaded_font_bytes: bytes | None = None) -> str:
+    """
+    日本語表示用フォントをReportLabに登録してフォント名を返す。
+    フォントがない場合はHelveticaを返す（※日本語は豆腐になるがPDF生成は動く）。
+    """
+    try:
+        # 1) アップロードフォントがあればそれを使う
+        if uploaded_font_bytes:
+            tmp_path = os.path.join(os.getcwd(), "jpfont.ttf")
+            with open(tmp_path, "wb") as f:
+                f.write(uploaded_font_bytes)
+            pdfmetrics.registerFont(TTFont("JP", tmp_path))
+            return "JP"
+
+        # 2) よくある日本語フォントを探して登録（手元OSに依存）
+        candidates = [
+            # Windows
+            r"C:\Windows\Fonts\meiryo.ttc",   # TTCは環境により失敗することあり
+            r"C:\Windows\Fonts\meiryob.ttf",
+            r"C:\Windows\Fonts\YuGothM.ttc",
+            r"C:\Windows\Fonts\yugothib.ttf",
+            # macOS
+            "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+            "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
+            # Linuxなど（配布しやすい）
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/ipafont-gothic/ipagp.ttf",
+            "/usr/share/fonts/truetype/ipaexfont-gothic/ipaexg.ttf",
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                try:
+                    pdfmetrics.registerFont(TTFont("JP", p))
+                    return "JP"
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    return "Helvetica"  # フォールバック（日本語は表示不可）
+    
+
+def build_perma_pdf_bytes(results, summary, tips_dict, sid: str, today: str, radar_png_b64: str,
+                           page_mode: str = "1page", uploaded_font_bytes: bytes | None = None) -> bytes:
+    """
+    A4（縦）1枚 または 2枚でPERMA結果PDFを生成してbytesを返す。
+    """
+    # フォント準備
+    font_name = _register_jp_font(uploaded_font_bytes)
+
+    # キャンバス作成
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    W, H = A4  # pt
+
+    def header_footer():
+        c.setFont(font_name, 10)
+        c.setFillGray(0.4)
+        c.drawRightString(W - 15*mm, 12*mm, "※ 本資料はスクリーニング結果です。医療的診断ではありません。")
+        c.setFillGray(0)
+
+    # 共通：タイトル・メタ
+    def draw_title_block():
+        c.setFont(font_name, 20)
+        c.drawString(15*mm, H - 20*mm, "PERMAプロファイル")
+        c.setFont(font_name, 11)
+        c.setFillGray(0.4)
+        c.drawString(15*mm, H - 27*mm, f"ID: {sid} ／ 日付: {today}")
+        c.setFillGray(0)
+
+    # レーダー画像
+    radar_data = base64.b64decode(radar_png_b64.split(",")[-1])
+    radar_img = ImageReader(io.BytesIO(radar_data))
+
+    # 表の準備
+    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
+    table_rows = []
+    for short, key in mapping:
+        label = full_labels[short].split('（')[0]
+        val = results.get(key, 0.0)
+        table_rows.append((label, f"{val:.1f}"))
+    avg = float(np.mean(list(results.values())))
+    table_rows.append(("平均", f"{avg:.1f}"))
+
+    # まとめ／推奨
+    summary_text = summary.get("summary_text", "")
+    recommend_blocks = []
+    growth = summary.get("growth", [])
+    if growth:
+        for k in perma_short_keys:
+            if k in growth and k in tips_dict:
+                items = tips_dict[k][:3]
+                recommend_blocks.append( (full_labels[k], items) )
+    else:
+        for k in perma_short_keys:
+            items = tips_dict[k][:2]
+            recommend_blocks.append( (full_labels[k], items) )
+
+    # ---- 1ページ描画 ----
+    def draw_page1():
+        draw_title_block()
+
+        # 左：レーダー（だいたい正方で）
+        img_size = 85 * mm
+        c.drawImage(radar_img, 15*mm, H - 20*mm - img_size - 8*mm, width=img_size, height=img_size, preserveAspectRatio=True, mask='auto')
+
+        # 右：スコア表＋まとめ
+        x0 = 15*mm + img_size + 12*mm
+        y0 = H - 28*mm
+        c.setFont(font_name, 14)
+        c.drawString(x0, y0, "スコア一覧")
+        y = y0 - 6*mm
+        c.setFont(font_name, 11.5)
+        for label, val in table_rows:
+            c.drawString(x0, y, f"・{label}")
+            c.drawRightString(x0 + 70*mm, y, val)
+            y -= 6*mm
+
+        # まとめ
+        y -= 6*mm
+        c.setFont(font_name, 14)
+        c.drawString(x0, y, "まとめ")
+        y -= 6*mm
+        c.setFont(font_name, 10.8)
+        # 行分割して描画
+        for para in summary_text.split("\n"):
+            for line in _wrap_text(para, max_chars=36):
+                if y < 30*mm:  # 下余白
+                    return y, False  # 次ページに続く
+                c.drawString(x0, y, line)
+                y -= 5.2*mm
+        return y, True
+
+    def _wrap_text(text, max_chars=36):
+        # 超簡易の折返し（日本語でも適当に切る方式）
+        lines = []
+        t = text.replace("\r", "")
+        while len(t) > max_chars:
+            lines.append(t[:max_chars])
+            t = t[max_chars:]
+        if t:
+            lines.append(t)
+        return lines
+
+    # ---- 2ページでおすすめ行動 ----
+    def draw_page2():
+        c.setFont(font_name, 14)
+        c.drawString(15*mm, H - 20*mm, "あなたに合わせたおすすめ行動")
+        y = H - 27*mm
+        c.setFont(font_name, 11.5)
+        for title, items in recommend_blocks:
+            if y < 30*mm:
+                c.showPage()
+                header_footer()
+                c.setFont(font_name, 11.5)
+                y = H - 20*mm
+            c.setFont(font_name, 11.5)
+            c.drawString(15*mm, y, f"● {title}")
+            y -= 6*mm
+            c.setFont(font_name, 10.8)
+            for it in items:
+                for line in _wrap_text(f"・{it}", max_chars=42):
+                    if y < 30*mm:
+                        c.showPage()
+                        header_footer()
+                        c.setFont(font_name, 10.8)
+                        y = H - 20*mm
+                    c.drawString(19*mm, y, line)
+                    y -= 5.2*mm
+
+    # ページ描画
+    header_footer()
+    y, done = draw_page1()
+    if page_mode == "2pages" or not done:
+        c.showPage()
+        header_footer()
+        draw_page2()
+
+    c.showPage() if c._code and c._code[-1] != 'showPage' else None  # 念のため
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
 # ===== フッター：結果の保存／PDF出力タブ =====
 if st.session_state.get("summary"):
     export_text = st.session_state.summary.get("summary_text", "")
@@ -528,3 +722,31 @@ if st.session_state.get("summary"):
         st.caption("A4サイズで最適化しています。ブラウザの印刷設定で余白を最小/ヘッダー・フッター非表示にすると綺麗です。")
         if st.button("このレイアウトをPDF保存（印刷ダイアログを開く）"):
             st.markdown("<script>openPrint();</script>", unsafe_allow_html=True)
+
+    # 直接PDFダウンロード（A4 1枚／2枚）
+    tab4_label = "⬇️ PDFダウンロード（1枚/2枚 自動整形）"
+    with st.tabs([tab4_label])[0]:
+        st.markdown("日本語フォントが環境に無い場合に備え、必要であればTTF/OTFを上でアップロードしてください。未指定でもPDFは出ますが日本語が□になることがあります。")
+        font_file = st.file_uploader("任意：日本語フォント（.ttf / .otf）", type=["ttf","otf"])
+        mode_dl = st.radio("レイアウト", ["A4 1枚に収める", "A4 2枚（ゆったり）"], horizontal=True)
+
+        # レーダー画像を作成（既関数を利用）
+        img_b64 = make_radar_png_base64(st.session_state.results)
+        pdf_bytes = build_perma_pdf_bytes(
+            results=st.session_state.results,
+            summary=st.session_state.summary,
+            tips_dict=tips,
+            sid=str(st.session_state.get('selected_id') or '-'),
+            today=_dt.date.today().strftime('%Y-%m-%d'),
+            radar_png_b64=img_b64,
+            page_mode="1page" if mode_dl == "A4 1枚に収める" else "2pages",
+            uploaded_font_bytes=font_file.read() if font_file else None
+        )
+
+        st.download_button(
+            label="この内容をPDFでダウンロード",
+            data=pdf_bytes,
+            file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}.pdf",
+            mime="application/pdf"
+        )
+
