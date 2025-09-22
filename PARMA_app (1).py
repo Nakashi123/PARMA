@@ -191,33 +191,30 @@ if uploaded:
         id_list = df.iloc[:, 0].dropna().astype(str).tolist()
         sid = st.selectbox("IDを選んでください", options=id_list, index=0)
         selected_row = df[df.iloc[:, 0].astype(str) == sid]
-        if selected_row.empty:
-            st.warning("選択されたIDに該当する行がありません。")
-        else:
-            results = compute_results(selected_row)
-            summary = summarize(results)
+       if selected_row.empty:
+    st.warning("選択されたIDに該当する行がありません。")
+else:
+    results = compute_results(selected_row)
+    summary = summarize(results)
 
-            # ---------- ページ1 ----------
-            st.markdown('<div class="page-1">', unsafe_allow_html=True)
+    # ---------- ページ1：レーダー + 各要素 ----------
+    st.markdown('<div class="page-1">', unsafe_allow_html=True)
 
-            # レーダーチャート
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
+    # レーダーチャート + 説明（横並び）
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
 
-# 🔽 2列に分ける（左：チャート、右：説明文）
-col1, col2 = st.columns([2, 3])  # 左右の比率は調整可
-with col1:
-    plot_radar(results)
-with col2:
-    st.markdown(
-        "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
-        "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
-        "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
-    )
+    col1, col2 = st.columns([2, 3])
+    with col1:
+        plot_radar(results)
+    with col2:
+        st.markdown(
+            "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
+            "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
+            "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
+        )
 
-st.markdown('</div>', unsafe_allow_html=True)
-
-
+    st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             colA, colB = st.columns(2)
