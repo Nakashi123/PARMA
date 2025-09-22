@@ -135,6 +135,18 @@ def pick_image(key: str) -> str:
             return str(p.resolve())
     return ""
 
+def _render_activity_block(k: str, items: list):
+    left_col, right_col = st.columns([3, 2])
+    with left_col:
+        st.markdown(f"**{_ja_only(full_labels[k])}**")
+        for tip in items:
+            st.markdown(f"- {tip}")
+    img_path = illustrations.get(k, "")
+    with right_col:
+        if img_path and os.path.isfile(img_path):
+            st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
+        else:
+            st.caption(f"（画像が見つかりません：{k} / {ASSETS_DIR}）")
 
 # P/E/R/M/A 用にディクショナリ作成
 illustrations = {k: pick_image(k) for k in ['P', 'E', 'R', 'M', 'A']}
