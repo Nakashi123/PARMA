@@ -207,7 +207,7 @@ if uploaded_file:
         st.subheader("結果のまとめコメント")
 
         summary_lines = []
-        summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点（ばらつき {std_score:.1f}）。{balance_comment}")
+        summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点。{balance_comment}")
         if strong_keys:
             summary_lines.append(
                 f"あなたは **{_jp_list(strong_labels)}** に関して、"
