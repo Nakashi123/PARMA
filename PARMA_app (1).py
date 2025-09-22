@@ -141,7 +141,6 @@ def summarize(results):
     def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
     lines = [
-        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
         f"**総合評価**：平均 {avg:.1f} 点。"
     ]
     if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
@@ -156,8 +155,9 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    # 半分のサイズ
+    # 半分サイズ
     fig, ax = plt.subplots(figsize=(2.1, 2.1), subplot_kw=dict(polar=True), dpi=200)
+
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
                 color=colors[i], linewidth=1.6)
@@ -173,6 +173,7 @@ def plot_radar(results):
     fig.tight_layout(pad=0.2)
     st.pyplot(fig, use_container_width=False)
 
+
 # =========================
 # 本体
 # =========================
@@ -180,10 +181,7 @@ st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("PERMAプロファイル")
 st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
 
-uploaded = st.file_uploader(
-    "Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", 
-    type="xlsx"
-)
+uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
 
 if uploaded:
     try:
@@ -236,6 +234,7 @@ if uploaded:
 
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>結果のまとめ</h3></div>', unsafe_allow_html=True)
+            st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
             st.markdown(summary["summary_text"])
             st.markdown('</div>', unsafe_allow_html=True)
 
