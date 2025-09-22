@@ -83,11 +83,11 @@ descriptions = {
     'A':'目標に向かって取り組み、できた・やり遂げたという手応えがあること。',
 }
 tips = {
-    'P': ['大切な人と過ごす','趣味や創造的活動','好きな音楽を聴く','感謝を日々振り返る'],
-    'E': ['夢中になれる作業時間を10〜15分だけ確保','今に集中する呼吸法','自然の中を観察しながら歩く','自分の強みが活きる課題を選ぶ'],
-    'R': ['地域のサークルや教室に参加','相手に質問して話を深める','昔の知人に近況連絡をする'],
-    'M': ['意義を感じる活動に関わる','情熱を誰かの役に立つ形にする','小さな創作・記録で意味を言語化'],
-    'A': ['小さなSMART目標を1つ設定','最近の成功を振り返る','できたことを小さく祝う'],
+    'P': ['感謝を込めた手紙を書く','毎日、その日にあった「良かったこと」を三つ書く。','最近うまくいった出来事を思い出す'],
+    'E': ['自分の得意なことを行う','自分の強みを書く','呼吸に集中して心を落ち着ける'],
+    'R': ['日常で小さな親切を行う','周囲の人に大いに喜びを伝える'],
+    'M': ['自分の価値や目的に合った目標を立てる','困難を振り返る','得られた新しい機会や意味を考える'],
+    'A': ['小さな習慣を積み重ねる','失敗も学びととらえる','はっきりとした目標を決める'],
 }
 colors = ['#D81B60','#E65100','#2E7D32','#1E88E5','#6A1B9A']  # 高コントラスト
 
@@ -193,6 +193,7 @@ if "df" not in st.session_state: st.session_state.df = None
 if "selected_id" not in st.session_state: st.session_state.selected_id = None
 if "results" not in st.session_state: st.session_state.results = None
 if "summary" not in st.session_state: st.session_state.summary = None
+if "last_sid" not in st.session_state: st.session_state.last_sid = None
 
 # =========================
 # ページ1：データ入力（アップロード & ID）
@@ -226,10 +227,11 @@ if st.session_state.page >= 2:
     if selected_row.empty:
         st.warning("選択されたIDに該当する行がありません。")
         st.stop()
-    # 計算・要約が未実行/欠損なら再計算（堅牢化）
-    if (st.session_state.results is None) or (st.session_state.summary is None):
+    # 計算・要約の堅牢化：ID変更や未設定時は再計算
+    if (st.session_state.results is None) or (st.session_state.summary is None) or (st.session_state.last_sid != sid):
         st.session_state.results  = compute_results(selected_row)
         st.session_state.summary  = summarize(st.session_state.results)
+        st.session_state.last_sid = sid
 
 # =========================
 # ページ2：タイトル＋レーダーチャート（1ページ）
@@ -323,11 +325,11 @@ elif st.session_state.page == 5:
 # ページ6：スタッフ向けメモ（1ページ）
 # =========================
 elif st.session_state.page == 6:
-    with st.expander("（スタッフ向け）評価メモと伝え方のコツ", expanded=True):
+    with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
         st.markdown(
-            "- 点数は“良い/悪い”ではなく **選好と環境** の反映として扱い、生活史・価値観に照らして解釈。\n"
-            "- 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から（例：1日5分の散歩/感謝メモ）。\n"
-            "- 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へ。"
+            "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。\n"
+            "- 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩/感謝の手紙3文　など）。\n"
+            "- 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。"
         )
     st.markdown("---")
     st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
