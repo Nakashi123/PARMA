@@ -115,12 +115,22 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent        # ← ここがポイント！実行環境に依存しない
 ASSETS_DIR = BASE_DIR / "assets"
-with right:
+def _render_activity_block(k: str, items: list):
+    left_col, right_col = st.columns([3, 2])
+
+    # 左カラム：テキスト
+    with left_col:
+        st.markdown(f"**{_ja_only(full_labels[k])}**")
+        for tip in items:
+            st.markdown(f"- {tip}")
+
+    # 右カラム：画像
     img_path = illustrations.get(k, "")
-    if img_path and os.path.isfile(img_path):
-        st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
-    else:
-        st.caption(f"（画像が見つかりません：{ASSETS_DIR} 内の {k}）")
+    with right_col:
+        if img_path and Path(img_path).exists():
+            st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
+        else:
+            st.caption(f"（画像が見つかりません：{ASSETS_DIR} 内の {k}）")
 
 
 
