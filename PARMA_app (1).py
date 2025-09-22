@@ -206,12 +206,17 @@ if uploaded_file:
             st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # =========================
-        # 2) 結果のまとめコメント（カード表示）
+                # =========================
+        # 2) 結果のまとめコメント（日本語のみ）
         # =========================
         def _jp_list(items):
-            if not items: return ""
+            if not items:
+                return ""
             return items[0] if len(items)==1 else "、".join(items[:-1]) + " と " + items[-1]
+
+        def _ja_only(label: str) -> str:
+            base = label.split('（')[0]          # 'Pー前向きな気持ち'
+            return base.split('ー')[-1].strip()  # '前向きな気持ち'
 
         avg_score = float(np.mean(list(results.values())))
         std_score = float(np.std(list(results.values())))
@@ -219,13 +224,20 @@ if uploaded_file:
         STRONG_THR = 7.0
         GROWTH_THR = 5.0
 
+        value_by_short = {
+            'P': results['Positive Emotion'],
+            'E': results['Engagement'],
+            'R': results['Relationships'],
+            'M': results['Meaning'],
+            'A': results['Accomplishment'],
+        }
         strong_keys = [k for k in perma_short_keys if value_by_short[k] >= STRONG_THR]
         growth_keys = [k for k in perma_short_keys if value_by_short[k] < GROWTH_THR]
         middle_keys = [k for k in perma_short_keys if GROWTH_THR <= value_by_short[k] < STRONG_THR]
 
-        strong_labels = [full_labels[s] for s in perma_short_keys if s in strong_keys]
-        growth_labels = [full_labels[s] for s in perma_short_keys if s in growth_keys]
-        middle_labels = [full_labels[s] for s in perma_short_keys if s in middle_keys]
+        strong_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in strong_keys]
+        growth_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in growth_keys]
+        middle_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in middle_keys]
 
         if std_score < 1.0:
             balance_comment = "全体としてバランスよく整っています。"
@@ -234,10 +246,9 @@ if uploaded_file:
         else:
             balance_comment = "要素間の強弱が比較的大きい状態です。"
 
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
+        st.subheader("結果のまとめコメント")
 
-        summary_lines = []
+        summary_lines = []  # ← これが無いと NameError になります
         summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点（ばらつき {std_score:.1f}）。{balance_comment}")
 
         if strong_keys:
@@ -259,51 +270,41 @@ if uploaded_file:
             )
 
         st.markdown("\n\n".join(summary_lines))
-        st.markdown('</div>', unsafe_allow_html=True)
 
         # =========================
-# 3) 活動例（各領域）※右側にイラスト表示
-# =========================
-st.subheader("あなたに合わせたおすすめ行動（各領域）")
+        # 3) 活動例（各領域）※ここも try: の内側！
+        # =========================
+        st.subheader("あなたに合わせたおすすめ行動（各領域）")
 
-def _render_activity_block(k: str, items: list):
-    # 左：提案、右：イラスト
-    left, right = st.columns([3, 2])
-    with left:
-        st.markdown(f"**{_ja_only(full_labels[k])}**")
-        for tip in items:
-            st.markdown(f"- {tip}")
-    with right:
-        img_path = illustrations.get(k)
-        if img_path:
-            # URL ならそのまま、ローカルなら存在チェックして表示
-            if img_path.startswith("http") or os.path.isfile(img_path):
-                st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
+        # （イラストを使う場合は illustrations と os を先頭で定義しておく）
+        def _render_activity_block(k: str, items: list):
+            left, right = st.columns([3, 2])
+            with left:
+                st.markdown(f"**{_ja_only(full_labels[k])}**")
+                for tip in items:
+                    st.markdown(f"- {tip}")
+            # 右カラムに画像を出すならここで st.image(...)
+            # 例:
+            # with right:
+            #     img_path = illustrations.get(k)
+            #     if img_path and (img_path.startswith("http") or os.path.isfile(img_path)):
+            #         st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
 
-if growth_keys:
-    # 伸ばしたい領域のみ、各2〜3件
-    for k in perma_short_keys:
-        if k in growth_keys:
-            _render_activity_block(k, tips[k][:3])
-else:
-    # 偏りがない場合は全領域を軽く提示（各2件）
-    st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
-    for k in perma_short_keys:
-        _render_activity_block(k, tips[k][:2])
-
+        if growth_keys:
+            for k in perma_short_keys:
+                if k in growth_keys:
+                    _render_activity_block(k, tips[k][:3])
+        else:
+            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
+            for k in perma_short_keys:
+                _render_activity_block(k, tips[k][:2])
 
         # =========================
         # スタッフ向けメモ（折りたたみ）
         # =========================
-        with st.expander("注意事項"):
+        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
             st.markdown(
-                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、ご自身の生活史・価値観に照らして解釈。\n"
-                "- 新たに活動を取り入れる場合は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ　など）。\n"
-                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合は専門職へのご相談をご検討下さい。"
+                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、生活史・価値観に照らして解釈。\n"
+                "- 活動を新たに取り入れるときは、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
+                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合は専門職へ。"
             )
-
-        st.markdown("---")
-        st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
-
-    except Exception as e:
-        st.error(f"エラーが発生しました: {e}")
