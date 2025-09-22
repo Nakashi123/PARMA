@@ -348,9 +348,10 @@ elif st.session_state.page == 6:
             st.rerun()
 
 # ===== フッター：結果の保存／PDF出力タブ =====
-if st.session_state.get('summary'):
-    export_text = build_export_text()
-    tab1, tab2 = st.tabs(["テキスト保存", "印刷用（PDF出力）"])
+# ===== フッター：結果の保存タブ（ビルトイン機能のみ） =====
+if st.session_state.get("summary"):
+    export_text = st.session_state.summary.get("summary_text", "")
+    tab1, tab2 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF"])
 
     with tab1:
         st.text_area("コピー用（全体まとめ）", value=export_text, height=260)
@@ -367,21 +368,4 @@ if st.session_state.get('summary'):
         /* 印刷時に余計なUIを隠す */
         @media print {
           header, footer, .stApp [data-testid="stToolbar"], .stApp [data-testid="stDecoration"] { display: none !important; }
-          .stApp { padding: 0 !important; }
-        }
-        #print-area { font-size: 16px; line-height: 1.7; }
-        #print-area h2 { margin: 0 0 .5rem 0; }
-        #print-area pre { white-space: pre-wrap; }
-        </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown(
-            "<div id='print-area'>"
-            "<h2>PERMAプロファイル 結果まとめ（印刷用）</h2>"
-            f"<pre>{export_text}</pre>"
-            "</div>",
-            unsafe_allow_html=True
-        )
-        st.info("PDFにするには：ブラウザの印刷（Ctrl/Cmd + P）→ 送信先を『PDFに保存』に変更して保存してください。")
-else:
-    st.caption("※ 結果を保存するには、まずIDを選択して結果ページ（4または5）まで進んでください。")
+          .stApp { padding: 0
