@@ -250,4 +250,139 @@ if st.session_state.page == 2:
             st.session_state.page = 1
             st.rerun()
     with cols[1]:
-        if st.button("
+        if st.button("次へ ▶"):
+            st.session_state.page = 3
+            st.rerun()
+
+# =========================
+# ページ3：各要素の説明（1ページ）
+# =========================
+elif st.session_state.page == 3:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
+    for k in perma_short_keys:
+        st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button("◀ 戻る"):
+            st.session_state.page = 2
+            st.rerun()
+    with cols[1]:
+        if st.button("次へ ▶"):
+            st.session_state.page = 4
+            st.rerun()
+
+# =========================
+# ページ4：まとめコメント（1ページ）
+# =========================
+elif st.session_state.page == 4:
+    st.subheader("結果のまとめコメント")
+    st.markdown(st.session_state.summary["summary_text"])
+
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button("◀ 戻る"):
+            st.session_state.page = 3
+            st.rerun()
+    with cols[1]:
+        if st.button("次へ ▶"):
+            st.session_state.page = 5
+            st.rerun()
+
+# =========================
+# ページ5：あなたに合わせたおすすめ行動（1ページ）
+# =========================
+elif st.session_state.page == 5:
+    st.subheader("あなたに合わせたおすすめ行動（各領域）")
+
+    growth_keys = st.session_state.summary["growth"]
+    if growth_keys:
+        st.markdown("伸ばしたい・機会を増やしたい領域に合わせた例です。")
+        for k in perma_short_keys:
+            if k in growth_keys:
+                st.markdown(f"**{full_labels[k]}**")
+                for tip in tips[k][:3]:
+                    st.markdown(f"- {tip}")
+    else:
+        st.markdown("現在は大きな偏りは見られません。維持と予防のために、次の活動も役立ちます。")
+        for k in perma_short_keys:
+            st.markdown(f"**{full_labels[k]}**")
+            for tip in tips[k][:2]:
+                st.markdown(f"- {tip}")
+
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button("◀ 戻る"):
+            st.session_state.page = 4
+            st.rerun()
+    with cols[1]:
+        if st.button("次へ ▶"):
+            st.session_state.page = 6
+            st.rerun()
+
+# =========================
+# ページ6：スタッフ向けメモ（1ページ）
+# =========================
+elif st.session_state.page == 6:
+    with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
+        st.markdown(
+            "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。\n"
+            "- 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩/感謝の手紙3文　など）。\n"
+            "- 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。"
+        )
+    st.markdown("---")
+    st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
+
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button("◀ 戻る"):
+            st.session_state.page = 5
+            st.rerun()
+    with cols[1]:
+        if st.button("最初に戻る ⟳"):
+            st.session_state.page = 1
+            st.session_state.df = None
+            st.session_state.selected_id = None
+            st.session_state.results = None
+            st.session_state.summary = None
+            st.rerun()
+
+# ===== フッター：結果の保存／PDF出力タブ =====
+# ===== フッター：結果の保存タブ（ビルトイン機能のみ） =====
+if st.session_state.get("summary"):
+    export_text = st.session_state.summary.get("summary_text", "")
+    tab1, tab2 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF"]) 
+
+    with tab1:
+        st.text_area("コピー用（全体まとめ）", value=export_text, height=260)
+        st.download_button(
+            label="結果をテキストで保存",
+            data=export_text,
+            file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}.txt",
+            mime="text/plain"
+        )
+
+    with tab2:
+        st.markdown(
+            """
+            <style>
+            /* 印刷時に余計なUIを隠す */
+            @media print {
+              header, footer,
+              .stApp [data-testid="stToolbar"],
+              .stApp [data-testid="stDecoration"],
+              .stApp [data-testid="stStatusWidget"] ,
+              .stApp [data-testid="stSidebar"] ,
+              .stApp [data-testid="collapsedControl"]
+              { display: none !important; }
+              .stApp { padding: 0 !important; }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.write("印刷プレビューからPDFに保存できます（各ブラウザの印刷機能を使用）。")
+        if st.button("印刷ダイアログを開く"):
+            st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
