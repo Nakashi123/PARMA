@@ -347,7 +347,11 @@ elif st.session_state.page == 6:
             st.session_state.summary = None
             st.rerun()
 
-# まとめコピー用テキストエリア
-full_text = st.session_state.summary["summary_text"]
-st.text_area("結果まとめ（コピー用）", value=full_text, height=300)
+st.download_button(
+    label="結果をテキストで保存",
+    data=st.session_state.summary["summary_text"],
+    file_name="perma_result.txt",
+    mime="text/plain"
+)
+
 
