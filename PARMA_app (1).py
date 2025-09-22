@@ -20,11 +20,11 @@ perma_indices = {
 # ラベル・ヒント設定（表示は日本語優先）
 perma_short_keys = ['P', 'E', 'R', 'M', 'A']
 full_labels = {
-    'P': '前向きな気持ち（Positive Emotion）',
-    'E': '集中して取り組む（Engagement）',
-    'R': '人間関係（Relationships）',
-    'M': '意味づけ（Meaning）',
-    'A': '達成感（Accomplishment）'
+    'P': 'Pー前向きな気持ち（Positive Emotion）',
+    'E': 'Eー集中して取り組む（Engagement）',
+    'R': 'Rー人間関係（Relationships）',
+    'M': 'Mー意味づけ（Meaning）',
+    'A': 'Aー達成感（Accomplishment）'
 }
 descriptions = {
     'P': '楽しい気持ちや感謝、安心感など、気分の明るさや心のゆとりが感じられること。',
