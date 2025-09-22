@@ -108,7 +108,7 @@ tips = {
 }
 
 # ===== デスクトップの画像パス（文言は変えず、定義を1回に） =====
-C:\Users\guest_user\Desktop\parma\
+BASE_DIR = r"C:\Users\guest_user\Desktop\parma"
 ├── PERMA_app.py
 └── assets\
     ├── P.png
