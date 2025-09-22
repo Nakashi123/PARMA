@@ -159,7 +159,7 @@ def summarize(results):
             "下の活動例を取り入れてみましょう。"
         )
 
-        return {
+    return {
         "avg": avg,
         "std": std,
         "by_short": by_short,
@@ -169,9 +169,6 @@ def summarize(results):
         "summary_text": "\n\n".join(lines)
     }
 
-
-".join(lines)
-    }
 
 def plot_radar(results):
     labels = list(results.keys())
