@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-# 画面用（高齢者向けには大きめ）、ただし印刷時は別CSSで縮小
 BASE_FONT_PX = 19
 H1_REM, H2_REM, H3_REM = 2.2, 1.9, 1.6
 LINE_HEIGHT = 1.8
@@ -62,14 +61,12 @@ h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.1rem 0 .4rem 0;
 @media print {{
   @page {{ size: A4; margin: 13mm; }}
   html, body {{ zoom: 1; }}
-  /* 印刷時は文字少しだけ縮小＆行間締める */
   body, [class*="css"] {{ font-size: 16px !important; line-height: 1.55 !important; }}
   h1 {{ font-size: 1.9rem !important; }}
   h2 {{ font-size: 1.6rem !important; }}
   h3 {{ font-size: 1.3rem !important; }}
   .main-wrap {{ max-width: 720px; }}
   .section-card {{ margin: .45rem 0 .6rem 0; padding: .65rem .75rem; }}
-  /* StreamlitのUI非表示 */
   .stApp [data-testid="stToolbar"],
   .stApp [data-testid="stDecoration"],
   .stApp [data-testid="stStatusWidget"],
@@ -79,57 +76,9 @@ h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.1rem 0 .4rem 0;
 }}
 </style>
 """, unsafe_allow_html=True)
-st.markdown("""
-<style>
-.page { page-break-after: always; }
-.first-page .grid1{
-  display:grid; grid-template-columns: 240px 1fr; gap:16px; align-items:start;
-}
-.first-page .left .chart-sm{ width: 220px; height:auto; display:block; }
-.first-page .right .desc-2col{
-  column-count: 2; column-gap: 18px;
-}
-.first-page .h3{
-  font-weight:700; font-size:1.2rem; border-bottom:2px solid #f0f0f0; margin:0 0 8px 0; padding-bottom:2px;
-}
-/* 印刷最適化：A4縦 */
-@media print{
-  @page { size: A4; margin: 12mm; }
-  header, footer, .stApp [data-testid="stToolbar"], .stApp [data-testid="stDecoration"],
-  .stApp [data-testid="stStatusWidget"], .stApp [data-testid="stSidebar"],
-  .stApp [data-testid="collapsedControl"]{ display:none !important; }
-  .stApp{ padding:0 !important; }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ===== 1ページ目：レーダーチャート + 各要素の説明（必ず1枚に収める） =====
-img_b64_small = make_radar_png_base64(results, size_in=3.6, dpi=160)
-
-first_page_html = f"""
-<div class="page first-page">
-  <div class="grid1">
-    <div class="left">
-      <div class="h3">レーダーチャート</div>
-      <img class="chart-sm" src="{img_b64_small}" />
-    </div>
-    <div class="right">
-      <div class="h3">各要素の説明</div>
-      <div class="desc-2col">
-        <p><b>{full_labels['P']}</b>：{descriptions['P']}</p>
-        <p><b>{full_labels['E']}</b>：{descriptions['E']}</p>
-        <p><b>{full_labels['R']}</b>：{descriptions['R']}</p>
-        <p><b>{full_labels['M']}</b>：{descriptions['M']}</p>
-        <p><b>{full_labels['A']}</b>：{descriptions['A']}</p>
-      </div>
-    </div>
-  </div>
-</div>
-"""
-st.markdown(first_page_html, unsafe_allow_html=True)
 
 # =========================
-# 定義
+# PERMA定義
 # =========================
 perma_indices = {
     'Positive Emotion':[0,1,2],
@@ -191,7 +140,6 @@ def summarize(results):
     def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
     def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
-    # 基準を冒頭に移動
     lines = [
         "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
         f"**総合評価**：平均 {avg:.1f} 点。"
@@ -208,25 +156,17 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    # 🔽 サイズを小さめに変更
-    fig, ax = plt.subplots(figsize=(5.5, 5.5), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(4.2, 4.2), subplot_kw=dict(polar=True))
     for i in range(len(labels)):
-        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], 
-                color=colors[i], linewidth=3)
+        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
+                color=colors[i], linewidth=2.4)
     ax.fill(angles, values, alpha=0.10, color="#888")
     ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
-                      fontsize=int(14*FONT_SCALE), fontweight='bold')
+                      fontsize=int(13*FONT_SCALE), fontweight='bold')
     ax.set_ylim(0, 10)
     ax.set_rticks([2,4,6,8,10])
     fig.tight_layout()
     st.pyplot(fig)
-
-
-# =========================
-# ここから2ページ目にする（CSSで改ページ）
-# =========================
-st.markdown('<div style="page-break-before:always"></div>', unsafe_allow_html=True)
-
 
 # =========================
 # 本体
@@ -249,50 +189,42 @@ if uploaded:
             results = compute_results(selected_row)
             summary = summarize(results)
 
-            # ---------- ページ1：レーダー + 各要素 ----------
+            # ---------- ページ1 ----------
             st.markdown('<div class="page-1">', unsafe_allow_html=True)
 
-            # レーダー
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
             plot_radar(results)
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # 各要素
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
-            # 2列にして圧縮（印刷時 720px 幅想定で改行を抑える）
             colA, colB = st.columns(2)
             items = list(perma_short_keys)
-            left_items, right_items = items[:3], items[3:]
             with colA:
-                for k in left_items:
+                for k in items[:3]:
                     st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             with colB:
-                for k in right_items:
+                for k in items[3:]:
                     st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('</div>', unsafe_allow_html=True)  # /page-1
-            st.markdown('<div class="force-break"></div>', unsafe_allow_html=True)  # 改ページ強制
+            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div class="force-break"></div>', unsafe_allow_html=True)
 
-            # ---------- ページ2：まとめ + おすすめ + メモ ----------
+            # ---------- ページ2 ----------
             st.markdown('<div class="page-2">', unsafe_allow_html=True)
 
-            # 結果のまとめ（←基準は冒頭に移動済み）
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
             st.markdown(summary["summary_text"])
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # あなたに合わせたおすすめ行動（改善余地のみ表示、なければ各2件）
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
-            growth_keys = summary["growth"]
-            if growth_keys:
-                for k in growth_keys:
+            if summary["growth"]:
+                for k in summary["growth"]:
                     st.markdown(f"**{full_labels[k]}**")
-                    # 長文化を避けるため最大2件に圧縮
                     for t in tips[k][:2]:
                         st.markdown(f"- {t}")
             else:
@@ -303,7 +235,6 @@ if uploaded:
                         st.markdown(f"- {t}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # 大切なこと（短文化）
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
             st.markdown(
@@ -313,7 +244,7 @@ if uploaded:
             )
             st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('</div>', unsafe_allow_html=True)  # /page-2
+            st.markdown('</div>', unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"データ読み込み時にエラーが発生しました：{e}")
