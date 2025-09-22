@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,52 +11,67 @@ from pathlib import Path
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-# ===== 大きめフォントと余白のCSS（高齢者向け強化版） =====
+# ===== アクセシビリティ設定（必要なら数値を調整） =====
+BASE_FONT_PX = 20
+H1_REM = 2.1
+H2_REM = 1.7
+H3_REM = 1.4
+LINE_HEIGHT = 1.75
+WIDGET_REM = 1.2
+CARD_PADDING_REM = 1.0
+CARD_RADIUS_PX = 14
+
+# Matplotlibのフォント/サイズ（日本語優先フォントを並べる）
+FONT_SCALE = 1.25
+plt.rcParams.update({
+    "font.size": int(14 * FONT_SCALE),
+    "axes.titlesize": int(18 * FONT_SCALE),
+    "axes.labelsize": int(16 * FONT_SCALE),
+    "xtick.labelsize": int(14 * FONT_SCALE),
+    "ytick.labelsize": int(14 * FONT_SCALE),
+    "legend.fontsize": int(14 * FONT_SCALE),
+    "font.sans-serif": [
+        "Yu Gothic UI", "Hiragino Kaku Gothic ProN", "Meiryo",
+        "Noto Sans CJK JP", "Noto Sans JP", "Helvetica", "Arial", "DejaVu Sans"
+    ],
+    "axes.unicode_minus": False,
+})
+
+# ===== 大きめフォントと余白のCSS（高コントラスト） =====
 st.markdown(f"""
 <style>
 html, body, [class*="css"] {{
-  font-size: 24px !important;   /* 全体の基本文字サイズ */
-  line-height: 1.9 !important;  /* 行間広め */
+  font-size: {BASE_FONT_PX}px !important;
+  line-height: {LINE_HEIGHT} !important;
   font-family: "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
                "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial",sans-serif !important;
-  color: #111 !important;       /* 高コントラスト黒字 */
+  color: #111 !important;
 }}
+h1 {{ font-size: {H1_REM}rem !important; font-weight: 800 !important; letter-spacing: .02em; }}
+h2 {{ font-size: {H2_REM}rem !important; font-weight: 700 !important; }}
+h3 {{ font-size: {H3_REM}rem !important; font-weight: 700 !important; }}
 
-h1 {{ font-size: 2.6rem !important; font-weight: 800 !important; letter-spacing: .03em; }}
-h2 {{ font-size: 2.2rem !important; font-weight: 700 !important; }}
-h3 {{ font-size: 1.8rem !important; font-weight: 700 !important; }}
+p, li, label, span, div, th, td {{ font-weight: 500; }}
+small {{ font-size: 0.95rem !important; }}
 
-p, li, label, span, div, th, td {{ font-size: 1.25rem !important; font-weight: 600; }}
-small {{ font-size: 1.05rem !important; }}
-
-.block-container {{ padding-top: 2rem; padding-bottom: 2.5rem; }}
+.block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; }}
 
 .stSelectbox label, .stFileUploader label, .stRadio label, .stCheckbox label {{
-  font-size: 1.3rem !important;
-  font-weight: 600;
+  font-size: {WIDGET_REM}rem !important;
 }}
 div[data-baseweb="select"] * {{
-  font-size: 1.3rem !important;
+  font-size: {WIDGET_REM}rem !important;
 }}
-input, textarea {{
-  font-size: 1.3rem !important;
-}}
+input, textarea {{ font-size: {WIDGET_REM}rem !important; }}
 
 .section-card {{
-  background: #fff;
-  border: 2px solid #e6e6e6;
-  border-radius: 18px;
-  padding: 1.4rem 1.6rem;
-  margin: 1rem 0 1.4rem 0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  background: #fff; border: 1px solid #e6e6e6; border-radius: {CARD_RADIUS_PX}px;
+  padding: {CARD_PADDING_REM}rem {CARD_PADDING_REM+0.3}rem; margin: 0.75rem 0 1rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }}
-.section-card ul {{ line-height: 2; }}
-a {{ text-decoration: underline; font-size: 1.25rem !important; }}
-.section-title {{
-  border-bottom: 3px solid #f0f0f0;
-  padding-bottom: .4rem;
-  margin-bottom: .8rem;
-}}
+.section-card ul {{ line-height: {LINE_HEIGHT+0.1}; }}
+a {{ text-decoration: underline; }}
+.section-title {{ border-bottom: 2px solid #f0f0f0; padding-bottom: .25rem; margin-bottom: .6rem; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -276,4 +292,4 @@ if uploaded_file:
         st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
 
     except Exception as e:
-        st.error(f"エラーが発生しました: {e}")
+        st.error(f"エラーが発生しました: {e}") 　　もういいや。これで行く！もっと文字を大きく見やすくして
