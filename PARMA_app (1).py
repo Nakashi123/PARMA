@@ -109,19 +109,39 @@ tips = {
 }
 
 # ===== 画像パス（プロジェクト内 assets を絶対パス化して安全に参照） =====
-from pathlib import Path
+from pathlib import Path  # もう入っていればOK
 
-# Windows パスは文字列で指定し、r"" を付けると \ をエスケープしなくて済む
-BASE_DIR = Path(r"C:\Users\guest_user\Desktop\PARMA")
-ASSETS_DIR = BASE_DIR / "assets"
+# スクリプトが置いてあるフォルダ/parma を基準に assets を参照
+BASE_DIR = Path("C:\Users\guest_user\Desktop\PARMA").parent
+ASSETS_DIR = (BASE_DIR / "assets").resolve()
 
-illustrations = {
-    'P': str(ASSETS_DIR / "P.png"),
-    'E': str(ASSETS_DIR / "E.png"),
-    'R': str(ASSETS_DIR / "R.png"),
-    'M': str(ASSETS_DIR / "M.png"),
-    'A': str(ASSETS_DIR / "A.png"),
-}
+# 指定キーの画像を assets から自動探索（拡張子・大文字小文字ゆるく）
+def pick_image(key: str) -> str:
+    exts = (".png", ".jpg", ".jpeg", ".webp", ".gif")
+    # 1) まずは P.png / p.png などの直接一致を優先
+    for ext in exts:
+        p = ASSETS_DIR / f"{key}{ext}"
+        if p.exists():
+            return str(p)
+        p2 = ASSETS_DIR / f"{key.lower()}{ext}"
+        if p2.exists():
+            return str(p2)
+        p3 = ASSETS_DIR / f"{key.upper()}{ext}"
+        if p3.exists():
+            return str(p3)
+    # 2) ファイル名にキーが含まれているもの（例: perma_P.png）
+    for p in ASSETS_DIR.glob("*"):
+        if p.is_file() and (p.suffix.lower() in exts) and (key.lower() in p.stem.lower()):
+            return str(p.resolve())
+    return ""  # 見つからなければ空文字
+
+# P/E/R/M/A 用にディクショナリ作成
+illustrations = {k: pick_image(k) for k in ['P', 'E', 'R', 'M', 'A']}
+
+# ---（任意：原因切り分け用の簡易デバッグ）---
+with st.expander("画像パスの確認（必要なときだけ開く）", expanded=False):
+    st.write("ASSETS_DIR:", str(ASSETS_DIR), "exists:", ASSETS_DIR.exists())
+    st.write({k: {"path": v, "exists": (Path(v).exists() if v else False)} for k, v in illustrations.items()})
 
 # 高コントラストの色
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
