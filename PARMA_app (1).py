@@ -103,6 +103,31 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ===== 1ページ目：レーダーチャート + 各要素の説明（必ず1枚に収める） =====
+img_b64_small = make_radar_png_base64(results, size_in=3.6, dpi=160)
+
+first_page_html = f"""
+<div class="page first-page">
+  <div class="grid1">
+    <div class="left">
+      <div class="h3">レーダーチャート</div>
+      <img class="chart-sm" src="{img_b64_small}" />
+    </div>
+    <div class="right">
+      <div class="h3">各要素の説明</div>
+      <div class="desc-2col">
+        <p><b>{full_labels['P']}</b>：{descriptions['P']}</p>
+        <p><b>{full_labels['E']}</b>：{descriptions['E']}</p>
+        <p><b>{full_labels['R']}</b>：{descriptions['R']}</p>
+        <p><b>{full_labels['M']}</b>：{descriptions['M']}</p>
+        <p><b>{full_labels['A']}</b>：{descriptions['A']}</p>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+st.markdown(first_page_html, unsafe_allow_html=True)
+
 # =========================
 # 定義
 # =========================
