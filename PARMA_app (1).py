@@ -218,8 +218,6 @@ if uploaded:                              # 0スペース
 
     except Exception as e:                # 4スペース
         st.error(f"データ読み込み時にエラーが発生しました：{e}")  # 8スペース
-
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             colA, colB = st.columns(2)
             items = list(perma_short_keys)
