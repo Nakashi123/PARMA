@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os  
-
+import os
 
 # =========================
 # アプリ設定
@@ -11,17 +10,17 @@ import os
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
 # ===== アクセシビリティ設定（必要なら数値を調整） =====
-BASE_FONT_PX = 20          # 文章の基準サイズ（px）
-H1_REM = 2.1               # 見出しサイズ倍率（rem）
+BASE_FONT_PX = 20
+H1_REM = 2.1
 H2_REM = 1.7
 H3_REM = 1.4
-LINE_HEIGHT = 1.75         # 行間
-WIDGET_REM = 1.2           # セレクトボックス等の文字拡大
-CARD_PADDING_REM = 1.0     # カード内余白
+LINE_HEIGHT = 1.75
+WIDGET_REM = 1.2
+CARD_PADDING_REM = 1.0
 CARD_RADIUS_PX = 14
 
 # Matplotlibのフォント/サイズ（日本語優先フォントを並べる）
-FONT_SCALE = 1.25  # 図中の文字拡大倍率
+FONT_SCALE = 1.25
 plt.rcParams.update({
     "font.size": int(14 * FONT_SCALE),
     "axes.titlesize": int(18 * FONT_SCALE),
@@ -68,11 +67,8 @@ input, textarea {{ font-size: {WIDGET_REM}rem !important; }}
   padding: {CARD_PADDING_REM}rem {CARD_PADDING_REM+0.3}rem; margin: 0.75rem 0 1rem 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }}
-/* 箇条書きの行間を広めに */
 .section-card ul {{ line-height: {LINE_HEIGHT+0.1}; }}
-/* リンクは下線で識別しやすく */
 a {{ text-decoration: underline; }}
-/* セクション見出しの下に薄い区切り線 */
 .section-title {{ border-bottom: 2px solid #f0f0f0; padding-bottom: .25rem; margin-bottom: .6rem; }}
 </style>
 """, unsafe_allow_html=True)
@@ -111,23 +107,16 @@ tips = {
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
 
-illustrations['P'] = r"C:\Users\guest_user\Desktop\P.png" 
-illustrations['M'] = r"C:\Users\guest_user\Desktop\M.png" 
-illustrations['P'] = r"C:\Users\guest_user\Desktop\A.png"
-illustrations['P'] = r"C:\Users\guest_user\Desktop\R.png"
-illustrations['P'] = r"C:\Users\guest_user\Desktop\E.png"
-
-
-# 各要素のイラスト画像（ローカルファイル or 画像URL）
+# ===== デスクトップの画像パス（文言は変えず、定義を1回に） =====
 illustrations = {
-    'P': '',  # 前向きな気持ち
-    'E': 'assets/perma_E.png',  # 集中して取り組む
-    'R': 'assets/perma_R.png',  # 人間関係
-    'M': 'assets/perma_M.png',  # 意味づけ
-    'A': 'assets/perma_A.png',  # 達成感
+    'P': r"C:\Users\guest_user\Desktop\P.png",  # 前向きな気持ち
+    'E': r"C:\Users\guest_user\Desktop\E.png",  # 集中して取り組む
+    'R': r"C:\Users\guest_user\Desktop\R.png",  # 人間関係
+    'M': r"C:\Users\guest_user\Desktop\M.png",  # 意味づけ
+    'A': r"C:\Users\guest_user\Desktop\A.png",  # 達成感
 }
 
-# 高コントラストの色（色弱にも配慮して彩度高め）
+# 高コントラストの色
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
 
 # =========================
@@ -165,7 +154,7 @@ if uploaded_file:
             st.stop()
 
         # =========================
-        # PERMAスコア計算（5領域の平均）
+        # PERMAスコア計算
         # =========================
         results = {}
         for key, idxs in perma_indices.items():
@@ -181,7 +170,7 @@ if uploaded_file:
         }
 
         # =========================
-        # レーダーチャート（大きめ＆読みやすく）
+        # レーダーチャート
         # =========================
         values = list(results.values())
         values += values[:1]
@@ -193,11 +182,8 @@ if uploaded_file:
             ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=4)
         ax.plot(angles, values, color='#444', alpha=0.3, linewidth=2)
         ax.fill(angles, values, alpha=0.10, color='#888')
-
-        # 方位ラベルを大きく・太め
         ax.set_thetagrids(np.degrees(angles[:-1]), perma_short_keys, fontsize=int(18 * FONT_SCALE), fontweight='bold')
         ax.set_ylim(0, 10)
-        # 目盛りを明確に
         ax.set_rticks([2, 4, 6, 8, 10])
         ax.tick_params(axis='y', labelsize=int(14 * FONT_SCALE))
         ax.grid(alpha=0.25, linewidth=1.2)
@@ -213,7 +199,7 @@ if uploaded_file:
             st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-                # =========================
+        # =========================
         # 2) 結果のまとめコメント（日本語のみ）
         # =========================
         def _jp_list(items):
@@ -222,8 +208,8 @@ if uploaded_file:
             return items[0] if len(items)==1 else "、".join(items[:-1]) + " と " + items[-1]
 
         def _ja_only(label: str) -> str:
-            base = label.split('（')[0]          # 'Pー前向きな気持ち'
-            return base.split('ー')[-1].strip()  # '前向きな気持ち'
+            base = label.split('（')[0]
+            return base.split('ー')[-1].strip()
 
         avg_score = float(np.mean(list(results.values())))
         std_score = float(np.std(list(results.values())))
@@ -231,13 +217,6 @@ if uploaded_file:
         STRONG_THR = 7.0
         GROWTH_THR = 5.0
 
-        value_by_short = {
-            'P': results['Positive Emotion'],
-            'E': results['Engagement'],
-            'R': results['Relationships'],
-            'M': results['Meaning'],
-            'A': results['Accomplishment'],
-        }
         strong_keys = [k for k in perma_short_keys if value_by_short[k] >= STRONG_THR]
         growth_keys = [k for k in perma_short_keys if value_by_short[k] < GROWTH_THR]
         middle_keys = [k for k in perma_short_keys if GROWTH_THR <= value_by_short[k] < STRONG_THR]
@@ -255,7 +234,7 @@ if uploaded_file:
 
         st.subheader("結果のまとめコメント")
 
-        summary_lines = []  # ← これが無いと NameError になります
+        summary_lines = []
         summary_lines.append(f"**総合評価**：平均 {avg_score:.1f} 点（ばらつき {std_score:.1f}）。{balance_comment}")
 
         if strong_keys:
@@ -265,53 +244,4 @@ if uploaded_file:
                 "穏やかさや前向きさ、行動のしやすさが感じられている可能性が高いです。"
             )
         if middle_keys:
-            summary_lines.append(
-                f"**{_jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。"
-                "無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。"
-            )
-        if growth_keys:
-            summary_lines.append(
-                f"一方で、**{_jp_list(growth_labels)}** に関する習慣や体験はやや少ないかもしれません。"
-                "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
-                "下の活動例を取り入れてみることをおすすめします。"
-            )
-
-        st.markdown("\n\n".join(summary_lines))
-
-        # =========================
-        # 3) 活動例（各領域）※ここも try: の内側！
-        # =========================
-        st.subheader("あなたに合わせたおすすめ行動（各領域）")
-
-        # （イラストを使う場合は illustrations と os を先頭で定義しておく）
-        def _render_activity_block(k: str, items: list):
-            left, right = st.columns([3, 2])
-            with left:
-                st.markdown(f"**{_ja_only(full_labels[k])}**")
-                for tip in items:
-                    st.markdown(f"- {tip}")
-            # 右カラムに画像を出すならここで st.image(...)
-            # 例:
-            # with right:
-            #     img_path = illustrations.get(k)
-            #     if img_path and (img_path.startswith("http") or os.path.isfile(img_path)):
-            #         st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
-
-        if growth_keys:
-            for k in perma_short_keys:
-                if k in growth_keys:
-                    _render_activity_block(k, tips[k][:3])
-        else:
-            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
-            for k in perma_short_keys:
-                _render_activity_block(k, tips[k][:2])
-
-        # =========================
-        # スタッフ向けメモ（折りたたみ）
-        # =========================
-        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
-            st.markdown(
-                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、生活史・価値観に照らして解釈。\n"
-                "- 活動を新たに取り入れるときは、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
-                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合は専門職へ。"
-            )
+            summ
