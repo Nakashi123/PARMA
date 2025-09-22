@@ -113,8 +113,15 @@ from pathlib import Path  # もう入っていればOK
 
 from pathlib import Path
 
-BASE_DIR = Path(r"C:\Users\guest_user\Desktop\PARMA")
+BASE_DIR = Path(__file__).parent        # ← ここがポイント！実行環境に依存しない
 ASSETS_DIR = BASE_DIR / "assets"
+with right:
+    img_path = illustrations.get(k, "")
+    if img_path and os.path.isfile(img_path):
+        st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
+    else:
+        st.caption(f"（画像が見つかりません：{ASSETS_DIR} 内の {k}）")
+
 
 
 # 指定キーの画像を assets から自動探索（拡張子・大文字小文字ゆるく）
