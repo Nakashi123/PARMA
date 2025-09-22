@@ -609,158 +609,170 @@ def build_perma_pdf_bytes(results, summary, tips_dict, sid: str, today: str, rad
     return buf.getvalue()
 
 
-# ===== フッター：結果の保存／PDF出力タブ =====
+# ===== ここから：1枚PDF生成（集約版） =====
+
+def _wrap_text(text: str, max_chars: int) -> list[str]:
+    """超シンプルな折返し（日本語も固定幅で切る）。"""
+    text = (text or "").replace("\r", "")
+    lines = []
+    while len(text) > max_chars:
+        lines.append(text[:max_chars])
+        text = text[max_chars:]
+    if text:
+        lines.append(text)
+    return lines
+
+def build_perma_pdf_onepage(results, summary, tips_dict, sid: str, today: str, radar_png_b64: str,
+                             uploaded_font_bytes: bytes | None = None) -> bytes:
+    """
+    画面の各セクション（タイトル/ID/日付、レーダー、スコア、まとめ、推奨、スタッフ注意）を
+    A4縦1枚に集約してPDF化。
+    """
+    # フォント
+    font_name = _register_jp_font(uploaded_font_bytes)
+
+    # キャンバス
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    W, H = A4
+    L, R, T, B = 15*mm, 15*mm, 18*mm, 15*mm  # 余白
+
+    # ヘッダ
+    c.setFont(font_name, 20)
+    c.drawString(L, H - T, "PERMAプロファイル")
+    c.setFont(font_name, 11)
+    c.setFillGray(0.4)
+    c.drawString(L, H - T - 7*mm, f"ID: {sid} ／ 日付: {today}")
+    c.setFillGray(0)
+
+    # レーダー画像
+    radar_data = base64.b64decode(radar_png_b64.split(",")[-1])
+    radar_img = ImageReader(io.BytesIO(radar_data))
+    chart_size = 80*mm  # 1枚用に少し小さめ
+    chart_x = L
+    chart_y = H - T - 7*mm - chart_size - 4*mm
+    c.drawImage(radar_img, chart_x, chart_y, width=chart_size, height=chart_size,
+                preserveAspectRatio=True, mask='auto')
+
+    # 右側ブロック（スコア＋まとめ）
+    right_x = chart_x + chart_size + 10*mm
+    right_w = W - R - right_x
+    y = H - T - 5*mm
+
+    # スコア一覧
+    c.setFont(font_name, 14)
+    c.drawString(right_x, y, "スコア一覧")
+    y -= 6*mm
+    c.setFont(font_name, 11.5)
+    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
+    for short, key in mapping:
+        label = full_labels[short].split('（')[0]
+        val = results.get(key, 0.0)
+        c.drawString(right_x, y, f"・{label}")
+        c.drawRightString(right_x + right_w, y, f"{val:.1f}")
+        y -= 5.6*mm
+    avg = float(np.mean(list(results.values())))
+    # 罫線風
+    c.line(right_x, y+2.4*mm, right_x + right_w, y+2.4*mm)
+    c.setFont(font_name, 12)
+    c.drawString(right_x, y, "平均")
+    c.drawRightString(right_x + right_w, y, f"{avg:.1f}")
+    y -= 7*mm
+
+    # まとめ（高さ制限付きで詰める）
+    c.setFont(font_name, 14); c.drawString(right_x, y, "まとめ")
+    y -= 6*mm
+    c.setFont(font_name, 10.6)
+    summary_text = summary.get("summary_text", "")
+    for para in summary_text.split("\n"):
+        for line in _wrap_text(para, max_chars=36):
+            if y < chart_y:  # レーダー下端までで切る
+                break
+            c.drawString(right_x, y, line)
+            y -= 5.0*mm
+
+    # 下段：おすすめ行動（画面5ページ内容を集約）
+    lower_y_top = chart_y - 6*mm
+    c.setFont(font_name, 14)
+    c.drawString(L, lower_y_top, "あなたに合わせたおすすめ行動")
+    y2 = lower_y_top - 6*mm
+    c.setFont(font_name, 11.2)
+    growth = summary.get("growth", [])
+    blocks = []
+    if growth:
+        for k in perma_short_keys:
+            if k in growth and k in tips_dict:
+                blocks.append((full_labels[k], tips_dict[k][:3]))
+    else:
+        for k in perma_short_keys:
+            blocks.append((full_labels[k], tips_dict[k][:2]))
+
+    # 2カラムで詰める
+    col_w = (W - L - R - 6*mm) / 2.0
+    col_x = [L, L + col_w + 6*mm]
+    col_y = [y2, y2]
+    c.setFont(font_name, 11.2)
+    for title, items in blocks:
+        # 短い方の列に積む
+        idx = 0 if col_y[0] > col_y[1] else 1
+        x = col_x[idx]; yy = col_y[idx]
+        # セクションタイトル
+        c.setFont(font_name, 11.5)
+        c.drawString(x, yy, f"● {title}")
+        yy -= 5.2*mm
+        c.setFont(font_name, 10.4)
+        for it in items:
+            for line in _wrap_text(f"・{it}", max_chars=38):
+                if yy < B + 18*mm:  # フッタ分の余白確保
+                    break
+                c.drawString(x + 3*mm, yy, line)
+                yy -= 4.8*mm
+        yy -= 2.5*mm
+        col_y[idx] = yy
+
+    # スタッフ向けメモ（画面6ページ内容を1～2行で集約）
+    foot_y = min(col_y[0], col_y[1]) - 4*mm
+    if foot_y > B + 12*mm:
+        c.setFont(font_name, 10.2)
+        note = (
+            "※ この結果は“良い/悪い”ではなく選好と環境の反映として扱います。"
+            "新しい活動は最小行動から。これはスクリーニングであり診断ではありません。"
+        )
+        for line in _wrap_text(note, max_chars=78):
+            if foot_y < B + 10*mm:  # ぎりぎり
+                break
+            c.drawString(L, foot_y, line); foot_y -= 4.6*mm
+
+    # 下フッタ
+    c.setFont(font_name, 9)
+    c.setFillGray(0.45)
+    c.drawRightString(W - R, B + 6*mm, "© 認知症介護研究・研修大府センター　わらトレスタッフ / 本資料は診断ではありません。")
+    c.setFillGray(0)
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
+# ===== 最後に1個だけボタンを表示（常に一番下） =====
 if st.session_state.get("summary"):
-    export_text = st.session_state.summary.get("summary_text", "")
-    tab1, tab2, tab3 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF (簡易)", "🖨️ 1〜2枚PDF用レイアウト"])
+    # レーダー画像を作ってPDF化
+    _img_b64 = make_radar_png_base64(st.session_state.results)
+    _pdf = build_perma_pdf_onepage(
+        results=st.session_state.results,
+        summary=st.session_state.summary,
+        tips_dict=tips,
+        sid=str(st.session_state.get("selected_id") or "-"),
+        today=_dt.date.today().strftime("%Y-%m-%d"),
+        radar_png_b64=_img_b64,
+        uploaded_font_bytes=None  # 必要ならTTFを読み込んで渡せます
+    )
 
-    with tab1:
-        st.text_area("コピー用（全体まとめ）", value=export_text, height=260)
-        st.download_button(
-            label="結果をテキストで保存",
-            data=export_text,
-            file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}.txt",
-            mime="text/plain"
-        )
-
-    # 既存の簡易印刷
-    with tab2:
-        st.markdown(
-            """
-<style>
-/* 印刷時に余計なUIを隠す */
-@media print {
-  header, footer,
-  .stApp [data-testid="stToolbar"],
-  .stApp [data-testid="stDecoration"],
-  .stApp [data-testid="stStatusWidget"],
-  .stApp [data-testid="stSidebar"],
-  .stApp [data-testid="collapsedControl"] { display: none !important; }
-  .stApp { padding: 0 !important; }
-}
-</style>
-""",
-            unsafe_allow_html=True,
-        )
-        st.write("印刷プレビューからPDFに保存できます（各ブラウザの印刷機能を使用）。")
-        if st.button("印刷ダイアログを開く"):
-            st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
-
-    # 1〜2枚に収める専用レイアウト（Templateで{}衝突回避）
-    with tab3:
-        mode = st.radio("レイアウト", ["1ページに圧縮", "2ページ（ゆったり）"], horizontal=True)
-        today = _dt.date.today().strftime('%Y-%m-%d')
-        sid = str(st.session_state.get('selected_id') or '-')
-        img_b64 = make_radar_png_base64(st.session_state.results)
-        scores_html = make_scores_table_html(st.session_state.results)
-        tips_html = make_tips_html(st.session_state.summary)
-        summary_html = st.session_state.summary.get('summary_text', '').replace("\n", "<br>")
-
-        pages = 1 if mode == "1ページに圧縮" else 2
-
-        html_tpl = Template(r"""
-<style>
-  @page { size: A4; margin: 12mm; }
-  .sheet { width: 190mm; margin: 0 auto; }
-  .page { page-break-after: always; }
-  .title { font-size: 22pt; font-weight: 800; margin: 0 0 6px 0; }
-  .meta { font-size: 11pt; color:#555; margin-bottom: 10px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; align-items: start; }
-  .card { border:1px solid #e6e6e6; border-radius: 10px; padding: 8mm; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-  .h3 { font-weight: 700; font-size: 14pt; border-bottom: 2px solid #f0f0f0; margin: 0 0 6px 0; padding-bottom: 3px; }
-  .summary { font-size: 11.5pt; line-height: 1.6; }
-  .tips .tip { margin-bottom: 6px; }
-  .tips .tip-h { font-weight:700; margin-bottom: 2px; }
-  .tips ul { margin: 0 0 6px 1em; }
-  .footer { font-size: 9pt; color:#666; margin-top: 6mm; }
-  img.chart { width: 100%; height: auto; display: block; }
-</style>
-<div class='sheet page'>
-  <div class='title'>PERMAプロファイル</div>
-  <div class='meta'>ID: $sid ／ 日付: $today</div>
-  <div class='grid'>
-    <div class='card'>
-      <div class='h3'>レーダーチャート</div>
-      <img class='chart' src='$img_b64' />
-    </div>
-    <div class='card'>
-      <div class='h3'>スコア一覧</div>
-      $scores_html
-      <div style='height:6mm'></div>
-      <div class='h3'>まとめ</div>
-      <div class='summary'>$summary_html</div>
-    </div>
-  </div>
-  <div class='card' style='margin-top:8mm;'>
-    <div class='h3'>あなたに合わせたおすすめ行動</div>
-    <div class='tips'>$tips_html</div>
-  </div>
-  <div class='footer'>※ 本資料はスクリーニング結果です。医療的診断ではありません。</div>
-</div>
-$second_page
-<script>
-  function openPrint(){ window.print(); }
-</script>
-""")
-
-        second = ""
-        if pages == 2:
-            second = (
-                "<div class='sheet'>"
-                "  <div class='card'>"
-                "    <div class='h3'>各要素の説明</div>"
-                "    <div style='font-size:11.5pt; line-height:1.6'>"
-                f"      <p><b>{full_labels['P']}</b>：{descriptions['P']}</p>"
-                f"      <p><b>{full_labels['E']}</b>：{descriptions['E']}</p>"
-                f"      <p><b>{full_labels['R']}</b>：{descriptions['R']}</p>"
-                f"      <p><b>{full_labels['M']}</b>：{descriptions['M']}</p>"
-                f"      <p><b>{full_labels['A']}</b>：{descriptions['A']}</p>"
-                "    </div>"
-                "  </div>"
-                "</div>"
-            )
-
-        html = html_tpl.substitute(
-            sid=sid,
-            today=today,
-            img_b64=img_b64,
-            scores_html=scores_html,
-            summary_html=summary_html,
-            tips_html=tips_html,
-            second_page=second
-        )
-
-        st.markdown(html, unsafe_allow_html=True)
-        st.caption("A4サイズで最適化しています。ブラウザの印刷設定で余白を最小/ヘッダー・フッター非表示にすると綺麗です。")
-        if st.button("このレイアウトをPDF保存（印刷ダイアログを開く）"):
-            st.markdown("<script>openPrint();</script>", unsafe_allow_html=True)
-
-    # 直接PDFダウンロード（A4 1枚／2枚）
-    tab4_label = "⬇️ PDFダウンロード（1枚/2枚 自動整形）"
-    with st.tabs([tab4_label])[0]:
-        st.markdown(
-            "日本語フォントが環境に無い場合に備え、必要であればTTF/OTFを上でアップロードしてください。"
-            "未指定でもPDFは出ますが日本語が□になることがあります。"
-        )
-        font_file = st.file_uploader("任意：日本語フォント（.ttf / .otf）", type=["ttf", "otf"])
-        mode_dl = st.radio("レイアウト", ["A4 1枚に収める", "A4 2枚（ゆったり）"], horizontal=True)
-
-        # レーダー画像を作成（既関数を利用）
-        img_b64 = make_radar_png_base64(st.session_state.results)
-        pdf_bytes = build_perma_pdf_bytes(
-            results=st.session_state.results,
-            summary=st.session_state.summary,
-            tips_dict=tips,
-            sid=str(st.session_state.get('selected_id') or '-'),
-            today=_dt.date.today().strftime('%Y-%m-%d'),
-            radar_png_b64=img_b64,
-            page_mode="1page" if mode_dl == "A4 1枚に収める" else "2pages",
-            uploaded_font_bytes=font_file.read() if font_file else None
-        )
-
-        st.download_button(
-            label="この内容をPDFでダウンロード",
-            data=pdf_bytes,
-            file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}.pdf",
-            mime="application/pdf"
-        )
+    st.markdown("---")
+    st.download_button(
+        label="⬇️ この結果を1枚PDFで保存",
+        data=_pdf,
+        file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}_1page.pdf",
+        mime="application/pdf",
+        use_container_width=True
+    )
