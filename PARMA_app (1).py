@@ -173,18 +173,6 @@ def plot_radar(results):
     fig.tight_layout()
     st.pyplot(fig)
 
-# =========================
-# 各要素の説明（2カラム）
-# =========================
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
-
-cols = st.columns(2)
-for i, k in enumerate(perma_short_keys):
-    with cols[i % 2]:
-        st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
-
-st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # ここから2ページ目にする（CSSで改ページ）
