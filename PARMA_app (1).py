@@ -90,7 +90,7 @@ perma_indices = {
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
     'P':'Pー前向きな気持ち（Positive Emotion）',
-    'E':'Eー集中して取り組む（Engagement）',
+    'E':'Eー集中して取り組むこと（Engagement）',
     'R':'Rー人間関係（Relationships）',
     'M':'Mー意味づけ（Meaning）',
     'A':'Aー達成感（Accomplishment）',
@@ -224,12 +224,12 @@ if uploaded:
             st.markdown('<div class="page-2">', unsafe_allow_html=True)
 
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>結果のまとめ</h3></div>', unsafe_allow_html=True)
             st.markdown(summary["summary_text"])
             st.markdown('</div>', unsafe_allow_html=True)
 
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>あなたにおすすめな活動</h3></div>', unsafe_allow_html=True)
             if summary["growth"]:
                 for k in summary["growth"]:
                     st.markdown(f"**{full_labels[k]}**")
