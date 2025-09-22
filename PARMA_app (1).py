@@ -155,18 +155,42 @@ def summarize(results):
 
 def plot_radar(results):
     labels = list(results.keys())
-    vals = list(results.values())
-    vals_loop = vals + [vals[0]]
-    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist() + [0]
-    # さらに小さめ（約5.0inch）
-    fig, ax = plt.subplots(figsize=(5.0, 5.0), subplot_kw=dict(polar=True))
+    values = list(results.values())
+    values += values[:1]
+    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
+    angles += angles[:1]
+
+    # 🔽 サイズを小さめに変更
+    fig, ax = plt.subplots(figsize=(5.5, 5.5), subplot_kw=dict(polar=True))
     for i in range(len(labels)):
-        ax.plot([angles[i], angles[i+1]], [vals_loop[i], vals_loop[i+1]], color=colors[i], linewidth=2.6)
-    ax.fill(angles, vals_loop, alpha=0.10, color="#666")
-    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'], fontsize=11, fontweight="bold")
-    ax.set_ylim(0, 10); ax.set_rticks([2,4,6,8,10]); ax.grid(alpha=0.28, linewidth=0.9)
-    st.pyplot(fig, clear_figure=True)
-    plt.close(fig)
+        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], 
+                color=colors[i], linewidth=3)
+    ax.fill(angles, values, alpha=0.10, color="#888")
+    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
+                      fontsize=int(14*FONT_SCALE), fontweight='bold')
+    ax.set_ylim(0, 10)
+    ax.set_rticks([2,4,6,8,10])
+    fig.tight_layout()
+    st.pyplot(fig)
+
+# =========================
+# 各要素の説明（2カラム）
+# =========================
+st.markdown('<div class="section-card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
+
+cols = st.columns(2)
+for i, k in enumerate(perma_short_keys):
+    with cols[i % 2]:
+        st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# =========================
+# ここから2ページ目にする（CSSで改ページ）
+# =========================
+st.markdown('<div style="page-break-before:always"></div>', unsafe_allow_html=True)
+
 
 # =========================
 # 本体
