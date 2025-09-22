@@ -111,9 +111,16 @@ tips = {
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
 
+illustrations['P'] = r"C:\Users\guest_user\Desktop\P.png" 
+illustrations['M'] = r"C:\Users\guest_user\Desktop\M.png" 
+illustrations['P'] = r"C:\Users\guest_user\Desktop\A.png"
+illustrations['P'] = r"C:\Users\guest_user\Desktop\R.png"
+illustrations['P'] = r"C:\Users\guest_user\Desktop\E.png"
+
+
 # 各要素のイラスト画像（ローカルファイル or 画像URL）
 illustrations = {
-    'P': 'assets/perma_P.png',  # 前向きな気持ち
+    'P': '',  # 前向きな気持ち
     'E': 'assets/perma_E.png',  # 集中して取り組む
     'R': 'assets/perma_R.png',  # 人間関係
     'M': 'assets/perma_M.png',  # 意味づけ
