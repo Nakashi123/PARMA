@@ -170,7 +170,7 @@ if uploaded_file:
 
         # 各要素の説明（レーダー直下）
         st.markdown("""<div class="section-card">
-<div class="section-title"><h3>各要素の説明</h3></div>
+<div class="section-title"><h3>各要素の説明（5つ）</h3></div>
 </div>""", unsafe_allow_html=True)
         for key in perma_short_keys:
             st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
