@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,7 +10,7 @@ from pathlib import Path
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-# ===== アクセシビリティ設定（必要なら数値を調整） =====
+# ===== アクセシビリティ設定 =====
 BASE_FONT_PX = 20
 H1_REM = 2.1
 H2_REM = 1.7
@@ -21,7 +20,7 @@ WIDGET_REM = 1.2
 CARD_PADDING_REM = 1.0
 CARD_RADIUS_PX = 14
 
-# Matplotlibのフォント/サイズ（日本語優先フォントを並べる）
+# Matplotlibのフォント/サイズ（日本語優先）
 FONT_SCALE = 1.25
 plt.rcParams.update({
     "font.size": int(14 * FONT_SCALE),
@@ -37,7 +36,7 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
 })
 
-# ===== 大きめフォントと余白のCSS（高コントラスト） =====
+# ===== 大きめフォントと余白のCSS =====
 st.markdown(f"""
 <style>
 html, body, [class*="css"] {{
@@ -109,6 +108,8 @@ tips = {
     'A': ['小さなSMART目標を1つ設定', '最近の成功を振り返る', 'できたことを小さく祝う']
 }
 
+# 画像（未設定でもエラーにならないダミー辞書）
+illustrations = {k: "" for k in perma_short_keys}
 
 # 高コントラストの色
 colors = ['#D81B60', '#E65100', '#2E7D32', '#1E88E5', '#6A1B9A']
@@ -138,7 +139,7 @@ if uploaded_file:
             st.warning("選択されたIDに該当する行がありません。")
             st.stop()
 
-        # スコア抽出（列名が "6_1"〜"6_23" を想定）
+        # スコア抽出
         score_columns = [col for col in df.columns if str(col).startswith("6_")]
         scores_raw = selected_row[score_columns].values.flatten()
         scores = pd.to_numeric(scores_raw, errors='coerce')
@@ -147,9 +148,7 @@ if uploaded_file:
             st.error("6_1〜6_23 のスコアが不足しています。")
             st.stop()
 
-        # =========================
         # PERMAスコア計算
-        # =========================
         results = {}
         for key, idxs in perma_indices.items():
             valid_scores = [scores[i] for i in idxs if not np.isnan(scores[i])]
@@ -163,9 +162,7 @@ if uploaded_file:
             'A': results['Accomplishment'],
         }
 
-        # =========================
-        # レーダーチャート（大きめ＆読みやすく）
-        # =========================
+        # レーダーチャート
         values = list(results.values())
         values += values[:1]
         angles = np.linspace(0, 2 * np.pi, len(perma_short_keys), endpoint=False).tolist()
@@ -177,116 +174,13 @@ if uploaded_file:
         ax.plot(angles, values, color='#444', alpha=0.3, linewidth=2)
         ax.fill(angles, values, alpha=0.10, color='#888')
 
-        ax.set_thetagrids(np.degrees(angles[:-1]), perma_short_keys, fontsize=int(18 * FONT_SCALE), fontweight='bold')
+        ax.set_thetagrids(np.degrees(angles[:-1]), perma_short_keys,
+                          fontsize=int(18 * FONT_SCALE), fontweight='bold')
         ax.set_ylim(0, 10)
         ax.set_rticks([2, 4, 6, 8, 10])
         ax.tick_params(axis='y', labelsize=int(14 * FONT_SCALE))
         ax.grid(alpha=0.25, linewidth=1.2)
         st.pyplot(fig)
 
-        # =========================
-        # 1) 各要素の説明（レーダー直下／カード表示）
-        # =========================
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
-        for key in perma_short_keys:
-            st.markdown(f"**{full_labels[key]}**：{descriptions[key]}")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        # =========================
-        # 2) 結果のまとめコメント（日本語のみ）
-        # =========================
-        def _jp_list(items):
-            if not items:
-                return ""
-            return items[0] if len(items) == 1 else "、".join(items[:-1]) + " と " + items[-1]
-
-        def _ja_only(label: str) -> str:
-            base = label.split('（')[0]
-            return base.split('ー')[-1].strip()
-
-        avg_score = float(np.mean(list(results.values())))
-        std_score = float(np.std(list(results.values())))
-
-        STRONG_THR = 7.0
-        GROWTH_THR = 5.0
-
-        strong_keys = [k for k in perma_short_keys if value_by_short[k] >= STRONG_THR]
-        growth_keys = [k for k in perma_short_keys if value_by_short[k] < GROWTH_THR]
-        middle_keys = [k for k in perma_short_keys if GROWTH_THR <= value_by_short[k] < STRONG_THR]
-
-        strong_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in strong_keys]
-        growth_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in growth_keys]
-        middle_labels = [_ja_only(full_labels[s]) for s in perma_short_keys if s in middle_keys]
-
-        if std_score < 1.0:
-            balance_comment = "全体としてバランスよく整っています。"
-        elif std_score < 2.0:
-            balance_comment = "おおむね良好ですが、いくつか強弱があります。"
-        else:
-            balance_comment = "要素間の強弱が比較的大きい状態です。"
-
-        st.subheader("結果のまとめコメント")
-
-        if strong_keys:
-            summary_lines.append(
-                f"あなたは **{_jp_list(strong_labels)}** に関して、"
-                "その要素に沿った時間を比較的しっかり過ごせており、"
-                "穏やかさや前向きさ、行動のしやすさが感じられている可能性が高いです。"
-            )
-        if middle_keys:
-            summary_lines.append(
-                f"**{_jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。"
-                "無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。"
-            )
-        if growth_keys:
-            summary_lines.append(
-                f"一方で、**{_jp_list(growth_labels)}** に関する習慣や体験はやや少ないかもしれません。"
-                "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
-                "下の活動例を取り入れてみることをおすすめします。"
-            )
-
-        st.markdown("\n\n".join(summary_lines))
-
-        # =========================
-        # 3) 活動例（各領域）※右側にイラスト表示
-        # =========================
-        st.subheader("あなたに合わせたおすすめ行動（各領域）")
-
-        def _render_activity_block(k: str, items: list):
-            left, right = st.columns([3, 2])
-            with left:
-                st.markdown(f"**{_ja_only(full_labels[k])}**")
-                for tip in items:
-                    st.markdown(f"- {tip}")
-            with right:
-                img_path = illustrations.get(k)
-                if img_path and (img_path.startswith("http") or os.path.isfile(img_path)):
-                    st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
-                else:
-                    st.caption("（画像が見つかりません）")
-
-        if growth_keys:
-            for k in perma_short_keys:
-                if k in growth_keys:
-                    _render_activity_block(k, tips[k][:3])
-        else:
-            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
-            for k in perma_short_keys:
-                _render_activity_block(k, tips[k][:2])
-
-        # =========================
-        # スタッフ向けメモ（折りたたみ）
-        # =========================
-        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
-            st.markdown(
-                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、自分の生活史・価値観に照らして解釈しましょう。\n"
-                "- 活動を新たに取り入れる時は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
-                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合はご受診を検討してください。"
-            )
-
-        st.markdown("---")
-        st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
-
-    except Exception as e:
-        st.error(f"エラーが発生しました: {e}") 
+        # 各要素の説明
+        st.markdown('<div class="sect
