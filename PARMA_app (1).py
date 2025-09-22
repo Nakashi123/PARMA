@@ -111,9 +111,11 @@ tips = {
 # ===== 画像パス（プロジェクト内 assets を絶対パス化して安全に参照） =====
 from pathlib import Path  # もう入っていればOK
 
-# スクリプトが置いてあるフォルダ/parma を基準に assets を参照
-BASE_DIR = Path("C:\Users\guest_user\Desktop\PARMA").parent
-ASSETS_DIR = (BASE_DIR / "assets").resolve()
+from pathlib import Path
+
+BASE_DIR = Path(r"C:\Users\guest_user\Desktop\PARMA")
+ASSETS_DIR = BASE_DIR / "assets"
+
 
 # 指定キーの画像を assets から自動探索（拡張子・大文字小文字ゆるく）
 def pick_image(key: str) -> str:
