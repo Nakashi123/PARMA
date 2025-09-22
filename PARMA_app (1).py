@@ -626,135 +626,25 @@ def _wrap_text(text: str, max_chars: int) -> list[str]:
         lines.append(text)
     return lines
 
-def build_perma_pdf_onepage(results, summary, tips_dict, sid: str, today: str, radar_png_b64: str,
-                             uploaded_font_bytes: bytes | None = None) -> bytes:
-    """
-    A4縦1枚に集約（高齢者向け：大きい文字・行間広め・日本語フォント埋め込み）
-    """
-    font_name = _register_jp_font(uploaded_font_bytes)
+if st.session_state.get("summary"):
+    # 任意：日本語フォントをアップロード（推奨：NotoSansJP-Regular.ttf / IPAexGothic.ttf）
+    jp_font = st.file_uploader("日本語フォント（推奨：NotoSansJP-Regular.ttf / IPAexGothic.ttf）", type=["ttf","otf"])
 
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    W, H = A4
-    L, R, T, B = 15*mm, 15*mm, 18*mm, 15*mm  # 余白
-
-    # ヘッダー（大きめ）
-    c.setFont(font_name, 24)
-    c.drawString(L, H - T, "PERMAプロファイル")
-    c.setFont(font_name, 12)
-    c.setFillGray(0.4)
-    c.drawString(L, H - T - 8*mm, f"ID: {sid}    日付: {today}")
-    c.setFillGray(0)
-
-    # レーダー（やや大きめ）
-    radar_data = base64.b64decode(radar_png_b64.split(",")[-1])
-    radar_img = ImageReader(io.BytesIO(radar_data))
-    chart_size = 95*mm
-    chart_x = L
-    chart_y = H - T - 8*mm - chart_size - 4*mm
-    c.drawImage(radar_img, chart_x, chart_y, width=chart_size, height=chart_size,
-                preserveAspectRatio=True, mask='auto')
-
-    # 右側：スコア＋まとめ（大きい文字＆行間）
-    right_x = chart_x + chart_size + 12*mm
-    right_w = W - R - right_x
-    y = H - T - 4*mm
-
-    # スコア一覧
-    c.setFont(font_name, 16); c.drawString(right_x, y, "スコア一覧")
-    y -= 7*mm
-    c.setFont(font_name, 14)
-    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
-    for short, key in mapping:
-        label = full_labels[short].split('（')[0]
-        val = results.get(key, 0.0)
-        c.drawString(right_x, y, f"・{label}")
-        c.drawRightString(right_x + right_w, y, f"{val:.1f}")
-        y -= 6.5*mm
-    avg = float(np.mean(list(results.values())))
-    c.line(right_x, y+2.8*mm, right_x + right_w, y+2.8*mm)
-    c.setFont(font_name, 15)
-    c.drawString(right_x, y, "平均")
-    c.drawRightString(right_x + right_w, y, f"{avg:.1f}")
-    y -= 8*mm
-
-    # まとめ（本文14pt・行間広め）
-    c.setFont(font_name, 16); c.drawString(right_x, y, "まとめ")
-    y -= 7*mm
-    c.setFont(font_name, 14)
-    summary_text = summary.get("summary_text", "")
-    def _wrap(text, n=34):
-        text = (text or "").replace("\r", "")
-        out = []
-        while len(text) > n:
-            out.append(text[:n]); text = text[n:]
-        if text: out.append(text)
-        return out
-    for para in summary_text.split("\n"):
-        for line in _wrap(para, n=34):
-            if y < chart_y:
-                break
-            c.drawString(right_x, y, line)
-            y -= 6.4*mm
-
-    # 下段：おすすめ行動（本文14pt、2カラム）
-    lower_y_top = chart_y - 8*mm
-    c.setFont(font_name, 16); c.drawString(L, lower_y_top, "あなたに合わせたおすすめ行動")
-    y2 = lower_y_top - 7*mm
-    growth = summary.get("growth", [])
-    blocks = []
-    if growth:
-        for k in perma_short_keys:
-            if k in growth and k in tips_dict:
-                blocks.append((full_labels[k], tips_dict[k][:3]))
-    else:
-        for k in perma_short_keys:
-            blocks.append((full_labels[k], tips_dict[k][:2]))
-
-    col_w = (W - L - R - 8*mm) / 2.0
-    col_x = [L, L + col_w + 8*mm]
-    col_y = [y2, y2]
-    c.setFont(font_name, 14)
-    def wrap2(t, n=38):
-        t = (t or "").replace("\r", "")
-        out = []
-        while len(t) > n:
-            out.append(t[:n]); t = t[n:]
-        if t: out.append(t)
-        return out
-
-    for title, items in blocks:
-        idx = 0 if col_y[0] > col_y[1] else 1
-        x = col_x[idx]; yy = col_y[idx]
-        c.setFont(font_name, 14)
-        c.drawString(x, yy, f"● {title}")
-        yy -= 6.2*mm
-        c.setFont(font_name, 14)
-        for it in items:
-            for line in wrap2(f"・{it}", n=36):
-                if yy < B + 18*mm:
-                    break
-                c.drawString(x + 3*mm, yy, line)
-                yy -= 6.0*mm
-        yy -= 3.0*mm
-        col_y[idx] = yy
-
-    # スタッフ注意（1行〜2行・14pt）
-    foot_y = min(col_y[0], col_y[1]) - 5*mm
-    if foot_y > B + 14*mm:
-        c.setFont(font_name, 13)
-        note = ("※ この結果は“良い/悪い”ではなく選好と環境の反映として扱います。"
-                "新しい活動は最小行動から。これはスクリーニングであり診断ではありません。")
-        for line in wrap2(note, n=64):
-            if foot_y < B + 12*mm: break
-            c.drawString(L, foot_y, line); foot_y -= 6.0*mm
-
-    # フッター
-    c.setFont(font_name, 10)
-    c.setFillGray(0.45)
-    c.drawRightString(W - R, B + 6*mm, "© 認知症介護研究・研修大府センター　わらトレスタッフ / 診断ではありません")
-    c.setFillGray(0)
-
-    c.save()
-    buf.seek(0)
-    return buf.getvalue()
+    _img_b64 = make_radar_png_base64(st.session_state.results)
+    _pdf = build_perma_pdf_onepage(
+        results=st.session_state.results,
+        summary=st.session_state.summary,
+        tips_dict=tips,
+        sid=str(st.session_state.get("selected_id") or "-"),
+        today=_dt.date.today().strftime("%Y-%m-%d"),
+        radar_png_b64=_img_b64,
+        uploaded_font_bytes=jp_font.read() if jp_font else None  # ← ここで埋め込み
+    )
+    st.markdown("---")
+    st.download_button(
+        label="⬇️ この結果を1枚PDFで保存（日本語フォント埋め込み）",
+        data=_pdf,
+        file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}_1page.pdf",
+        mime="application/pdf",
+        use_container_width=True
+    )
