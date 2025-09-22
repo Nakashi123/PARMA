@@ -79,6 +79,29 @@ h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.1rem 0 .4rem 0;
 }}
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+.page { page-break-after: always; }
+.first-page .grid1{
+  display:grid; grid-template-columns: 240px 1fr; gap:16px; align-items:start;
+}
+.first-page .left .chart-sm{ width: 220px; height:auto; display:block; }
+.first-page .right .desc-2col{
+  column-count: 2; column-gap: 18px;
+}
+.first-page .h3{
+  font-weight:700; font-size:1.2rem; border-bottom:2px solid #f0f0f0; margin:0 0 8px 0; padding-bottom:2px;
+}
+/* 印刷最適化：A4縦 */
+@media print{
+  @page { size: A4; margin: 12mm; }
+  header, footer, .stApp [data-testid="stToolbar"], .stApp [data-testid="stDecoration"],
+  .stApp [data-testid="stStatusWidget"], .stApp [data-testid="stSidebar"],
+  .stApp [data-testid="collapsedControl"]{ display:none !important; }
+  .stApp{ padding:0 !important; }
+}
+</style>
+""", unsafe_allow_html=True)
 
 # =========================
 # 定義
