@@ -109,8 +109,8 @@ tips = {
 }
 
 # ===== 画像パス（プロジェクト内 assets を絶対パス化して安全に参照） =====
-BASE_DIR = Path(__file__).parent  # 例: C:/Users/guest_user/Desktop/PARMA
-ASSETS_DIR = BASE_DIR / "assets"  # 例: C:/Users/guest_user/Desktop/PARMA/assets
+BASE_DIR = Path(C:/Users/guest_user/Desktop/PARMA).parent  
+ASSETS_DIR = BASE_DIR / "C:/Users/guest_user/Desktop/PARMA/assets"  
 
 illustrations = {
     'P': str(ASSETS_DIR / "P.png"),
