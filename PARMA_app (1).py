@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-import io
-import base64
-import datetime as _dt
-
+import io, base64
 import streamlit as st
-import pandas as pd
-import numpy as np
+import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 
 # =========================
@@ -13,20 +9,19 @@ import matplotlib.pyplot as plt
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-BASE_FONT_PX   = 20
+BASE_FONT_PX = 20
 H1_REM, H2_REM, H3_REM = 2.4, 2.0, 1.7
-LINE_HEIGHT    = 1.9
-CARD_RADIUS_PX = 14
-CARD_PAD_REM   = 1.0
-FONT_SCALE     = 1.25
+LINE_HEIGHT = 1.9
+CARD_RADIUS_PX, CARD_PAD_REM = 14, 1.0
+FONT_SCALE = 1.2
 
 plt.rcParams.update({
-    "font.size": int(14 * FONT_SCALE),
-    "axes.titlesize": int(18 * FONT_SCALE),
-    "axes.labelsize": int(16 * FONT_SCALE),
-    "xtick.labelsize": int(14 * FONT_SCALE),
-    "ytick.labelsize": int(14 * FONT_SCALE),
-    "legend.fontsize": int(14 * FONT_SCALE),
+    "font.size": int(13 * FONT_SCALE),
+    "axes.titlesize": int(16 * FONT_SCALE),
+    "axes.labelsize": int(14 * FONT_SCALE),
+    "xtick.labelsize": int(12 * FONT_SCALE),
+    "ytick.labelsize": int(12 * FONT_SCALE),
+    "legend.fontsize": int(12 * FONT_SCALE),
     "font.sans-serif": [
         "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
         "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial","DejaVu Sans"
@@ -34,30 +29,36 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
 })
 
-# 印刷用CSS
+# =========================
+# CSS（印刷最適化＋改ページ制御）
+# =========================
 st.markdown(f"""
 <style>
 html, body, [class*="css"] {{
-  font-size: {BASE_FONT_PX}px !important;
-  line-height: {LINE_HEIGHT} !important;
-  font-family: "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
-               "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial",sans-serif !important;
-  color: #111 !important;
+  font-size:{BASE_FONT_PX}px !important;
+  line-height:{LINE_HEIGHT} !important;
+  font-family:"Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo","Noto Sans JP",sans-serif !important;
 }}
-h1 {{ font-size: {H1_REM}rem !important; font-weight: 800; text-align:center; }}
-h2 {{ font-size: {H2_REM}rem !important; font-weight: 700; }}
-h3 {{ font-size: {H3_REM}rem !important; font-weight: 700; }}
+h1 {{ font-size:{H1_REM}rem !important; font-weight:800; }}
+h2 {{ font-size:{H2_REM}rem !important; font-weight:700; }}
+h3 {{ font-size:{H3_REM}rem !important; font-weight:700; }}
 .section-card {{
   background:#fff; border:1px solid #e6e6e6; border-radius:{CARD_RADIUS_PX}px;
-  padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.3}rem; margin:1.2rem 0;
+  padding:{CARD_PAD_REM}rem; margin:0.75rem 0 1rem 0;
   box-shadow:0 2px 8px rgba(0,0,0,.06);
+  page-break-inside: avoid;
 }}
-.section-title {{ border-bottom:2px solid #f0f0f0; padding-bottom:.25rem; margin-bottom:.6rem; }}
-.main-wrap {{ max-width: 900px; margin: 0 auto; }}
+.section-title {{ border-bottom:2px solid #f0f0f0; margin-bottom:.6rem; }}
+.main-wrap {{ max-width:920px; margin:0 auto; }}
 @media print {{
-  @page {{ size: A4; margin: 14mm; }}
-  header, footer, .stApp [data-testid="stSidebar"], .no-print {{ display: none !important; }}
-  .stApp {{ padding: 0 !important; }}
+  @page {{ size:A4; margin:14mm; }}
+  .stApp [data-testid="stToolbar"],
+  .stApp [data-testid="stDecoration"],
+  .stApp [data-testid="stStatusWidget"],
+  .stApp [data-testid="stSidebar"],
+  .stApp [data-testid="collapsedControl"] {{display:none !important;}}
+  .stApp {{ padding:0 !important; }}
+  .page-break {{ page-break-before:always; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -66,11 +67,11 @@ h3 {{ font-size: {H3_REM}rem !important; font-weight: 700; }}
 # 定義
 # =========================
 perma_indices = {
-    'Positive Emotion': [0, 1, 2],
-    'Engagement'      : [3, 4, 5],
-    'Relationships'   : [6, 7, 8],
-    'Meaning'         : [9,10,11],
-    'Accomplishment'  : [12,13,14],
+    'Positive Emotion':[0,1,2],
+    'Engagement':[3,4,5],
+    'Relationships':[6,7,8],
+    'Meaning':[9,10,11],
+    'Accomplishment':[12,13,14],
 }
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
@@ -88,153 +89,114 @@ descriptions = {
     'A':'目標に向かって取り組み、できた・やり遂げたという手応えがあること。',
 }
 tips = {
-    'P': ['感謝を込めた手紙を書く','毎日、その日にあった「良かったこと」を三つ書く。','最近うまくいった出来事を思い出す'],
-    'E': ['自分の得意なことを行う','自分の強みを書く','呼吸に集中して心を落ち着ける'],
-    'R': ['日常で小さな親切を行う','周囲の人に大いに喜びを伝える'],
-    'M': ['自分の価値や目的に合った目標を立てる','困難を振り返る','得られた新しい機会や意味を考える'],
-    'A': ['小さな習慣を積み重ねる','失敗も学びととらえる','はっきりとした目標を決める'],
+    'P':['感謝を込めた手紙を書く','毎日その日の「良かったこと」を三つ書く','最近うまくいった出来事を思い出す'],
+    'E':['自分の得意なことを行う','自分の強みを書く','呼吸に集中して心を落ち着ける'],
+    'R':['日常で小さな親切を行う','周囲の人に喜びを伝える'],
+    'M':['自分の価値に合った目標を立てる','困難を振り返る','得られた新しい意味を考える'],
+    'A':['小さな習慣を積み重ねる','失敗も学びととらえる','明確な目標を決める'],
 }
 colors = ['#D81B60','#E65100','#2E7D32','#1E88E5','#6A1B9A']
 
 # =========================
 # ユーティリティ
 # =========================
-def ja_only(label: str) -> str:
-    base = label.split('（')[0]
-    return base.split('ー')[-1].strip()
-
-def jp_list(items):
-    if not items: return ""
-    return items[0] if len(items)==1 else "、".join(items[:-1]) + " と " + items[-1]
-
 def compute_results(selected_row: pd.DataFrame):
-    score_columns = [c for c in selected_row.columns if str(c).startswith("6_")]
-    scores_raw = selected_row[score_columns].values.flatten()
-    scores = pd.to_numeric(scores_raw, errors='coerce')
-    results = {}
-    for k, idxs in perma_indices.items():
-        vals = [scores[i] for i in idxs if i < len(scores) and not np.isnan(scores[i])]
-        results[k] = float(np.mean(vals)) if len(vals) else 0.0
-    return results
+    cols = [c for c in selected_row.columns if str(c).startswith("6_")]
+    vals = pd.to_numeric(selected_row[cols].values.flatten(), errors='coerce')
+    res = {}
+    for k,idx in perma_indices.items():
+        scores=[vals[i] for i in idx if i<len(vals) and not np.isnan(vals[i])]
+        res[k]=float(np.mean(scores)) if scores else 0.0
+    return res
 
 def summarize(results):
-    avg = float(np.mean(list(results.values())))
-    STRONG_THR, GROWTH_THR = 7.0, 5.0
-    by_short = {
-        'P': results['Positive Emotion'],
-        'E': results['Engagement'],
-        'R': results['Relationships'],
-        'M': results['Meaning'],
-        'A': results['Accomplishment'],
-    }
-    strong = [k for k in perma_short_keys if by_short[k] >= STRONG_THR]
-    growth = [k for k in perma_short_keys if by_short[k] <  GROWTH_THR]
-    middle = [k for k in perma_short_keys if GROWTH_THR <= by_short[k] < STRONG_THR]
+    avg=float(np.mean(list(results.values())))
+    STRONG, GROWTH=7.0,5.0
+    by_short={'P':results['Positive Emotion'],'E':results['Engagement'],
+              'R':results['Relationships'],'M':results['Meaning'],'A':results['Accomplishment']}
+    strong=[k for k in perma_short_keys if by_short[k]>=STRONG]
+    growth=[k for k in perma_short_keys if by_short[k]<GROWTH]
+    middle=[k for k in perma_short_keys if GROWTH<=by_short[k]<STRONG]
 
-    strong_labels = [ja_only(full_labels[s]) for s in strong]
-    growth_labels = [ja_only(full_labels[s]) for s in growth]
-    middle_labels = [ja_only(full_labels[s]) for s in middle]
-
-    lines = [f"**総合評価**：平均 {avg:.1f} 点。"]
-    if strong:
-        lines.append(f"あなたは **{jp_list(strong_labels)}** が比較的しっかり育まれています。")
-    if middle:
-        lines.append(f"**{jp_list(middle_labels)}** は一定の満足があり安定しています。")
-    if growth:
-        lines.append(f"一方で、**{jp_list(growth_labels)}** は改善の余地が見られます。")
-    return {"summary_text": "\n\n".join(lines), "growth": growth}
+    def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
+    def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
+    lines=[f"**総合評価**：平均 {avg:.1f} 点。"]
+    if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
+    if middle: lines.append(f"**{jlist([ja(m) for m in middle])}** は一定の満足が見られます。")
+    if growth: lines.append(f"**{jlist([ja(g) for g in growth])}** は改善の余地があります。")
+    return {"summary_text":"\n\n".join(lines),"growth":growth}
 
 def plot_radar(results):
-    labels = list(results.keys())
-    values = list(results.values())
-    values += values[:1]
-    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(8,8), subplot_kw=dict(polar=True))
+    labels=list(results.keys()); values=list(results.values())+[list(results.values())[0]]
+    angles=np.linspace(0,2*np.pi,len(labels),endpoint=False).tolist()+[0]
+    fig,ax=plt.subplots(figsize=(6.4,6.4),subplot_kw=dict(polar=True))
     for i in range(len(labels)):
-        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=4)
-    ax.plot(angles, values, color="#444", alpha=0.35, linewidth=2)
-    ax.fill(angles, values, alpha=0.10, color="#888")
-    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
-                      fontsize=int(18*FONT_SCALE), fontweight='bold')
-    ax.set_ylim(0, 10)
-    ax.set_rticks([2,4,6,8,10])
-    ax.tick_params(axis='y', labelsize=int(14*FONT_SCALE))
-    ax.grid(alpha=0.25, linewidth=1.2)
-    fig.tight_layout()
-    st.pyplot(fig)
+        ax.plot([angles[i],angles[i+1]],[values[i],values[i+1]],color=colors[i],linewidth=3)
+    ax.fill(angles,values,alpha=0.1,color="#888")
+    ax.set_thetagrids(np.degrees(angles[:-1]),['P','E','R','M','A'],fontsize=14,fontweight="bold")
+    ax.set_ylim(0,10); ax.set_rticks([2,4,6,8,10]); ax.grid(alpha=0.3)
+    st.pyplot(fig); plt.close(fig)
 
 # =========================
 # 本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
-
 st.title("PERMAプロファイル")
-st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
 
-uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
+uploaded=st.file_uploader("Excelファイルをアップロードしてください",type="xlsx")
 
 if uploaded:
-    try:
-        df = pd.read_excel(uploaded)
-        id_list = df.iloc[:, 0].dropna().astype(str).tolist()
-        sid = st.selectbox("IDを選んでください", options=id_list, index=0)
-        selected_row = df[df.iloc[:, 0].astype(str) == sid]
+    df=pd.read_excel(uploaded)
+    sid=st.selectbox("IDを選んでください",options=df.iloc[:,0].astype(str).tolist())
+    row=df[df.iloc[:,0].astype(str)==sid]
+    if not row.empty:
+        results=compute_results(row); summary=summarize(results)
 
-        if not selected_row.empty:
-            results = compute_results(selected_row)
-            summary = summarize(results)
+        # --------- 1ページ目 ---------
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
+        plot_radar(results)
+        st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            # 1ページ目
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
-            plot_radar(results)
-            st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
+        for k in perma_short_keys:
+            st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
+        # 改ページ
+        st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
+
+        # --------- 2ページ目 ---------
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
+        st.markdown(summary["summary_text"])
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
+        if summary["growth"]:
+            for k in summary["growth"]:
+                st.markdown(f"**{full_labels[k]}**")
+                for t in tips[k][:3]: st.markdown(f"- {t}")
+        else:
+            st.markdown("大きな偏りは見られません。維持と予防のために以下の活動も役立ちます。")
             for k in perma_short_keys:
-                st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
-            st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f"**{full_labels[k]}**")
+                for t in tips[k][:2]: st.markdown(f"- {t}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            # 2ページ目
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
-            st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
-            st.markdown(summary["summary_text"])
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
+        st.markdown(
+            "- 結果は“良い/悪い”ではなく **選好や環境** の反映です。\n"
+            "- 活動を取り入れるときは、まず小さな一歩から。（例：1日5分の散歩）\n"
+            "- 本ツールは **スクリーニング** であり診断ではありません。不調が続く場合は専門職へご相談ください。"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
-            growth_keys = summary["growth"]
-            if growth_keys:
-                for k in perma_short_keys:
-                    if k in growth_keys:
-                        st.markdown(f"**{full_labels[k]}**")
-                        for tip in tips[k][:3]:
-                            st.markdown(f"- {tip}")
-            else:
-                st.markdown("現在は大きな偏りは見られません。維持と予防のために、次の活動も役立ちます。")
-                for k in perma_short_keys:
-                    st.markdown(f"**{full_labels[k]}**")
-                    for tip in tips[k][:2]:
-                        st.markdown(f"- {tip}")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
-            st.markdown(
-                "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱います。\n"
-                "- 活動を取り入れる際は、まず **最小行動** から始めましょう。（例：1日5分の散歩 など）\n"
-                "- 本ツールは **スクリーニング** であり医療的診断ではありません。"
-            )
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(f"データ読み込み時にエラーが発生しました：{e}")
 else:
-    st.info("まずはExcel（.xlsx）をアップロードしてください。")
+    st.info("まずはExcelファイルをアップロードしてください。")
 
 st.markdown('</div>', unsafe_allow_html=True)
