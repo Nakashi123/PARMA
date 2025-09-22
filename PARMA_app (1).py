@@ -292,4 +292,4 @@ if uploaded_file:
         st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
 
     except Exception as e:
-        st.error(f"エラーが発生しました: {e}") 　　もういいや。これで行く！もっと文字を大きく見やすくして
+        st.error(f"エラーが発生しました: {e}") 
