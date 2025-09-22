@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
@@ -160,15 +159,13 @@ def summarize(results):
         )
 
     return {
-        "avg": avg,
-        "std": std,
+        "avg": avg, "std": std,
         "by_short": by_short,
-        "strong": strong,
-        "growth": growth,
-        "middle": middle,
-        "summary_text": "\n\n".join(lines)
-    }
+        "strong": strong, "growth": growth, "middle": middle,
+        "summary_text": "
 
+".join(lines)
+    }
 
 def plot_radar(results):
     labels = list(results.keys())
@@ -335,13 +332,11 @@ elif st.session_state.page == 5:
 # =========================
 elif st.session_state.page == 6:
     with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
-with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
-    st.markdown("""
-    - この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。
-    - 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩/感謝の手紙3文 など）。
-    - 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。
-    """)
-
+        st.markdown("""
+        - この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。
+        - 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩/感謝の手紙3文 など）。
+        - 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。
+        """)
 
     st.markdown("---")
     st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
@@ -459,8 +454,8 @@ if st.session_state.get("summary"):
         img_b64 = make_radar_png_base64(st.session_state.results)
         scores_html = make_scores_table_html(st.session_state.results)
         tips_html = make_tips_html(st.session_state.summary)
-        summary_html = st.session_state.summary.get('summary_text', '').replace("\n", "<br>")
-
+        summary_html = st.session_state.summary.get('summary_text','').replace("
+", "<br>")
 
         pages = 1 if mode == "1ページに圧縮" else 2
 
