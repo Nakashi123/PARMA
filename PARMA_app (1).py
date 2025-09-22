@@ -215,8 +215,10 @@ if uploaded:
                     "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
                 )
             st.markdown('</div>', unsafe_allow_html=True)
+
     except Exception as e:
         st.error(f"データ読み込み時にエラーが発生しました：{e}")
+
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             colA, colB = st.columns(2)
