@@ -130,9 +130,6 @@ def summarize(results):
     growth = [k for k in perma_short_keys if by_short[k] <  GROWTH_THR]
     middle = [k for k in perma_short_keys if GROWTH_THR <= by_short[k] < STRONG_THR]
 
-    if   std < 1.0: balance = "全体としてバランスよく整っています。"
-    elif std < 2.0: balance = "おおむね良好ですが、いくつか強弱があります。"
-    else:           balance = "要素間の強弱が比較的大きい状態です。"
 
     strong_labels = [ja_only(full_labels[s]) for s in strong]
     growth_labels = [ja_only(full_labels[s]) for s in growth]
