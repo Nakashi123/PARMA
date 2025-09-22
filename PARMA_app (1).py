@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import io
 import base64
 import datetime as _dt
@@ -9,31 +8,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from textwrap import shorten
-from string import Template
-
-# PDF生成用
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
-from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-
-
-
-
 # =========================
-# 基本設定
+# 基本設定（レイアウト & フォント）
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-# アクセシビリティ（大きめ文字＆行間）
+# 見やすさ（高齢者向け：大きめ）
 BASE_FONT_PX   = 20
-H1_REM, H2_REM, H3_REM = 2.2, 1.8, 1.5
-LINE_HEIGHT    = 1.8
+H1_REM, H2_REM, H3_REM = 2.4, 2.0, 1.7
+LINE_HEIGHT    = 1.9
 WIDGET_REM     = 1.2
 CARD_RADIUS_PX = 14
 CARD_PAD_REM   = 1.0
@@ -53,8 +36,10 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
 })
 
+# 全体CSS（印刷最適化つき）
 st.markdown(f"""
 <style>
+/* 共通文字 */
 html, body, [class*="css"] {{
   font-size: {BASE_FONT_PX}px !important;
   line-height: {LINE_HEIGHT} !important;
@@ -64,7 +49,7 @@ html, body, [class*="css"] {{
 }}
 h1 {{ font-size: {H1_REM}rem !important; font-weight: 800; }}
 h2 {{ font-size: {H2_REM}rem !important; font-weight: 700; }}
-h3 {{ font-size: {H3_REM}rem !重要; font-weight: 700; }}
+h3 {{ font-size: {H3_REM}rem !important; font-weight: 700; }}
 .section-card {{
   background:#fff; border:1px solid #e6e6e6; border-radius:{CARD_RADIUS_PX}px;
   padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.3}rem; margin:0.75rem 0 1rem 0;
@@ -74,6 +59,22 @@ h3 {{ font-size: {H3_REM}rem !重要; font-weight: 700; }}
 .stSelectbox label, .stFileUploader label, .stRadio label, .stCheckbox label {{ font-size:{WIDGET_REM}rem !important; }}
 div[data-baseweb="select"] * {{ font-size:{WIDGET_REM}rem !important; }}
 input, textarea {{ font-size:{WIDGET_REM}rem !important; }}
+
+/* 用紙幅を意識した中央寄せ */
+.main-wrap {{ max-width: 980px; margin: 0 auto; }}
+
+/* 印刷最適化：A4縦、UIを隠す */
+@media print {{
+  @page {{ size: A4; margin: 12mm; }}
+  header, footer,
+  .stApp [data-testid="stToolbar"],
+  .stApp [data-testid="stDecoration"],
+  .stApp [data-testid="stStatusWidget"],
+  .stApp [data-testid="stSidebar"],
+  .stApp [data-testid="collapsedControl"] {{ display: none !important; }}
+  .stApp {{ padding: 0 !important; }}
+  .no-print {{ display: none !important; }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -81,7 +82,6 @@ input, textarea {{ font-size:{WIDGET_REM}rem !important; }}
 # 定義
 # =========================
 perma_indices = {
-    # 6_1〜6_23 から各3項目想定（不足時は自動で除外）
     'Positive Emotion': [0, 1, 2],
     'Engagement'      : [3, 4, 5],
     'Relationships'   : [6, 7, 8],
@@ -120,15 +120,13 @@ def ja_only(label: str) -> str:
     return base.split('ー')[-1].strip()
 
 def jp_list(items):
-    if not items:
-        return ""
-    return items[0] if len(items) == 1 else "、".join(items[:-1]) + " と " + items[-1]
+    if not items: return ""
+    return items[0] if len(items)==1 else "、".join(items[:-1]) + " と " + items[-1]
 
 def compute_results(selected_row: pd.DataFrame):
     score_columns = [c for c in selected_row.columns if str(c).startswith("6_")]
     scores_raw = selected_row[score_columns].values.flatten()
     scores = pd.to_numeric(scores_raw, errors='coerce')
-
     results = {}
     for k, idxs in perma_indices.items():
         vals = [scores[i] for i in idxs if i < len(scores) and not np.isnan(scores[i])]
@@ -137,8 +135,6 @@ def compute_results(selected_row: pd.DataFrame):
 
 def summarize(results):
     avg = float(np.mean(list(results.values())))
-    std = float(np.std(list(results.values())))
-
     STRONG_THR, GROWTH_THR = 7.0, 5.0
     by_short = {
         'P': results['Positive Emotion'],
@@ -151,13 +147,11 @@ def summarize(results):
     growth = [k for k in perma_short_keys if by_short[k] <  GROWTH_THR]
     middle = [k for k in perma_short_keys if GROWTH_THR <= by_short[k] < STRONG_THR]
 
-    balance = ""  # 予備（文面そのまま）
-
     strong_labels = [ja_only(full_labels[s]) for s in strong]
     growth_labels = [ja_only(full_labels[s]) for s in growth]
     middle_labels = [ja_only(full_labels[s]) for s in middle]
 
-    lines = [f"**総合評価**：平均 {avg:.1f} 点。{balance}"]
+    lines = [f"**総合評価**：平均 {avg:.1f} 点。"]
     if strong:
         lines.append(
             "判定は、各要素の平均が **7点以上=強み**、**5〜7点=一定の満足**、**5点未満=改善余地** としています。"
@@ -174,29 +168,18 @@ def summarize(results):
             "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
             "下の活動例を取り入れてみましょう。"
         )
-
-    return {
-        "avg": avg,
-        "std": std,
-        "by_short": by_short,
-        "strong": strong,
-        "growth": growth,
-        "middle": middle,
-        "summary_text": "\n\n".join(lines)
-    }
+    return {"summary_text": "\n\n".join(lines), "growth": growth}
 
 def plot_radar(results):
     labels = list(results.keys())
     values = list(results.values())
-    values += values[:1]  # close loop
-
+    values += values[:1]
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(7.8, 7.8), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(8.2, 8.2), subplot_kw=dict(polar=True))
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=4)
-
     ax.plot(angles, values, color="#444", alpha=0.35, linewidth=2)
     ax.fill(angles, values, alpha=0.10, color="#888")
     ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
@@ -208,185 +191,13 @@ def plot_radar(results):
     fig.tight_layout()
     st.pyplot(fig)
 
-# =========================
-# ページ状態
-# =========================
-if "page" not in st.session_state:
-    st.session_state.page = 1
-if "df" not in st.session_state:
-    st.session_state.df = None
-if "selected_id" not in st.session_state:
-    st.session_state.selected_id = None
-if "results" not in st.session_state:
-    st.session_state.results = None
-if "summary" not in st.session_state:
-    st.session_state.summary = None
-if "last_sid" not in st.session_state:
-    st.session_state.last_sid = None
-
-# =========================
-# ページ1：データ入力（アップロード & ID）
-# =========================
-if st.session_state.page == 1:
-    st.header("データ入力（スタッフ用）")
-    uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください", type="xlsx")
-    if uploaded:
-        try:
-            st.session_state.df = pd.read_excel(uploaded)
-            st.success("データ読み込み成功！")
-            id_list = st.session_state.df.iloc[:, 0].dropna().astype(str).tolist()
-            st.session_state.selected_id = st.selectbox("IDを選んでください", options=id_list)
-            if st.button("次へ ▶"):
-                if st.session_state.selected_id:
-                    st.session_state.page = 2
-                    st.rerun()
-        except Exception as e:
-            st.error(f"エラーが発生しました: {e}")
-
-# =========================
-# 準備（以降のページで共通使用）
-# =========================
-if st.session_state.page >= 2:
-    df = st.session_state.df
-    sid = st.session_state.selected_id
-    if df is None or sid is None:
-        st.warning("最初のページでデータを読み込み、IDを選択してください。")
-        st.stop()
-    selected_row = df[df.iloc[:, 0].astype(str) == sid]
-    if selected_row.empty:
-        st.warning("選択されたIDに該当する行がありません。")
-        st.stop()
-    if (st.session_state.results is None) or (st.session_state.summary is None) or (st.session_state.last_sid != sid):
-        st.session_state.results = compute_results(selected_row)
-        st.session_state.summary = summarize(st.session_state.results)
-        st.session_state.last_sid = sid
-
-# =========================
-# ページ2：タイトル＋レーダーチャート（1ページ）
-# =========================
-if st.session_state.page == 2:
-    st.title("あなたのPERMAプロファイル")
-    st.markdown("### PERMA：しあわせを支える5つの要素")
-    st.markdown("この図は、あなたが現在の生活でどの種類のしあわせな時間をどの程度過ごせているかを表しています。")
-
-    plot_radar(st.session_state.results)
-
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button("◀ 戻る"):
-            st.session_state.page = 1
-            st.rerun()
-    with cols[1]:
-        if st.button("次へ ▶"):
-            st.session_state.page = 3
-            st.rerun()
-
-# =========================
-# ページ3：各要素の説明（1ページ）
-# =========================
-elif st.session_state.page == 3:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
-    for k in perma_short_keys:
-        st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button("◀ 戻る"):
-            st.session_state.page = 2
-            st.rerun()
-    with cols[1]:
-        if st.button("次へ ▶"):
-            st.session_state.page = 4
-            st.rerun()
-
-# =========================
-# ページ4：まとめコメント（1ページ）
-# =========================
-elif st.session_state.page == 4:
-    st.subheader("結果のまとめコメント")
-    st.markdown(st.session_state.summary["summary_text"])
-
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button("◀ 戻る"):
-            st.session_state.page = 3
-            st.rerun()
-    with cols[1]:
-        if st.button("次へ ▶"):
-            st.session_state.page = 5
-            st.rerun()
-
-# =========================
-# ページ5：あなたに合わせたおすすめ行動（1ページ）
-# =========================
-elif st.session_state.page == 5:
-    st.subheader("あなたに合わせたおすすめ行動（各領域）")
-
-    growth_keys = st.session_state.summary["growth"]
-    if growth_keys:
-        st.markdown("伸ばしたい・機会を増やしたい領域に合わせた例です。")
-        for k in perma_short_keys:
-            if k in growth_keys:
-                st.markdown(f"**{full_labels[k]}**")
-                for tip in tips[k][:3]:
-                    st.markdown(f"- {tip}")
-    else:
-        st.markdown("現在は大きな偏りは見られません。維持と予防のために、次の活動も役立ちます。")
-        for k in perma_short_keys:
-            st.markdown(f"**{full_labels[k]}**")
-            for tip in tips[k][:2]:
-                st.markdown(f"- {tip}")
-
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button("◀ 戻る"):
-            st.session_state.page = 4
-            st.rerun()
-    with cols[1]:
-        if st.button("次へ ▶"):
-            st.session_state.page = 6
-            st.rerun()
-
-# =========================
-# ページ6：スタッフ向けメモ（1ページ）
-# =========================
-elif st.session_state.page == 6:
-    with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
-        st.markdown("""
-- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。
-- 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩/感謝の手紙3文 など）。
-- 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。
-""")
-
-    st.markdown("---")
-    st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
-
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button("◀ 戻る"):
-            st.session_state.page = 5
-            st.rerun()
-    with cols[1]:
-        if st.button("最初に戻る ⟳"):
-            st.session_state.page = 1
-            st.session_state.df = None
-            st.session_state.selected_id = None
-            st.session_state.results = None
-            st.session_state.summary = None
-            st.rerun()
-
-# ===== ここから：結果の保存／PDF出力 =====
-
 def make_radar_png_base64(results):
     labels = list(results.keys())
     values = list(results.values())
     values += values[:1]
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(6.5, 6.5), subplot_kw=dict(polar=True), dpi=180)
+    fig, ax = plt.subplots(figsize=(6.8, 6.8), subplot_kw=dict(polar=True), dpi=180)
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=3)
     ax.plot(angles, values, color="#444", alpha=0.35, linewidth=1.6)
@@ -398,203 +209,115 @@ def make_radar_png_base64(results):
     ax.tick_params(axis='y', labelsize=int(12*FONT_SCALE))
     ax.grid(alpha=0.25, linewidth=1.0)
     fig.tight_layout()
-
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     b64 = base64.b64encode(buf.getvalue()).decode()
     return f"data:image/png;base64,{b64}"
 
-def make_scores_table_html(results):
-    rows = []
-    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
-    for short, key in mapping:
-        label = full_labels[short].split('（')[0]
-        val = results.get(key, 0.0)
-        rows.append(f"<tr><td>{label}</td><td style='text-align:right;font-weight:700'>{val:.1f}</td></tr>")
-    avg = float(np.mean(list(results.values())))
-    rows.append("<tr><td style='border-top:2px solid #ddd'>平均</td><td style='text-align:right;font-weight:800;border-top:2px solid #ddd'>%.1f</td></tr>" % avg)
-    table = "<table style='width:100%; border-collapse:collapse; font-size:12pt;'><thead><tr><th style='text-align:left'>領域</th><th style='text-align:right'>スコア(0-10)</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
-    return table
+# =========================
+# 1ページに全表示（アップロード→ID選択→結果）
+# =========================
+st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
-def make_tips_html(summary):
-    growth = summary.get('growth', [])
-    if not growth:
-        return "<p>現在は大きな偏りは見られません。維持のため、日常に小さな取り組みを続けましょう。</p>"
-    blocks = []
-    for k in perma_short_keys:
-        if k in growth and k in tips:
-            tip_items = ''.join([f"<li>{shorten(t, width=36, placeholder='…')}</li>" for t in tips[k][:3]])
-            blocks.append(f"<div class='tip'><div class='tip-h'>{full_labels[k]}</div><ul>{tip_items}</ul></div>")
-    return "".join(blocks)
+st.title("PERMAプロファイル")
+st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
 
-def _register_jp_font(uploaded_font_bytes: bytes | None = None) -> str:
-    """
-    日本語表示用フォントをReportLabに登録してフォント名を返す。
-    フォントがない場合はHelveticaを返す（※日本語は豆腐になるがPDF生成は動く）。
-    """
+uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
+
+if uploaded:
     try:
-        # 1) アップロードフォントがあればそれを使う
-        if uploaded_font_bytes:
-            tmp_path = os.path.join(os.getcwd(), "jpfont.ttf")
-            with open(tmp_path, "wb") as f:
-                f.write(uploaded_font_bytes)
-            pdfmetrics.registerFont(TTFont("JP", tmp_path))
-            return "JP"
+        df = pd.read_excel(uploaded)
+        id_list = df.iloc[:, 0].dropna().astype(str).tolist()
+        sid = st.selectbox("IDを選んでください", options=id_list, index=0)
+        selected_row = df[df.iloc[:, 0].astype(str) == sid]
+        if selected_row.empty:
+            st.warning("選択されたIDに該当する行がありません。")
+        else:
+            # 計算
+            results = compute_results(selected_row)
+            summary = summarize(results)
 
-        # 2) よくある日本語フォントを探して登録（手元OSに依存）
-        candidates = [
-            # Windows
-            r"C:\Windows\Fonts\meiryo.ttc",
-            r"C:\Windows\Fonts\meiryob.ttf",
-            r"C:\Windows\Fonts\YuGothM.ttc",
-            r"C:\Windows\Fonts\yugothib.ttf",
-            # macOS
-            "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
-            "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
-            # Linuxなど
-            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/ipafont-gothic/ipagp.ttf",
-            "/usr/share/fonts/truetype/ipaexfont-gothic/ipaexg.ttf",
-        ]
-        for p in candidates:
-            if os.path.exists(p):
-                try:
-                    pdfmetrics.registerFont(TTFont("JP", p))
-                    return "JP"
-                except Exception:
-                    continue
-    except Exception:
-        pass
-    return "Helvetica"  # フォールバック（日本語は表示不可）
+            # ========== レーダーチャート ==========
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
+            plot_radar(results)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-def build_perma_pdf_onepage(results, summary, tips_dict, sid: str, today: str, radar_png_b64: str,
-                             uploaded_font_bytes: bytes | None = None) -> bytes:
-    """
-    A4縦1枚に集約（高齢者向け：大きい文字・行間広め・日本語フォント埋め込み）
-    """
-    font_name = _register_jp_font(uploaded_font_bytes)
+            # ========== スコア一覧 ==========
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>スコア一覧</h3></div>', unsafe_allow_html=True)
+            mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
+            cols = st.columns([2,1])
+            for short, key in mapping:
+                label = full_labels[short].split('（')[0]
+                cols[0].markdown(f"・{label}")
+                cols[1].markdown(f"<div style='text-align:right;font-weight:700'>{results.get(key,0.0):.1f}</div>", unsafe_allow_html=True)
+            avg = float(np.mean(list(results.values())))
+            st.markdown("<hr style='margin:8px 0 6px 0;border:none;border-top:2px solid #ddd'>", unsafe_allow_html=True)
+            cols = st.columns([2,1])
+            cols[0].markdown("平均")
+            cols[1].markdown(f"<div style='text-align:right;font-weight:800'>{avg:.1f}</div>", unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    W, H = A4
-    L, R, T, B = 15*mm, 15*mm, 18*mm, 15*mm  # 余白
+            # ========== 各要素の説明 ==========
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
+            for k in perma_short_keys:
+                st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    # ヘッダー
-    c.setFont(font_name, 24)
-    c.drawString(L, H - T, "PERMAプロファイル")
-    c.setFont(font_name, 12)
-    c.setFillGray(0.4)
-    c.drawString(L, H - T - 8*mm, f"ID: {sid}    日付: {today}")
-    c.setFillGray(0)
+            # ========== まとめコメント ==========
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>結果のまとめコメント</h3></div>', unsafe_allow_html=True)
+            st.markdown(summary["summary_text"])
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    # レーダー画像
-    radar_data = base64.b64decode(radar_png_b64.split(",")[-1])
-    radar_img = ImageReader(io.BytesIO(radar_data))
-    chart_size = 95*mm
-    chart_x = L
-    chart_y = H - T - 8*mm - chart_size - 4*mm
-    c.drawImage(radar_img, chart_x, chart_y, width=chart_size, height=chart_size,
-                preserveAspectRatio=True, mask='auto')
+            # ========== あなたに合わせたおすすめ行動 ==========
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title"><h3>あなたに合わせたおすすめ行動</h3></div>', unsafe_allow_html=True)
+            growth_keys = summary["growth"]
+            if growth_keys:
+                st.markdown("伸ばしたい・機会を増やしたい領域に合わせた例です。")
+                for k in perma_short_keys:
+                    if k in growth_keys:
+                        st.markdown(f"**{full_labels[k]}**")
+                        for tip in tips[k][:3]:
+                            st.markdown(f"- {tip}")
+            else:
+                st.markdown("現在は大きな偏りは見られません。維持と予防のために、次の活動も役立ちます。")
+                for k in perma_short_keys:
+                    st.markdown(f"**{full_labels[k]}**")
+                    for tip in tips[k][:2]:
+                        st.markdown(f"- {tip}")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    # 右側：スコア一覧＋まとめ
-    right_x = chart_x + chart_size + 12*mm
-    right_w = W - R - right_x
-    y = H - T - 4*mm
+            # ========== スタッフ向けメモ ==========
+            with st.expander("この結果を受け取るうえで大切なこと", expanded=True):
+                st.markdown(
+                    "- この結果は“良い/悪い”ではなく **選好と環境** の反映として扱い、ご自身の生活史・価値観に照らして解釈します。\n"
+                    "- 活動を新たに取り入れるときは、まず日課化しやすい **最小行動** から行いましょう。（例：1日5分の散歩 / 感謝の手紙3文 など）。\n"
+                    "- 本ツールは **スクリーニング** であり医療的診断ではありません。心身の不調が続く場合は専門職へご相談を。"
+                )
 
-    c.setFont(font_name, 16); c.drawString(right_x, y, "スコア一覧")
-    y -= 7*mm
-    c.setFont(font_name, 14)
-    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
-    for short, key in mapping:
-        label = full_labels[short].split('（')[0]
-        val = results.get(key, 0.0)
-        c.drawString(right_x, y, f"・{label}")
-        c.drawRightString(right_x + right_w, y, f"{val:.1f}")
-        y -= 6.5*mm
-    avg = float(np.mean(list(results.values())))
-    c.line(right_x, y+2.8*mm, right_x + right_w, y+2.8*mm)
-    c.setFont(font_name, 15)
-    c.drawString(right_x, y, "平均")
-    c.drawRightString(right_x + right_w, y, f"{avg:.1f}")
-    y -= 8*mm
+            # ========== 最後：印刷（ブラウザ印刷→PDF保存可） ==========
+            st.markdown("---")
+            c1, c2 = st.columns([1,2])
+            with c1:
+                if st.button("🖨️ このページを印刷（PDF保存も可）", type="primary", help="ブラウザの印刷ダイアログを開きます"):
+                    st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
 
-    # まとめ（14pt／行間広め）
-    c.setFont(font_name, 16); c.drawString(right_x, y, "まとめ")
-    y -= 7*mm
-    c.setFont(font_name, 14)
-    def _wrap(text, n=34):
-        text = (text or "").replace("\r", "")
-        out = []
-        while len(text) > n:
-            out.append(text[:n]); text = text[n:]
-        if text: out.append(text)
-        return out
-    summary_text = summary.get("summary_text", "")
-    for para in summary_text.split("\n"):
-        for line in _wrap(para, n=34):
-            if y < chart_y:
-                break
-            c.drawString(right_x, y, line)
-            y -= 6.4*mm
+            with c2:
+                # 参考：印刷時の見栄えヒントを表示（印刷では非表示）
+                st.markdown(
+                    "<div class='no-print' style='color:#555'>"
+                    "印刷設定：余白は「最小」、ヘッダー/フッターはOFF、背景グラフィックONがきれいです。"
+                    "</div>", unsafe_allow_html=True
+                )
 
-    # 下段：おすすめ行動（14pt・2カラム）
-    lower_y_top = chart_y - 8*mm
-    c.setFont(font_name, 16); c.drawString(L, lower_y_top, "あなたに合わせたおすすめ行動")
-    y2 = lower_y_top - 7*mm
-    growth = summary.get("growth", [])
-    blocks = []
-    if growth:
-        for k in perma_short_keys:
-            if k in growth and k in tips_dict:
-                blocks.append((full_labels[k], tips_dict[k][:3]))
-    else:
-        for k in perma_short_keys:
-            blocks.append((full_labels[k], tips_dict[k][:2]))
+    except Exception as e:
+        st.error(f"データ読み込み時にエラーが発生しました：{e}")
+else:
+    st.info("まずはExcel（.xlsx）をアップロードしてください。左端の列がID、6_1〜の列にスコアが並ぶ形式を想定しています。")
 
-    col_w = (W - L - R - 8*mm) / 2.0
-    col_x = [L, L + col_w + 8*mm]
-    col_y = [y2, y2]
-    def wrap2(t, n=36):
-        t = (t or "").replace("\r", "")
-        out = []
-        while len(t) > n:
-            out.append(t[:n]); t = t[n:]
-        if t: out.append(t)
-        return out
-
-    c.setFont(font_name, 14)
-    for title, items in blocks:
-        idx = 0 if col_y[0] > col_y[1] else 1
-        x = col_x[idx]; yy = col_y[idx]
-        c.drawString(x, yy, f"● {title}")
-        yy -= 6.2*mm
-        for it in items:
-            for line in wrap2(f"・{it}", n=36):
-                if yy < B + 18*mm:
-                    break
-                c.drawString(x + 3*mm, yy, line)
-                yy -= 6.0*mm
-        yy -= 3.0*mm
-        col_y[idx] = yy
-
-    # スタッフ注意（1～2行）
-    foot_y = min(col_y[0], col_y[1]) - 5*mm
-    if foot_y > B + 14*mm:
-        c.setFont(font_name, 13)
-        note = ("※ この結果は“良い/悪い”ではなく選好と環境の反映として扱います。"
-                "新しい活動は最小行動から。これはスクリーニングであり診断ではありません。")
-        for line in wrap2(note, n=64):
-            if foot_y < B + 12*mm: break
-            c.drawString(L, foot_y, line); foot_y -= 6.0*mm
-
-    # フッター
-    c.setFont(font_name, 10)
-    c.setFillGray(0.45)
-    c.drawRightString(W - R, B + 6*mm, "© 認知症介護研究・研修大府センター　わらトレスタッフ / 診断ではありません")
-    c.setFillGray(0)
-
-    c.save()
-    buf.seek(0)
-    return buf.getvalue()
+st.markdown('</div>', unsafe_allow_html=True)
