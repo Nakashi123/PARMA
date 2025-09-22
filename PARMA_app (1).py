@@ -151,6 +151,8 @@ def summarize(results):
     growth_labels = [ja_only(full_labels[s]) for s in growth]
     middle_labels = [ja_only(full_labels[s]) for s in middle]
 
+    # ← ここに基準を挿入
+st.markdown("**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**")
     lines = [f"**総合評価**：平均 {avg:.1f} 点。"]
     if strong:
         lines.append(
