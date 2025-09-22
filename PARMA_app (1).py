@@ -156,10 +156,8 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    # ★ 以前 4.2→【2.1インチ】に縮小（実質1/2）
+    # 半分のサイズ
     fig, ax = plt.subplots(figsize=(2.1, 2.1), subplot_kw=dict(polar=True), dpi=200)
-
-    # 細めの線・小さめフォントで視認性維持
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
                 color=colors[i], linewidth=1.6)
@@ -168,13 +166,12 @@ def plot_radar(results):
     ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
                       fontsize=max(9, int(10*FONT_SCALE)), fontweight='bold')
     ax.set_ylim(0, 10)
-    ax.set_rticks([2, 6, 10])         # 目盛りを間引いて省スペース
+    ax.set_rticks([2, 6, 10])
     ax.tick_params(axis='y', labelsize=max(8, int(9*FONT_SCALE)))
     ax.grid(alpha=0.3, linewidth=0.8)
 
     fig.tight_layout(pad=0.2)
     st.pyplot(fig, use_container_width=False)
-
 
 # =========================
 # 本体
@@ -183,7 +180,10 @@ st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("PERMAプロファイル")
 st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
 
-uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
+uploaded = st.file_uploader(
+    "Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", 
+    type="xlsx"
+)
 
 if uploaded:
     try:
@@ -198,10 +198,10 @@ if uploaded:
             results = compute_results(selected_row)
             summary = summarize(results)
 
-            # ---------- ページ1：レーダー + 各要素 ----------
+            # ---------- ページ1 ----------
             st.markdown('<div class="page-1">', unsafe_allow_html=True)
 
-            # レーダーチャート + 説明（横並び）
+            # レーダーチャート + 説明
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
 
@@ -216,7 +216,7 @@ if uploaded:
                 )
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # 各要素の説明 ←ここも else: の中なので4スペースインデントに揃える
+            # 各要素の説明
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             colA, colB = st.columns(2)
@@ -228,9 +228,8 @@ if uploaded:
                     st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-    except Exception as e:
-        st.error(f"データ読み込み時にエラーが発生しました：{e}")
-
+            st.markdown('</div>', unsafe_allow_html=True)  # /page-1
+            st.markdown('<div class="force-break"></div>', unsafe_allow_html=True)
 
             # ---------- ページ2 ----------
             st.markdown('<div class="page-2">', unsafe_allow_html=True)
@@ -264,7 +263,7 @@ if uploaded:
             )
             st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)  # /page-2
 
     except Exception as e:
         st.error(f"データ読み込み時にエラーが発生しました：{e}")
