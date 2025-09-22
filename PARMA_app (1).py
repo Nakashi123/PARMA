@@ -255,4 +255,51 @@ if uploaded_file:
         if growth_keys:
             summary_lines.append(
                 f"一方で、**{_jp_list(growth_labels)}** に関する習慣や体験はやや少ないかもしれません。"
-                "もし「この要素をもっ
+                "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
+                "下の活動例を取り入れてみることをおすすめします。"
+            )
+
+        st.markdown("\n\n".join(summary_lines))
+
+        # =========================
+        # 3) 活動例（各領域）※右側にイラスト表示
+        # =========================
+        st.subheader("あなたに合わせたおすすめ行動（各領域）")
+
+        def _render_activity_block(k: str, items: list):
+            left, right = st.columns([3, 2])
+            with left:
+                st.markdown(f"**{_ja_only(full_labels[k])}**")
+                for tip in items:
+                    st.markdown(f"- {tip}")
+            with right:
+                img_path = illustrations.get(k)
+                if img_path and (img_path.startswith("http") or os.path.isfile(img_path)):
+                    st.image(img_path, caption=_ja_only(full_labels[k]), use_column_width=True)
+                else:
+                    st.caption("（画像が見つかりません）")
+
+        if growth_keys:
+            for k in perma_short_keys:
+                if k in growth_keys:
+                    _render_activity_block(k, tips[k][:3])
+        else:
+            st.markdown("現在は大きな偏りは見られません。維持と予防のために、次のような活動も役立ちます。")
+            for k in perma_short_keys:
+                _render_activity_block(k, tips[k][:2])
+
+        # =========================
+        # スタッフ向けメモ（折りたたみ）
+        # =========================
+        with st.expander("（スタッフ向け）評価メモと伝え方のコツ"):
+            st.markdown(
+                "- 点数は“良い/悪い”ではなく**選好と環境**の反映として扱い、自分の生活史・価値観に照らして解釈しましょう。\n"
+                "- 活動を新たに取り入れる時は、まず日課化しやすい**最小行動**から（例：1日5分の散歩/感謝メモ）。\n"
+                "- 本ツールは**スクリーニング**であり医療的診断ではありません。心身の不調が続く場合はご受診を検討してください。"
+            )
+
+        st.markdown("---")
+        st.markdown("作成：認知症介護研究・研修大府センター　わらトレスタッフ")
+
+    except Exception as e:
+        st.error(f"エラーが発生しました: {e}")
