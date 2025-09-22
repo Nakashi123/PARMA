@@ -140,11 +140,21 @@ def summarize(results):
 
     lines = [f"**総合評価**：平均 {avg:.1f} 点。{balance}"]
     if strong:
-        lines.append(f"判定は、各要素の平均が7点以上の場合、「強み」5~7点で「一定の満足あり」5点未満で「改善余地あり」としています。本結果によると、あなたは **{jp_list(strong_labels)}** に関して、その要素に沿った時間を比較的しっかり過ごせており、穏やかさや前向きさ、行動のしやすさが感じられている可能性が高いです。")
+        lines.append(
+            "判定は、各要素の平均が **7点以上=強み**、**5〜7点=一定の満足**、**5点未満=改善余地** としています。"
+            f"本結果によると、あなたは **{jp_list(strong_labels)}** が比較的しっかり育まれています。"
+        )
     if middle:
-        lines.append(f"**{jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。")
+        lines.append(
+            f"**{jp_list(middle_labels)}** は日常の中で一定の満足があり、おおむね安定しています。"
+            "無理のない範囲で関連する時間や機会を少し増やすと、全体の底上げにつながります。"
+        )
     if growth:
-        lines.append(f"一方で、**{jp_list(growth_labels)}** に関する習慣や体験はやや少ないかもしれません。もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、下の活動例を取り入れてみることをおすすめします。")
+        lines.append(
+            f"一方で、**{jp_list(growth_labels)}** はやや弱めかもしれません。"
+            "もし「この要素をもっと育てたい」「関わる機会を増やしたい」と感じるなら、"
+            "下の活動例を取り入れてみましょう。"
+        )
 
     return {
         "avg": avg, "std": std,
@@ -200,7 +210,7 @@ if st.session_state.page == 1:
             if st.button("次へ ▶"):
                 if st.session_state.selected_id:
                     st.session_state.page = 2
-                    st.experimental_rerun()
+                    st.rerun()
         except Exception as e:
             st.error(f"エラーが発生しました: {e}")
 
@@ -236,11 +246,11 @@ if st.session_state.page == 2:
     with cols[0]:
         if st.button("◀ 戻る"):
             st.session_state.page = 1
-            st.experimental_rerun()
+            st.rerun()
     with cols[1]:
         if st.button("次へ ▶"):
             st.session_state.page = 3
-            st.experimental_rerun()
+            st.rerun()
 
 # =========================
 # ページ3：各要素の説明（1ページ）
@@ -256,11 +266,11 @@ elif st.session_state.page == 3:
     with cols[0]:
         if st.button("◀ 戻る"):
             st.session_state.page = 2
-            st.experimental_rerun()
+            st.rerun()
     with cols[1]:
         if st.button("次へ ▶"):
             st.session_state.page = 4
-            st.experimental_rerun()
+            st.rerun()
 
 # =========================
 # ページ4：まとめコメント（1ページ）
@@ -273,11 +283,11 @@ elif st.session_state.page == 4:
     with cols[0]:
         if st.button("◀ 戻る"):
             st.session_state.page = 3
-            st.experimental_rerun()
+            st.rerun()
     with cols[1]:
         if st.button("次へ ▶"):
             st.session_state.page = 5
-            st.experimental_rerun()
+            st.rerun()
 
 # =========================
 # ページ5：あなたに合わせたおすすめ行動（1ページ）
@@ -304,11 +314,11 @@ elif st.session_state.page == 5:
     with cols[0]:
         if st.button("◀ 戻る"):
             st.session_state.page = 4
-            st.experimental_rerun()
+            st.rerun()
     with cols[1]:
         if st.button("次へ ▶"):
             st.session_state.page = 6
-            st.experimental_rerun()
+            st.rerun()
 
 # =========================
 # ページ6：スタッフ向けメモ（1ページ）
@@ -327,7 +337,7 @@ elif st.session_state.page == 6:
     with cols[0]:
         if st.button("◀ 戻る"):
             st.session_state.page = 5
-            st.experimental_rerun()
+            st.rerun()
     with cols[1]:
         if st.button("最初に戻る ⟳"):
             st.session_state.page = 1
@@ -335,4 +345,4 @@ elif st.session_state.page == 6:
             st.session_state.selected_id = None
             st.session_state.results = None
             st.session_state.summary = None
-            st.experimental_rerun()
+            st.rerun()
