@@ -292,7 +292,6 @@ elif st.session_state.page == 4:
 
 # =========================
 # ページ5：あなたに合わせたおすすめ行動（1ページ）
-# =========================
 elif st.session_state.page == 5:
     st.subheader("あなたに合わせたおすすめ行動（各領域）")
 
@@ -301,13 +300,13 @@ elif st.session_state.page == 5:
         st.markdown("伸ばしたい・機会を増やしたい領域に合わせた例です。")
         for k in perma_short_keys:
             if k in growth_keys:
-                st.markdown(f"**{ja_only(full_labels[k])}**")
+                st.markdown(f"**{full_labels[k]}**")
                 for tip in tips[k][:3]:
                     st.markdown(f"- {tip}")
     else:
         st.markdown("現在は大きな偏りは見られません。維持と予防のために、次の活動も役立ちます。")
         for k in perma_short_keys:
-            st.markdown(f"**{ja_only(full_labels[k])}**")
+            st.markdown(f"**{full_labels[k]}**")
             for tip in tips[k][:2]:
                 st.markdown(f"- {tip}")
 
