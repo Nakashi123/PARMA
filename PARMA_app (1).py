@@ -382,4 +382,149 @@ def make_radar_png_base64(results):
 
 def make_scores_table_html(results):
     rows = []
-    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','A]()
+    mapping = [('P','Positive Emotion'),('E','Engagement'),('R','Relationships'),('M','Meaning'),('A','Accomplishment')]
+    for short, key in mapping:
+        label = full_labels[short].split('（')[0]
+        val = results.get(key, 0.0)
+        rows.append(f"<tr><td>{label}</td><td style='text-align:right;font-weight:700'>{val:.1f}</td></tr>")
+    avg = float(np.mean(list(results.values())))
+    rows.append("<tr><td style='border-top:2px solid #ddd'>平均</td><td style='text-align:right;font-weight:800;border-top:2px solid #ddd'>%.1f</td></tr>" % avg)
+    table = "<table style='width:100%; border-collapse:collapse; font-size:12pt;'><thead><tr><th style='text-align:left'>領域</th><th style='text-align:right'>スコア(0-10)</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
+    return table
+
+def make_tips_html(summary):
+    growth = summary.get('growth', [])
+    if not growth:
+        return "<p>現在は大きな偏りは見られません。維持のため、日常に小さな取り組みを続けましょう。</p>"
+    blocks = []
+    for k in perma_short_keys:
+        if k in growth and k in tips:
+            tip_items = ''.join([f"<li>{shorten(t, width=36, placeholder='…')}</li>" for t in tips[k][:3]])
+            blocks.append(f"<div class='tip'><div class='tip-h'>{full_labels[k]}</div><ul>{tip_items}</ul></div>")
+    return "".join(blocks)
+
+# ===== フッター：結果の保存／PDF出力タブ =====
+if st.session_state.get("summary"):
+    export_text = st.session_state.summary.get("summary_text", "")
+    tab1, tab2, tab3 = st.tabs(["📄 テキスト", "🖨️ 印刷/PDF (簡易)", "🖨️ 1〜2枚PDF用レイアウト"])
+
+    with tab1:
+        st.text_area("コピー用（全体まとめ）", value=export_text, height=260)
+        st.download_button(
+            label="結果をテキストで保存",
+            data=export_text,
+            file_name=f"perma_{str(st.session_state.get('selected_id') or 'result')}.txt",
+            mime="text/plain"
+        )
+
+    # 既存の簡易印刷
+    with tab2:
+        st.markdown(
+            """
+            <style>
+            /* 印刷時に余計なUIを隠す */
+            @media print {
+              header, footer,
+              .stApp [data-testid="stToolbar"],
+              .stApp [data-testid="stDecoration"],
+              .stApp [data-testid="stStatusWidget"],
+              .stApp [data-testid="stSidebar"],
+              .stApp [data-testid="collapsedControl"] { display: none !important; }
+              .stApp { padding: 0 !important; }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.write("印刷プレビューからPDFに保存できます（各ブラウザの印刷機能を使用）。")
+        if st.button("印刷ダイアログを開く"):
+            st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
+
+    # 1〜2枚に収める専用レイアウト（Templateで{}衝突回避）
+    with tab3:
+        mode = st.radio("レイアウト", ["1ページに圧縮", "2ページ（ゆったり）"], horizontal=True)
+        today = _dt.date.today().strftime('%Y-%m-%d')
+        sid = str(st.session_state.get('selected_id') or '-')
+        img_b64 = make_radar_png_base64(st.session_state.results)
+        scores_html = make_scores_table_html(st.session_state.results)
+        tips_html = make_tips_html(st.session_state.summary)
+        summary_html = st.session_state.summary.get('summary_text', '').replace("\n", "<br>")
+
+        pages = 1 if mode == "1ページに圧縮" else 2
+
+        html_tpl = Template(r"""
+        <style>
+          @page { size: A4; margin: 12mm; }
+          .sheet { width: 190mm; margin: 0 auto; }
+          .page { page-break-after: always; }
+          .title { font-size: 22pt; font-weight: 800; margin: 0 0 6px 0; }
+          .meta { font-size: 11pt; color:#555; margin-bottom: 10px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; align-items: start; }
+          .card { border:1px solid #e6e6e6; border-radius: 10px; padding: 8mm; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+          .h3 { font-weight: 700; font-size: 14pt; border-bottom: 2px solid #f0f0f0; margin: 0 0 6px 0; padding-bottom: 3px; }
+          .summary { font-size: 11.5pt; line-height: 1.6; }
+          .tips .tip { margin-bottom: 6px; }
+          .tips .tip-h { font-weight:700; margin-bottom: 2px; }
+          .tips ul { margin: 0 0 6px 1em; }
+          .footer { font-size: 9pt; color:#666; margin-top: 6mm; }
+          img.chart { width: 100%; height: auto; display: block; }
+        </style>
+        <div class='sheet page'>
+          <div class='title'>PERMAプロファイル</div>
+          <div class='meta'>ID: $sid ／ 日付: $today</div>
+          <div class='grid'>
+            <div class='card'>
+              <div class='h3'>レーダーチャート</div>
+              <img class='chart' src='$img_b64' />
+            </div>
+            <div class='card'>
+              <div class='h3'>スコア一覧</div>
+              $scores_html
+              <div style='height:6mm'></div>
+              <div class='h3'>まとめ</div>
+              <div class='summary'>$summary_html</div>
+            </div>
+          </div>
+          <div class='card' style='margin-top:8mm;'>
+            <div class='h3'>あなたに合わせたおすすめ行動</div>
+            <div class='tips'>$tips_html</div>
+          </div>
+          <div class='footer'>※ 本資料はスクリーニング結果です。医療的診断ではありません。</div>
+        </div>
+        $second_page
+        <script>
+          function openPrint(){ window.print(); }
+        </script>
+        """)
+
+        second = ""
+        if pages == 2:
+            second = (
+                "<div class='sheet'>"
+                "  <div class='card'>"
+                "    <div class='h3'>各要素の説明</div>"
+                "    <div style='font-size:11.5pt; line-height:1.6'>"
+                f"      <p><b>{full_labels['P']}</b>：{descriptions['P']}</p>"
+                f"      <p><b>{full_labels['E']}</b>：{descriptions['E']}</p>"
+                f"      <p><b>{full_labels['R']}</b>：{descriptions['R']}</p>"
+                f"      <p><b>{full_labels['M']}</b>：{descriptions['M']}</p>"
+                f"      <p><b>{full_labels['A']}</b>：{descriptions['A']}</p>"
+                "    </div>"
+                "  </div>"
+                "</div>"
+            )
+
+        html = html_tpl.substitute(
+            sid=sid,
+            today=today,
+            img_b64=img_b64,
+            scores_html=scores_html,
+            summary_html=summary_html,
+            tips_html=tips_html,
+            second_page=second
+        )
+
+        st.markdown(html, unsafe_allow_html=True)
+        st.caption("A4サイズで最適化しています。ブラウザの印刷設定で余白を最小/ヘッダー・フッター非表示にすると綺麗です。")
+        if st.button("このレイアウトをPDF保存（印刷ダイアログを開く）"):
+            st.markdown("<script>openPrint();</script>", unsafe_allow_html=True)
