@@ -153,52 +153,79 @@ def compute_results(selected_row: pd.DataFrame):
 
     return perma_scores, extras, overall
 
+# --- 高齢期向けの見やすい表示設定 ---
+EXTRA_LABELS = {
+    'Negative Emotion': 'こころのつらさ（不安・怒り・悲しみ）',
+    'Health': 'からだの調子',
+    'Loneliness': 'ひとりぼっち感',
+    'Happiness': 'しあわせ感（全体）',
+}
 
-def summarize(perma_scores):
-    avg = float(np.nanmean(list(perma_scores.values())))
-    STRONG, GROWTH = 7.0, 5.0
-    by_short = {
-        'P': perma_scores['Positive Emotion'],
-        'E': perma_scores['Engagement'],
-        'R': perma_scores['Relationships'],
-        'M': perma_scores['Meaning'],
-        'A': perma_scores['Accomplishment'],
-    }
-    strong = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] >= STRONG]
-    growth = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] < GROWTH]
-    middle = [k for k in perma_short_keys if not np.isnan(by_short[k]) and GROWTH <= by_short[k] < STRONG]
+EXTRA_TIPS = {
+    'Negative Emotion': '深呼吸や短い休憩、信頼できる人とのおしゃべりが助けになります。つらさが続くときは専門家へ相談を。',
+    'Health': '無理なく体を動かし、睡眠と食事を整えましょう。気になる症状は早めに受診を。',
+    'Loneliness': 'あいさつ・電話・短い雑談など、小さなつながりから。地域の「通いの場」もおすすめです。',
+    'Happiness': '一日の「よかったこと」を一つ見つけてみましょう。',
+}
 
-    def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
-    def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
+# しきい値（目安）。Health/Happinessは高いほど良い、Negative Emotion/Lonelinessは低いほど良い。
+THRESHOLDS = {
+    'good': 7.0,      # 良好の目安
+    'watch': 5.0,     # 注意ライン
+}
 
-    lines = [
-        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
-        f"**総合評価（PERMA平均）**：{avg:.1f} 点。"
-    ]
-    if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
-    if middle: lines.append(f"**{jlist([ja(m) for m in middle])}** は一定の満足が見られます。")
-    if growth: lines.append(f"**{jlist([ja(g) for g in growth])}** は改善の余地があります。")
-    return {"summary_text":"\n\n".join(lines), "growth": growth}
+def rate_extra(name: str, value: float):
+    """指標の評価（◎/△/！）と簡単コメントを返す。"""
+    if np.isnan(value):
+        return '―', '未回答', 'neutral'
+
+    high_is_good = name in ['Health', 'Happiness']
+    if high_is_good:
+        if value >= THRESHOLDS['good']:
+            return '◎', '良好です', 'good'
+        elif value >= THRESHOLDS['watch']:
+            return '△', 'まずまず。様子見', 'watch'
+        else:
+            return '！', '要注意。無理なく整えましょう', 'alert'
+    else:  # Negative Emotion, Loneliness（低いほど良い）
+        if value < THRESHOLDS['watch']:
+            return '◎', '落ち着いています', 'good'
+        elif value < THRESHOLDS['good']:
+            return '△', '少し気がかり。休息を', 'watch'
+        else:
+            return '！', '要注意。支えを得ましょう', 'alert'
 
 
-def plot_radar(perma_scores):
-    labels = list(perma_scores.keys())
-    values = list(perma_scores.values())
-    values += values[:1]
-    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
-    angles += angles[:1]
+def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
+    if not show_extras:
+        return
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><h3>補助指標（わかりやすい表示）</h3></div>', unsafe_allow_html=True)
+    st.caption('※ 数字は0〜10。健康・しあわせは高いほど良い／ こころのつらさ・ひとりぼっち感は低いほど良い。')
 
-    fig, ax = plt.subplots(figsize=(2.1, 2.1), subplot_kw=dict(polar=True), dpi=200)
-    for i in range(len(labels)):
-        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[i], linewidth=1.6)
-    ax.fill(angles, values, alpha=0.10, color="#888")
-    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'], fontsize=max(9, int(10*FONT_SCALE)), fontweight='bold')
-    ax.set_ylim(0, 10)
-    ax.set_rticks([2, 6, 10])
-    ax.tick_params(axis='y', labelsize=max(8, int(9*FONT_SCALE)))
-    ax.grid(alpha=0.3, linewidth=0.8)
-    fig.tight_layout(pad=0.2)
-    st.pyplot(fig, use_container_width=False)
+    cols = st.columns(2)
+    order = ['Health', 'Happiness', 'Negative Emotion', 'Loneliness']
+    for i, key in enumerate(order):
+        with cols[i % 2]:
+            val = extras.get(key, np.nan)
+            mark, note, status = rate_extra(key, val)
+            label = EXTRA_LABELS[key]
+            # バー表示（簡易）
+            bar_len = 10 if np.isnan(val) else int(round(val))
+            bar = '■' * bar_len + '□' * (10 - bar_len if bar_len <= 10 else 0)
+            color = {'good':'#2E7D32', 'watch':'#E65100', 'alert':'#D81B60', 'neutral':'#666'}.get(status, '#666')
+            st.markdown(f"<div style='border:1px solid #eee;border-radius:10px;padding:.6rem .7rem;margin:.3rem 0;'>"
+                        f"<div style='font-weight:700'>{label}</div>"
+                        f"<div style='font-size:1.1rem;margin:.2rem 0;'>スコア：<span style='font-weight:700'>{'' if np.isnan(val) else f'{val:.1f}'}</span> / 10　"
+                        f"<span style='color:{color};font-weight:800'>{mark}</span> <span style='color:{color}'>{note}</span></div>"
+                        f"<div style='font-family:monospace'>{bar}</div>"
+                        f"<div style='color:#555;font-size:.95rem;margin-top:.2rem'>{EXTRA_TIPS[key]}</div>"
+                        f"</div>", unsafe_allow_html=True)
+
+    if not np.isnan(overall):
+        st.markdown("<hr style='opacity:.2'>", unsafe_allow_html=True)
+        st.markdown(f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # =========================
@@ -210,7 +237,7 @@ st.caption("※ 本ツールはスクリーニングであり医療的診断で�
 
 uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜6_23の順でスコア）", type="xlsx")
 
-show_extras = st.checkbox("ネガティブ感情・健康・孤独・全体幸福も表示する", value=True)
+show_extras = st.checkbox("補助指標（健康・しあわせ・こころのつらさ・ひとりぼっち感）を表示する", value=True)
 
 if uploaded:
     try:
@@ -277,6 +304,9 @@ if uploaded:
                 if not np.isnan(overall):
                     st.markdown(f"**Overall wellbeing**（主要15＋全体幸福の平均）：**{overall:.1f}** 点")
             st.markdown('</div>', unsafe_allow_html=True)
+
+            # 補助指標（見やすい表示）
+            render_extra_cards(extras, overall, show_extras)
 
             # おすすめ活動
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
