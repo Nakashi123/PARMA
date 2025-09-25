@@ -41,7 +41,7 @@ html, body, [class*="css"] {{
   color:#0b0b0b !important; background:#fafafa !important;
 }}
 h1 {{ font-size:{H1_REM}rem !important; font-weight:800; margin:0 0 .4rem 0; letter-spacing:.02em; }}
-h2 {{ font-size:{H2_REM}rem !important; font-weight:750; margin:.3rem 0 .5rem 0; }}
+h2 {{ font-size:{H2_REM}rem !重要; font-weight:750; margin:.3rem 0 .5rem 0; }}
 h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.2rem 0 .55rem 0; }}
 
 .main-wrap {{ max-width: 900px; margin: 0 auto; }}
@@ -101,11 +101,11 @@ extra_indices = {
 
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
-    'P':'前向きな気持ち',
-    'E':'集中して取り組むこと',
-    'R':'人間関係',
-    'M':'意味づけ',
-    'A':'達成感',
+    'P':'Pー前向きな気持ち（Positive Emotion）',
+    'E':'Eー集中して取り組むこと（Engagement）',
+    'R':'Rー人間関係（Relationships）',
+    'M':'Mー意味づけ（Meaning）',
+    'A':'Aー達成感（Accomplishment）',
 }
 
 descriptions = {
@@ -176,11 +176,11 @@ def summarize(perma_scores):
     middle = [k for k in ['P','E','R','M','A'] if not np.isnan(by_short[k]) and GROWTH <= by_short[k] < STRONG]
 
     def ja(k): return {'P':'前向きな気持ち','E':'集中して取り組むこと','R':'人間関係','M':'意味づけ','A':'達成感'}[k]
-    def jlist(lst): 
+    def jlist(lst):
         return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
     lines = [
-        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地あり**",
+        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
         f"**総合評価（PERMA平均）**：{avg:.1f} 点。"
     ]
     if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
@@ -227,7 +227,7 @@ def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
         return
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title"><h3>補助指標（スコア表示）</h3></div>', unsafe_allow_html=True)
-    # 括弧書きで中立の注釈
+    # 括弧書きの注釈
     st.markdown(
         '<div style="font-size:0.95rem; color:#555; margin-top:-.25rem;">'
         '(0〜10の自己評価スコアを表示します)'
@@ -261,32 +261,8 @@ def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
 
     if not np.isnan(overall):
         st.markdown("<hr style='opacity:.2'>", unsafe_allow_html=True)
-        st.markdown(
-            f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）"
-        )
+        st.markdown(f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）")
     st.markdown('</div>', unsafe_allow_html=True)
-
-# あなたにおすすめな行動
-st.markdown("## あなたにおすすめな行動")
-
-actions = [
-    "散歩をする",
-    "友人に電話をかける",
-    "好きな音楽を聴く",
-    "軽い体操をする",
-    "日記を書く",
-    "笑える動画を見る",
-]
-
-cols = st.columns(2)  # 2列レイアウトにする
-
-for i, act in enumerate(actions):
-    with cols[i % 2]:  # 偶数は左、奇数は右
-        st.markdown(
-            f"<div style='border:1px solid #eee; border-radius:10px; padding:0.6rem; margin:0.3rem 0; "
-            f"background-color:#f9f9f9; font-size:0.95rem;'>{act}</div>",
-            unsafe_allow_html=True
-        )
 
 # =========================
 # 本体
@@ -329,7 +305,7 @@ if uploaded:
                     "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
                     "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
                 )
-                # ←「？」のツールチップは使わず、括弧書きで下に表示
+                # 括弧書きの注釈（ツールチップを使わない）
                 st.markdown(
                     '<div style="font-size:0.95rem; color:#555; margin-top:.2rem;">'
                     '(0〜10で評価。平均7以上は強みの目安です)'
@@ -374,20 +350,26 @@ if uploaded:
             # 補助指標（中立表示）
             render_extra_cards(extras, overall, show_extras)
 
-            # あなたにおすすめな活動
+            # あなたにおすすめな活動（2列レイアウト）
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>あなたにおすすめな活動</h3></div>', unsafe_allow_html=True)
             if summary["growth"]:
-                for k in summary["growth"]:
-                    st.markdown(f"**{full_labels[k]}**")
-                    for t in tips[k][:2]:
-                        st.markdown(f"- {t}")
+                col1, col2 = st.columns(2)
+                cols = [col1, col2]
+                for i, k in enumerate(summary["growth"]):
+                    with cols[i % 2]:
+                        st.markdown(f"**{full_labels[k]}**")
+                        for t in tips[k][:2]:
+                            st.markdown(f"- {t}")
             else:
                 st.markdown("大きな偏りは見られません。維持と予防のために、以下の活動も役立ちます。")
-                for k in perma_short_keys:
-                    st.markdown(f"**{full_labels[k]}**")
-                    for t in tips[k][:1]:
-                        st.markdown(f"- {t}")
+                col1, col2 = st.columns(2)
+                cols = [col1, col2]
+                for i, k in enumerate(perma_short_keys):
+                    with cols[i % 2]:
+                        st.markdown(f"**{full_labels[k]}**")
+                        for t in tips[k][:1]:
+                            st.markdown(f"- {t}")
             st.markdown('</div>', unsafe_allow_html=True)
 
             # この結果を受け取るうえで大切なこと
