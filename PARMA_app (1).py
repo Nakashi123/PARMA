@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import io, base64
 import streamlit as st
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
@@ -79,12 +78,19 @@ h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.1rem 0 .4rem 0;
 # PERMA定義
 # =========================
 perma_indices = {
-    'Positive Emotion':[0,1,2],
-    'Engagement':[3,4,5],
-    'Relationships':[6,7,8],
-    'Meaning':[9,10,11],
-    'Accomplishment':[12,13,14],
+    'Positive Emotion':[4, 9, 21],   # 6_5, 6_10, 6_22
+    'Engagement':[2, 10, 20],        # 6_3, 6_11, 6_21
+    'Relationships':[5, 14, 18],     # 6_6, 6_15, 6_19
+    'Meaning':[0, 8, 16],            # 6_1, 6_9, 6_17
+    'Accomplishment':[1, 7, 15],     # 6_2, 6_8, 6_16
 }
+extra_indices = {
+    'Negative Emotion':[6, 13, 19],  # 6_7, 6_14, 6_20
+    'Health':[3, 12, 17],            # 6_4, 6_13, 6_18
+    'Loneliness':[11],               # 6_12
+    'Happiness':[22],                # 6_23
+}
+
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
     'P':'Pー前向きな気持ち（Positive Emotion）',
@@ -101,25 +107,28 @@ descriptions = {
     'A':'目標に向かって取り組み、できた・やり遂げたという手応えがあること。',
 }
 tips = {
-    'P':['感謝を込めた手紙を書く','毎日その日の「良かったこと」を三つ書く','最近うまくいった出来事を思い出す'],
-    'E':['自分の得意なことを行う','自分の強みを書く','呼吸に集中して心を落ち着ける'],
+    'P':['感謝を込めた手紙を書く','毎日その日の「良かったこと」を三つ書く'],
+    'E':['自分の得意なことを行う','自分の強みを書く'],
     'R':['日常で小さな親切を行う','周囲の人に喜びを伝える'],
-    'M':['自分の価値に合った目標を立てる','困難を振り返る','得られた新しい意味を考える'],
-    'A':['小さな習慣を積み重ねる','失敗も学びととらえる','明確な目標を決める'],
+    'M':['自分の価値に合った目標を立てる','困難を振り返る'],
+    'A':['小さな習慣を積み重ねる','失敗も学びととらえる'],
 }
-colors = ['#D81B60','#E65100','#2E7D32','#1E88E5','#6A1B9A']
+colors = ['#1E88E5','#2E7D32','#E65100','#6A1B9A','#D81B60']
 
 # =========================
 # ユーティリティ
 # =========================
+def compute_domain_avg(vals, idx_list):
+    scores = [vals[i] for i in idx_list if i < len(vals) and not np.isnan(vals[i])]
+    return float(np.mean(scores)) if scores else np.nan
+
 def compute_results(selected_row: pd.DataFrame):
     cols = [c for c in selected_row.columns if str(c).startswith("6_")]
     vals = pd.to_numeric(selected_row[cols].values.flatten(), errors='coerce')
-    res = {}
-    for k, idx in perma_indices.items():
-        scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
-        res[k] = float(np.mean(scores)) if scores else 0.0
-    return res
+
+    perma_scores = {k: compute_domain_avg(vals, idx) for k, idx in perma_indices.items()}
+    extras = {k: compute_domain_avg(vals, idx) for k, idx in extra_indices.items()}
+    return perma_scores, extras
 
 def plot_radar(results):
     labels = list(results.keys())
@@ -128,17 +137,17 @@ def plot_radar(results):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(2.1, 2.1), subplot_kw=dict(polar=True), dpi=200)
+    fig, ax = plt.subplots(figsize=(2.4, 2.4), subplot_kw=dict(polar=True), dpi=200)
     for i in range(len(labels)):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
-                color=colors[i], linewidth=1.6)
-    ax.fill(angles, values, alpha=0.10, color="#888")
+                color=colors[i], linewidth=2.0)
+    ax.fill(angles, values, alpha=0.12, color="#888")
     ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
-                      fontsize=max(9, int(10*FONT_SCALE)), fontweight='bold')
+                      fontsize=max(10, int(11*FONT_SCALE)), fontweight='bold')
     ax.set_ylim(0, 10)
     ax.set_rticks([2, 6, 10])
-    ax.tick_params(axis='y', labelsize=max(8, int(9*FONT_SCALE)])
-    ax.grid(alpha=0.3, linewidth=0.8)
+    ax.tick_params(axis='y', labelsize=max(9, int(10*FONT_SCALE)))
+    ax.grid(alpha=0.3, linewidth=0.9)
     fig.tight_layout(pad=0.2)
     st.pyplot(fig, use_container_width=False)
 
@@ -149,7 +158,7 @@ st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("PERMAプロファイル")
 st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
 
-uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜の列にスコア）", type="xlsx")
+uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜6_23の列にスコア）", type="xlsx")
 
 if uploaded:
     try:
@@ -161,7 +170,7 @@ if uploaded:
         if selected_row.empty:
             st.warning("選択されたIDに該当する行がありません。")
         else:
-            results = compute_results(selected_row)
+            perma_scores, extras = compute_results(selected_row)
 
             # ---------- ページ1 ----------
             st.markdown('<div class="page-1">', unsafe_allow_html=True)
@@ -171,10 +180,10 @@ if uploaded:
             st.markdown('<div class="section-title"><h3>レーダーチャート</h3></div>', unsafe_allow_html=True)
             col1, col2 = st.columns([2, 3])
             with col1:
-                plot_radar(results)
+                plot_radar(perma_scores)
             with col2:
                 st.markdown("この図は、しあわせを支える5つの要素（PERMA）の自己評価です。")
-                st.markdown("点数が高いほどその要素が生活のなかで満たされていることを示します。")
+                st.markdown("点数が高いほど、その要素が生活のなかで満たされていることを示します。")
             st.markdown('</div>', unsafe_allow_html=True)
 
             # 各要素の説明
@@ -182,10 +191,10 @@ if uploaded:
             st.markdown('<div class="section-title"><h3>各要素の説明</h3></div>', unsafe_allow_html=True)
             colA, colB = st.columns(2)
             with colA:
-                for k in ['P', 'E', 'R']:
+                for k in ['P','E','R']:
                     st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             with colB:
-                for k in ['M', 'A']:
+                for k in ['M','A']:
                     st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
             st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)  # /page-1
@@ -196,21 +205,17 @@ if uploaded:
 
             # PERMAスコア表示
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.subheader("PERMAスコア")
-            st.write("（0〜10で評価。平均7以上は強みの目安です）")
-            for key, label in zip(['P','E','R','M','A'], full_labels.values()):
-                st.write(f"{label}: {results[list(perma_indices.keys())[perma_short_keys.index(key)]]:.2f}")
+            st.subheader("PERMAスコア（0〜10）")
+            for k,v in perma_scores.items():
+                st.write(f"{k}: {v:.2f}")
             st.markdown('</div>', unsafe_allow_html=True)
 
             # 補助指標
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.subheader("補助指標")
-            st.write("（健康・しあわせは高いほど良い ／ こころのつらさ・ひとりぼっち感は低いほど良い）")
-            # ダミー値
-            st.write("健康: 6.5")
-            st.write("しあわせ: 7.2")
-            st.write("こころのつらさ: 3.1")
-            st.write("ひとりぼっち感: 2.8")
+            st.subheader("補助指標（0〜10）")
+            for k,v in extras.items():
+                if not np.isnan(v):
+                    st.write(f"{k}: {v:.2f}")
             st.markdown('</div>', unsafe_allow_html=True)
 
             # おすすめ活動（2列）
@@ -218,13 +223,15 @@ if uploaded:
             st.subheader("あなたにおすすめな活動")
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown("- 感謝を込めた手紙を書く")
-                st.markdown("- 自分の得意なことを行う")
-                st.markdown("- 日常で小さな親切を行う")
+                for k in ['P','E','R']:
+                    st.markdown(f"**{full_labels[k]}**")
+                    for t in tips[k]:
+                        st.markdown(f"- {t}")
             with col2:
-                st.markdown("- 自分の価値に合った目標を立てる")
-                st.markdown("- 小さな習慣を積み重ねる")
-                st.markdown("- 呼吸に集中して心を落ち着ける")
+                for k in ['M','A']:
+                    st.markdown(f"**{full_labels[k]}**")
+                    for t in tips[k]:
+                        st.markdown(f"- {t}")
             st.markdown('</div>', unsafe_allow_html=True)
 
             # 注意書き
@@ -241,6 +248,6 @@ if uploaded:
     except Exception as e:
         st.error(f"データ読み込み時にエラーが発生しました：{e}")
 else:
-    st.info("まずはExcel（.xlsx）をアップロードしてください。左端の列がID、6_1〜の列にスコアが並ぶ形式を想定しています。")
+    st.info("まずはExcel（.xlsx）をアップロードしてください。左端の列がID、6_1〜6_23の順にスコアが並ぶ形式を想定しています。")
 
 st.markdown('</div>', unsafe_allow_html=True)
