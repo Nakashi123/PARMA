@@ -8,5 +8,4 @@ pandas
 numpy
 matplotlib
 reportlab
-pip install streamlit
 
