@@ -5,70 +5,72 @@ import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 
 # =========================
-# 基本設定
+# 基本設定（高齢期にやさしい視認性）
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-BASE_FONT_PX = 19
-H1_REM, H2_REM, H3_REM = 2.2, 1.9, 1.6
-LINE_HEIGHT = 1.8
-CARD_RADIUS_PX, CARD_PAD_REM = 12, 0.9
-FONT_SCALE = 1.1
+BASE_FONT_PX = 20              # 少し大きめの基本文字
+H1_REM, H2_REM, H3_REM = 2.4, 2.0, 1.7
+LINE_HEIGHT = 1.95             # 行間を広く
+CARD_RADIUS_PX, CARD_PAD_REM = 14, 1.0
+FONT_SCALE = 1.2               # Matplotlibの文字も拡大
 
 plt.rcParams.update({
     "font.size": int(13 * FONT_SCALE),
-    "axes.titlesize": int(16 * FONT_SCALE),
-    "axes.labelsize": int(14 * FONT_SCALE),
-    "xtick.labelsize": int(12 * FONT_SCALE),
-    "ytick.labelsize": int(12 * FONT_SCALE),
-    "legend.fontsize": int(12 * FONT_SCALE),
+    "axes.titlesize": int(17 * FONT_SCALE),
+    "axes.labelsize": int(15 * FONT_SCALE),
+    "xtick.labelsize": int(13 * FONT_SCALE),
+    "ytick.labelsize": int(13 * FONT_SCALE),
+    "legend.fontsize": int(13 * FONT_SCALE),
     "font.sans-serif": [
-        "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
-        "Noto Sans JP","Noto Sans CJK JP","Helvetica","Arial","DejaVu Sans"
+        "BIZ UDPGothic", "Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",
+        "Noto Sans JP","Helvetica","Arial","DejaVu Sans"
     ],
     "axes.unicode_minus": False,
 })
 
 # =========================
-# CSS（印刷最適化）
+# CSS（高コントラスト＋印刷最適化）
 # =========================
 st.markdown(f"""
 <style>
 html, body, [class*="css"] {{
   font-size:{BASE_FONT_PX}px !important;
   line-height:{LINE_HEIGHT} !important;
-  font-family:"Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo","Noto Sans JP",sans-serif !important;
-  color:#111 !important;
+  font-family:"BIZ UDPGothic","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo","Noto Sans JP",sans-serif !important;
+  color:#0b0b0b !important; background:#fafafa !important;
 }}
-h1 {{ font-size:{H1_REM}rem !important; font-weight:800; margin:0 0 .3rem 0; }}
-h2 {{ font-size:{H2_REM}rem !important; font-weight:700; margin:.2rem 0 .4rem 0; }}
-h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.1rem 0 .4rem 0; }}
-.main-wrap {{ max-width: 860px; margin: 0 auto; }}
+
+h1 {{ font-size:{H1_REM}rem !important; font-weight:800; margin:0 0 .4rem 0; letter-spacing:.02em; }}
+h2 {{ font-size:{H2_REM}rem !important; font-weight:750; margin:.3rem 0 .5rem 0; }}
+h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.2rem 0 .55rem 0; }}
+
+.main-wrap {{ max-width: 900px; margin: 0 auto; }}
 
 .section-card {{
-  background:#fff; border:1px solid #e6e6e6; border-radius:{CARD_RADIUS_PX}px;
-  padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.2}rem; margin:.6rem 0 .8rem 0;
-  box-shadow:0 2px 6px rgba(0,0,0,.05);
-  page-break-inside: avoid;
-  break-inside: avoid;
+  background:#fff; border:2px solid #e3e3e3; border-radius:{CARD_RADIUS_PX}px;
+  padding:{CARD_PAD_REM}rem {CARD_PAD_REM+0.3}rem; margin:.75rem 0 1rem 0;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  page-break-inside: avoid; break-inside: avoid;
 }}
-.section-title {{ border-bottom:2px solid #f0f0f0; padding-bottom:.25rem; margin-bottom:.45rem; }}
+.section-title {{ border-bottom:3px solid #f2f2f2; padding-bottom:.35rem; margin-bottom:.55rem; }}
+.help-text {{ color:#333; font-weight:500; }}
+.badge {{ display:inline-block; padding:.06rem .5rem; border-radius:999px; font-size:.86rem; font-weight:700; background:#efefef; }}
+
 .page-1, .page-2 {{ page-break-inside: avoid; break-inside: avoid; }}
 .force-break {{ break-after: page; page-break-after: always; height: 0 !important; margin: 0 !important; padding: 0 !important; }}
 
 @media print {{
-  @page {{ size: A4; margin: 13mm; }}
+  @page {{ size: A4; margin: 12mm; }}
   html, body {{ zoom: 1; }}
-  body, [class*="css"] {{ font-size: 16px !important; line-height: 1.55 !important; }}
-  h1 {{ font-size: 1.9rem !important; }}
-  h2 {{ font-size: 1.6rem !important; }}
-  h3 {{ font-size: 1.3rem !important; }}
-  .main-wrap {{ max-width: 720px; }}
-  .section-card {{ margin: .45rem 0 .6rem 0; padding: .65rem .75rem; }}
-  .stApp [data-testid="stToolbar"],
-  .stApp [data-testid="stDecoration"],
-  .stApp [data-testid="stStatusWidget"],
-  .stApp [data-testid="stSidebar"],
+  body, [class*="css"] {{ font-size: 17px !important; line-height: 1.6 !important; }}
+  h1 {{ font-size: 2.0rem !important; }}
+  h2 {{ font-size: 1.7rem !important; }}
+  h3 {{ font-size: 1.45rem !important; }}
+  .main-wrap {{ max-width: 760px; }}
+  .section-card {{ margin: .55rem 0 .75rem 0; padding: .75rem .9rem; }}
+  .stApp [data-testid="stToolbar"], .stApp [data-testid="stDecoration"],
+  .stApp [data-testid="stStatusWidget"], .stApp [data-testid="stSidebar"],
   .stApp [data-testid="collapsedControl"] {{ display: none !important; }}
   .stApp {{ padding: 0 !important; }}
 }}
@@ -124,111 +126,95 @@ tips = {
     'A':['小さな習慣を積み重ねる','失敗も学びととらえる','明確な目標を決める'],
 }
 
-colors = ['#D81B60','#E65100','#2E7D32','#1E88E5','#6A1B9A']
+# アクセシブルな配色（色弱に配慮しコントラスト高め）
+COLORS = {
+    'P': '#1f77b4',   # 青
+    'E': '#2ca02c',   # 緑
+    'R': '#ff7f0e',   # オレンジ
+    'M': '#9467bd',   # 紫
+    'A': '#d62728',   # 赤
+    'FILL': '#777777' # レーダー塗り
+}
 
 # =========================
 # ユーティリティ
 # =========================
-def summarize(results):
-    avg = float(np.mean(list(results.values())))
+def compute_domain_avg(vals, idx_list):
+    scores = [vals[i] for i in idx_list if i < len(vals) and not np.isnan(vals[i])]
+    return float(np.mean(scores)) if scores else np.nan
+
+
+def compute_results(selected_row: pd.DataFrame):
+    cols = [c for c in selected_row.columns if str(c).startswith("6_")]
+    vals = pd.to_numeric(selected_row[cols].values.flatten(), errors='coerce')
+
+    # PERMA各領域
+    perma_scores = {k: compute_domain_avg(vals, idx) for k, idx in perma_indices.items()}
+
+    # 補助指標
+    extras = {k: compute_domain_avg(vals, idx) for k, idx in extra_indices.items()}
+
+    # Overall wellbeing（主要15項目＋Happinessの平均）
+    main15_idx = sorted(sum(perma_indices.values(), []))  # PERMA 15項目
+    if not np.isnan(extras.get('Happiness', np.nan)):
+        overall_items = main15_idx + extra_indices['Happiness']
+    else:
+        overall_items = main15_idx
+    overall = compute_domain_avg(vals, overall_items)
+
+    return perma_scores, extras, overall
+
+
+def summarize(perma_scores):
+    avg = float(np.nanmean(list(perma_scores.values())))
     STRONG, GROWTH = 7.0, 5.0
     by_short = {
-        'P': results['Positive Emotion'],
-        'E': results['Engagement'],
-        'R': results['Relationships'],
-        'M': results['Meaning'],
-        'A': results['Accomplishment'],
+        'P': perma_scores['Positive Emotion'],
+        'E': perma_scores['Engagement'],
+        'R': perma_scores['Relationships'],
+        'M': perma_scores['Meaning'],
+        'A': perma_scores['Accomplishment'],
     }
-    strong = [k for k in perma_short_keys if by_short[k] >= STRONG]
-    growth = [k for k in perma_short_keys if by_short[k] < GROWTH]
-    middle = [k for k in perma_short_keys if GROWTH <= by_short[k] < STRONG]
+    strong = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] >= STRONG]
+    growth = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] < GROWTH]
+    middle = [k for k in perma_short_keys if not np.isnan(by_short[k]) and GROWTH <= by_short[k] < STRONG]
 
     def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
     def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
     lines = [
         "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
-        f"**総合評価**：平均 {avg:.1f} 点。"
+        f"**総合評価（PERMA平均）**：{avg:.1f} 点。"
     ]
     if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
     if middle: lines.append(f"**{jlist([ja(m) for m in middle])}** は一定の満足が見られます。")
     if growth: lines.append(f"**{jlist([ja(g) for g in growth])}** は改善の余地があります。")
-    return {"summary_text":"\n\n".join(lines), "growth": growth}
+    return {"summary_text":"
+
+".join(lines), "growth": growth}
 
 
-# --- 高齢期向けの見やすい表示設定 ---
-EXTRA_LABELS = {
-    'Negative Emotion': 'こころのつらさ（不安・怒り・悲しみ）',
-    'Health': 'からだの調子',
-    'Loneliness': 'ひとりぼっち感',
-    'Happiness': 'しあわせ感（全体）',
-}
+def plot_radar(perma_scores):
+    labels = list(perma_scores.keys())
+    values = list(perma_scores.values())
+    values += values[:1]
+    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
+    angles += angles[:1]
 
-EXTRA_TIPS = {
-    'Negative Emotion': '深呼吸や短い休憩、信頼できる人とのおしゃべりが助けになります。つらさが続くときは専門家へ相談を。',
-    'Health': '無理なく体を動かし、睡眠と食事を整えましょう。気になる症状は早めに受診を。',
-    'Loneliness': 'あいさつ・電話・短い雑談など、小さなつながりから。地域の「通いの場」もおすすめです。',
-    'Happiness': '一日の「よかったこと」を一つ見つけてみましょう。',
-}
+    fig, ax = plt.subplots(figsize=(3.2, 3.2), subplot_kw=dict(polar=True), dpi=220)
+    ring_colors = [COLORS['P'], COLORS['E'], COLORS['R'], COLORS['M'], COLORS['A']]
 
-# しきい値（目安）。Health/Happinessは高いほど良い、Negative Emotion/Lonelinessは低いほど良い。
-THRESHOLDS = {
-    'good': 7.0,      # 良好の目安
-    'watch': 5.0,     # 注意ライン
-}
+    for i in range(len(labels)):
+        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=ring_colors[i], linewidth=2.4)
+    ax.fill(angles, values, alpha=0.12, color=COLORS['FILL'])
 
-def rate_extra(name: str, value: float):
-    """指標の評価（◎/△/！）と簡単コメントを返す。"""
-    if np.isnan(value):
-        return '―', '未回答', 'neutral'
-
-    high_is_good = name in ['Health', 'Happiness']
-    if high_is_good:
-        if value >= THRESHOLDS['good']:
-            return '◎', '良好です', 'good'
-        elif value >= THRESHOLDS['watch']:
-            return '△', 'まずまず。様子見', 'watch'
-        else:
-            return '！', '要注意。無理なく整えましょう', 'alert'
-    else:  # Negative Emotion, Loneliness（低いほど良い）
-        if value < THRESHOLDS['watch']:
-            return '◎', '落ち着いています', 'good'
-        elif value < THRESHOLDS['good']:
-            return '△', '少し気がかり。休息を', 'watch'
-        else:
-            return '！', '要注意。支えを得ましょう', 'alert'
-
-
-def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
-    if not show_extras:
-        return
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title"><h3>補助指標（わかりやすい表示）</h3></div>', unsafe_allow_html=True)
-    st.caption('※ 数字は0〜10。健康・しあわせは高いほど良い／ こころのつらさ・ひとりぼっち感は低いほど良い。')
-
-    cols = st.columns(2)
-    order = ['Health', 'Happiness', 'Negative Emotion', 'Loneliness']
-    for i, key in enumerate(order):
-        with cols[i % 2]:
-            val = extras.get(key, np.nan)
-            mark, note, status = rate_extra(key, val)
-            label = EXTRA_LABELS[key]
-            # バー表示（簡易）
-            bar_len = 10 if np.isnan(val) else int(round(val))
-            bar = '■' * bar_len + '□' * (10 - bar_len if bar_len <= 10 else 0)
-            color = {'good':'#2E7D32', 'watch':'#E65100', 'alert':'#D81B60', 'neutral':'#666'}.get(status, '#666')
-            st.markdown(f"<div style='border:1px solid #eee;border-radius:10px;padding:.6rem .7rem;margin:.3rem 0;'>"
-                        f"<div style='font-weight:700'>{label}</div>"
-                        f"<div style='font-size:1.1rem;margin:.2rem 0;'>スコア：<span style='font-weight:700'>{'' if np.isnan(val) else f'{val:.1f}'}</span> / 10　"
-                        f"<span style='color:{color};font-weight:800'>{mark}</span> <span style='color:{color}'>{note}</span></div>"
-                        f"<div style='font-family:monospace'>{bar}</div>"
-                        f"<div style='color:#555;font-size:.95rem;margin-top:.2rem'>{EXTRA_TIPS[key]}</div>"
-                        f"</div>", unsafe_allow_html=True)
-
-    if not np.isnan(overall):
-        st.markdown("<hr style='opacity:.2'>", unsafe_allow_html=True)
-        st.markdown(f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）")
-    st.markdown('</div>', unsafe_allow_html=True)
+    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'], fontsize=max(11, int(12*FONT_SCALE)), fontweight='bold')
+    ax.set_ylim(0, 10)
+    ax.set_rticks([2, 6, 10])
+    ax.tick_params(axis='y', labelsize=max(10, int(11*FONT_SCALE)))
+    ax.grid(alpha=0.32, linewidth=1.0)
+    fig.tight_layout(pad=0.25)
+    st.pyplot(fig, use_container_width=False)
 
 
 # =========================
@@ -236,7 +222,7 @@ def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("PERMAプロファイル")
-st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。")
+st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。大きめの文字と高コントラストで見やすくしています。")
 
 uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜6_23の順でスコア）", type="xlsx")
 
@@ -269,9 +255,12 @@ if uploaded:
                 plot_radar(perma_scores)
             with col2:
                 st.markdown(
-                    "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
-                    "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
-                    "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
+                    "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  
+"
+                    "点数が高いほどその要素が生活のなかで満たされていることを示し、  
+"
+                    "どこが強みで、どこに伸びしろがあるかが一目でわかります。",
+                    help="0〜10で評価。平均7以上は強みの目安です。"
                 )
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -281,10 +270,10 @@ if uploaded:
             colA, colB = st.columns(2)
             with colA:
                 for k in ['P', 'E', 'R']:
-                    st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+                    st.markdown(f"<span class='badge'>{k}</span> **{full_labels[k]}**：{descriptions[k]}", unsafe_allow_html=True)
             with colB:
                 for k in ['M', 'A']:
-                    st.markdown(f"**{full_labels[k]}**：{descriptions[k]}")
+                    st.markdown(f"<span class='badge'>{k}</span> **{full_labels[k]}**：{descriptions[k]}", unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)  # /page-1
 
@@ -311,7 +300,7 @@ if uploaded:
             # 補助指標（見やすい表示）
             render_extra_cards(extras, overall, show_extras)
 
-            # おすすめ活動
+            # あなたにおすすめな活動
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>あなたにおすすめな活動</h3></div>', unsafe_allow_html=True)
             if summary["growth"]:
@@ -327,12 +316,14 @@ if uploaded:
                         st.markdown(f"- {t}")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # 大切なこと
+            # この結果を受け取るうえで大切なこと
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
             st.markdown(
-                "- 結果は“良い/悪い”ではなく **選好や環境** の反映です。\n"
-                "- 新しい活動は **小さな一歩** から。（例：1日5分の散歩）\n"
+                "- 結果は“良い/悪い”ではなく **選好や環境** の反映です。
+"
+                "- 新しい活動は **小さな一歩** から。（例：1日5分の散歩）
+"
                 "- 本ツールは **スクリーニング** であり診断ではありません。つらさが続く場合は専門職へご相談ください。"
             )
             st.markdown('</div>', unsafe_allow_html=True)
