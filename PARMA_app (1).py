@@ -266,3 +266,4 @@ else:
     st.info("まずはExcel（.xlsx）をアップロードしてください。左端の列がID、6_1〜の列にスコアが並ぶ形式を想定しています。")
 
 st.markdown('</div>', unsafe_allow_html=True)
+
