@@ -266,6 +266,28 @@ def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
         )
     st.markdown('</div>', unsafe_allow_html=True)
 
+# あなたにおすすめな行動
+st.markdown("## あなたにおすすめな行動")
+
+actions = [
+    "散歩をする",
+    "友人に電話をかける",
+    "好きな音楽を聴く",
+    "軽い体操をする",
+    "日記を書く",
+    "笑える動画を見る",
+]
+
+cols = st.columns(2)  # 2列レイアウトにする
+
+for i, act in enumerate(actions):
+    with cols[i % 2]:  # 偶数は左、奇数は右
+        st.markdown(
+            f"<div style='border:1px solid #eee; border-radius:10px; padding:0.6rem; margin:0.3rem 0; "
+            f"background-color:#f9f9f9; font-size:0.95rem;'>{act}</div>",
+            unsafe_allow_html=True
+        )
+
 # =========================
 # 本体
 # =========================
