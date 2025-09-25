@@ -346,6 +346,28 @@ if uploaded:
                 if not np.isnan(overall):
                     st.markdown(f"**Overall wellbeing**（主要15＋全体幸福の平均）：**{overall:.1f}** 点")
             st.markdown('</div>', unsafe_allow_html=True)
+# =========================
+# PERMAスコア（シンプル表示）
+# =========================
+st.subheader("PERMAスコア")
+st.write("（0〜10で評価。平均7以上は強みの目安です）")
+
+st.write(f"前向きな気持ち（Positive Emotion）: {perma_scores['Positive Emotion']:.2f}")
+st.write(f"熱中（Engagement）: {perma_scores['Engagement']:.2f}")
+st.write(f"人間関係（Relationships）: {perma_scores['Relationships']:.2f}")
+st.write(f"意味や目的（Meaning）: {perma_scores['Meaning']:.2f}")
+st.write(f"達成（Accomplishment）: {perma_scores['Accomplishment']:.2f}")
+
+# =========================
+# 補助指標（シンプル表示）
+# =========================
+st.subheader("補助指標")
+st.write("（健康・しあわせは高いほど良い ／ こころのつらさ・ひとりぼっち感は低いほど良い）")
+
+st.write(f"健康: {extras['Health']:.2f}")
+st.write(f"しあわせ: {extras['Happiness']:.2f}")
+st.write(f"こころのつらさ: {extras['Negative Emotion']:.2f}")
+st.write(f"ひとりぼっち感: {extras['Loneliness']:.2f}")
 
             # 補助指標（中立表示）
             render_extra_cards(extras, overall, show_extras)
