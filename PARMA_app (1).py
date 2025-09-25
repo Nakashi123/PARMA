@@ -229,26 +229,6 @@ EXTRA_TIPS = {
 }
 THRESHOLDS = { 'good': 7.0, 'watch': 5.0 }  # 目安
 
-def rate_extra(name: str, value: float):
-    """指標の評価（◎/△/！）と簡単コメントを返す。"""
-    if np.isnan(value):
-        return '―', '未回答', 'neutral'
-    high_is_good = name in ['Health', 'Happiness']
-    if high_is_good:
-        if value >= THRESHOLDS['good']:
-            return '◎', '良好です', 'good'
-        elif value >= THRESHOLDS['watch']:
-            return '△', 'まずまず。様子見', 'watch'
-        else:
-            return '！', '要注意。無理なく整えましょう', 'alert'
-    else:  # Negative Emotion, Loneliness（低いほど良い）
-        if value < THRESHOLDS['watch']:
-            return '◎', '落ち着いています', 'good'
-        elif value < THRESHOLDS['good']:
-            return '△', '少し気がかり。休息を', 'watch'
-        else:
-            return '！', '要注意。支えを得ましょう', 'alert'
-
 def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
     if not show_extras:
         return
