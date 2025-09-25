@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # =========================
 st.set_page_config(page_title="PERMAプロファイル", layout="centered")
 
-BASE_FONT_PX = 20              # 少し大きめの基本文字
+BASE_FONT_PX = 20              # 大きめの基本文字
 H1_REM, H2_REM, H3_REM = 2.4, 2.0, 1.7
 LINE_HEIGHT = 1.95             # 行間を広く
 CARD_RADIUS_PX, CARD_PAD_REM = 14, 1.0
@@ -40,7 +40,6 @@ html, body, [class*="css"] {{
   font-family:"BIZ UDPGothic","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo","Noto Sans JP",sans-serif !important;
   color:#0b0b0b !important; background:#fafafa !important;
 }}
-
 h1 {{ font-size:{H1_REM}rem !important; font-weight:800; margin:0 0 .4rem 0; letter-spacing:.02em; }}
 h2 {{ font-size:{H2_REM}rem !important; font-weight:750; margin:.3rem 0 .5rem 0; }}
 h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.2rem 0 .55rem 0; }}
@@ -54,7 +53,6 @@ h3 {{ font-size:{H3_REM}rem !important; font-weight:700; margin:.2rem 0 .55rem 0
   page-break-inside: avoid; break-inside: avoid;
 }}
 .section-title {{ border-bottom:3px solid #f2f2f2; padding-bottom:.35rem; margin-bottom:.55rem; }}
-.help-text {{ color:#333; font-weight:500; }}
 .badge {{ display:inline-block; padding:.06rem .5rem; border-radius:999px; font-size:.86rem; font-weight:700; background:#efefef; }}
 
 .page-1, .page-2 {{ page-break-inside: avoid; break-inside: avoid; }}
@@ -126,7 +124,7 @@ tips = {
     'A':['小さな習慣を積み重ねる','失敗も学びととらえる','明確な目標を決める'],
 }
 
-# アクセシブルな配色（色弱に配慮しコントラスト高め）
+# アクセシブル配色（色弱配慮・高コントラスト）
 COLORS = {
     'P': '#1f77b4',   # 青
     'E': '#2ca02c',   # 緑
@@ -142,7 +140,6 @@ COLORS = {
 def compute_domain_avg(vals, idx_list):
     scores = [vals[i] for i in idx_list if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
-
 
 def compute_results(selected_row: pd.DataFrame):
     cols = [c for c in selected_row.columns if str(c).startswith("6_")]
@@ -164,7 +161,6 @@ def compute_results(selected_row: pd.DataFrame):
 
     return perma_scores, extras, overall
 
-
 def summarize(perma_scores):
     avg = float(np.nanmean(list(perma_scores.values())))
     STRONG, GROWTH = 7.0, 5.0
@@ -175,12 +171,13 @@ def summarize(perma_scores):
         'M': perma_scores['Meaning'],
         'A': perma_scores['Accomplishment'],
     }
-    strong = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] >= STRONG]
-    growth = [k for k in perma_short_keys if not np.isnan(by_short[k]) and by_short[k] < GROWTH]
-    middle = [k for k in perma_short_keys if not np.isnan(by_short[k]) and GROWTH <= by_short[k] < STRONG]
+    strong = [k for k in ['P','E','R','M','A'] if not np.isnan(by_short[k]) and by_short[k] >= STRONG]
+    growth = [k for k in ['P','E','R','M','A'] if not np.isnan(by_short[k]) and by_short[k] < GROWTH]
+    middle = [k for k in ['P','E','R','M','A'] if not np.isnan(by_short[k]) and GROWTH <= by_short[k] < STRONG]
 
-    def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
-    def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
+    def ja(k): return {'P':'前向きな気持ち','E':'集中して取り組むこと','R':'人間関係','M':'意味づけ','A':'達成感'}[k]
+    def jlist(lst): 
+        return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
     lines = [
         "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
@@ -189,10 +186,8 @@ def summarize(perma_scores):
     if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
     if middle: lines.append(f"**{jlist([ja(m) for m in middle])}** は一定の満足が見られます。")
     if growth: lines.append(f"**{jlist([ja(g) for g in growth])}** は改善の余地があります。")
-    return {"summary_text":"
 
-".join(lines), "growth": growth}
-
+    return {"summary_text": "\n\n".join(lines), "growth": growth}
 
 def plot_radar(perma_scores):
     labels = list(perma_scores.keys())
@@ -208,7 +203,8 @@ def plot_radar(perma_scores):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=ring_colors[i], linewidth=2.4)
     ax.fill(angles, values, alpha=0.12, color=COLORS['FILL'])
 
-    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'], fontsize=max(11, int(12*FONT_SCALE)), fontweight='bold')
+    ax.set_thetagrids(np.degrees(angles[:-1]), ['P','E','R','M','A'],
+                      fontsize=max(11, int(12*FONT_SCALE)), fontweight='bold')
     ax.set_ylim(0, 10)
     ax.set_rticks([2, 6, 10])
     ax.tick_params(axis='y', labelsize=max(10, int(11*FONT_SCALE)))
@@ -216,6 +212,77 @@ def plot_radar(perma_scores):
     fig.tight_layout(pad=0.25)
     st.pyplot(fig, use_container_width=False)
 
+# =========================
+# 補助指標カード（高齢者フレンドリー）
+# =========================
+EXTRA_LABELS = {
+    'Negative Emotion': 'こころのつらさ（不安・怒り・悲しみ）',
+    'Health': 'からだの調子',
+    'Loneliness': 'ひとりぼっち感',
+    'Happiness': 'しあわせ感（全体）',
+}
+EXTRA_TIPS = {
+    'Negative Emotion': '深呼吸や短い休憩、信頼できる人とのおしゃべりが助けになります。つらさが続くときは専門家へ相談を。',
+    'Health': '無理なく体を動かし、睡眠と食事を整えましょう。気になる症状は早めに受診を。',
+    'Loneliness': 'あいさつ・電話・短い雑談など、小さなつながりから。地域の「通いの場」もおすすめです。',
+    'Happiness': '一日の「よかったこと」を一つ見つけてみましょう。',
+}
+THRESHOLDS = { 'good': 7.0, 'watch': 5.0 }  # 目安
+
+def rate_extra(name: str, value: float):
+    """指標の評価（◎/△/！）と簡単コメントを返す。"""
+    if np.isnan(value):
+        return '―', '未回答', 'neutral'
+    high_is_good = name in ['Health', 'Happiness']
+    if high_is_good:
+        if value >= THRESHOLDS['good']:
+            return '◎', '良好です', 'good'
+        elif value >= THRESHOLDS['watch']:
+            return '△', 'まずまず。様子見', 'watch'
+        else:
+            return '！', '要注意。無理なく整えましょう', 'alert'
+    else:  # Negative Emotion, Loneliness（低いほど良い）
+        if value < THRESHOLDS['watch']:
+            return '◎', '落ち着いています', 'good'
+        elif value < THRESHOLDS['good']:
+            return '△', '少し気がかり。休息を', 'watch'
+        else:
+            return '！', '要注意。支えを得ましょう', 'alert'
+
+def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
+    if not show_extras:
+        return
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><h3>補助指標（わかりやすい表示）</h3></div>', unsafe_allow_html=True)
+    st.caption('※ 数字は0〜10。健康・しあわせは高いほど良い／ こころのつらさ・ひとりぼっち感は低いほど良い。')
+
+    cols = st.columns(2)
+    order = ['Health', 'Happiness', 'Negative Emotion', 'Loneliness']
+    for i, key in enumerate(order):
+        with cols[i % 2]:
+            val = extras.get(key, np.nan)
+            mark, note, status = rate_extra(key, val)
+            label = EXTRA_LABELS[key]
+            # バー表示（簡易）
+            bar_len = 10 if np.isnan(val) else int(round(val))
+            bar = '■' * bar_len + '□' * (10 - bar_len if bar_len <= 10 else 0)
+            color = {'good':'#2E7D32', 'watch':'#E65100', 'alert':'#D81B60', 'neutral':'#666'}.get(status, '#666')
+            st.markdown(
+                f"<div style='border:1px solid #eee;border-radius:12px;padding:.7rem .8rem;margin:.35rem 0;'>"
+                f"<div style='font-weight:800'>{label}</div>"
+                f"<div style='font-size:1.12rem;margin:.25rem 0;'>スコア："
+                f"<span style='font-weight:800'>{'' if np.isnan(val) else f'{val:.1f}'}</span> / 10　"
+                f"<span style='color:{color};font-weight:900'>{mark}</span> "
+                f"<span style='color:{color}'>{note}</span></div>"
+                f"<div style='font-family:monospace;letter-spacing:.05em'>{bar}</div>"
+                f"<div style='color:#555;font-size:1.0rem;margin-top:.25rem'>{EXTRA_TIPS[key]}</div>"
+                f"</div>", unsafe_allow_html=True
+            )
+
+    if not np.isnan(overall):
+        st.markdown("<hr style='opacity:.2'>", unsafe_allow_html=True)
+        st.markdown(f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # 本体
@@ -225,7 +292,6 @@ st.title("PERMAプロファイル")
 st.caption("※ 本ツールはスクリーニングであり医療的診断ではありません。大きめの文字と高コントラストで見やすくしています。")
 
 uploaded = st.file_uploader("Excelファイル（.xlsx）をアップロードしてください（左端の列にID、6_1〜6_23の順でスコア）", type="xlsx")
-
 show_extras = st.checkbox("補助指標（健康・しあわせ・こころのつらさ・ひとりぼっち感）を表示する", value=True)
 
 if uploaded:
@@ -255,10 +321,8 @@ if uploaded:
                 plot_radar(perma_scores)
             with col2:
                 st.markdown(
-                    "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  
-"
-                    "点数が高いほどその要素が生活のなかで満たされていることを示し、  
-"
+                    "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
+                    "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
                     "どこが強みで、どこに伸びしろがあるかが一目でわかります。",
                     help="0〜10で評価。平均7以上は強みの目安です。"
                 )
@@ -284,7 +348,7 @@ if uploaded:
             # 結果まとめ
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>結果のまとめ</h3></div>', unsafe_allow_html=True)
-            st.markdown(summary["summary_text"]) 
+            st.markdown(summary["summary_text"])
 
             # 追加の数値（任意表示）
             with st.expander("スコア一覧（0〜10）"):
@@ -320,10 +384,8 @@ if uploaded:
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-title"><h3>この結果を受け取るうえで大切なこと</h3></div>', unsafe_allow_html=True)
             st.markdown(
-                "- 結果は“良い/悪い”ではなく **選好や環境** の反映です。
-"
-                "- 新しい活動は **小さな一歩** から。（例：1日5分の散歩）
-"
+                "- 結果は“良い/悪い”ではなく **選好や環境** の反映です。\n"
+                "- 新しい活動は **小さな一歩** から。（例：1日5分の散歩）\n"
                 "- 本ツールは **スクリーニング** であり診断ではありません。つらさが続く場合は専門職へご相談ください。"
             )
             st.markdown('</div>', unsafe_allow_html=True)
