@@ -101,11 +101,11 @@ extra_indices = {
 
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
-    'P':'前向きな気持ち（Positive Emotion）',
-    'E':'集中して取り組むこと（Engagement）',
-    'R':'人間関係（Relationships）',
-    'M':'意味づけ（Meaning）',
-    'A':'達成感（Accomplishment）',
+    'P':'Pー前向きな気持ち（Positive Emotion）',
+    'E':'Eー集中して取り組むこと（Engagement）',
+    'R':'Rー人間関係（Relationships）',
+    'M':'Mー意味づけ（Meaning）',
+    'A':'Aー達成感（Accomplishment）',
 }
 
 descriptions = {
@@ -213,7 +213,7 @@ def plot_radar(perma_scores):
     st.pyplot(fig, use_container_width=False)
 
 # =========================
-# 補助指標カード（高齢者フレンドリー）
+# 補助指標カード（中立表示：数値＋バーのみ）
 # =========================
 EXTRA_LABELS = {
     'Negative Emotion': 'こころのつらさ（不安・怒り・悲しみ）',
@@ -221,47 +221,49 @@ EXTRA_LABELS = {
     'Loneliness': 'ひとりぼっち感',
     'Happiness': 'しあわせ感（全体）',
 }
-EXTRA_TIPS = {
-    'Negative Emotion': '深呼吸や短い休憩、信頼できる人とのおしゃべりが助けになります。つらさが続くときは専門家へ相談を。',
-    'Health': '無理なく体を動かし、睡眠と食事を整えましょう。気になる症状は早めに受診を。',
-    'Loneliness': 'あいさつ・電話・短い雑談など、小さなつながりから。地域の「通いの場」もおすすめです。',
-    'Happiness': '一日の「よかったこと」を一つ見つけてみましょう。',
-}
-THRESHOLDS = { 'good': 7.0, 'watch': 5.0 }  # 目安
 
 def render_extra_cards(extras: dict, overall: float, show_extras: bool = True):
     if not show_extras:
         return
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title"><h3>補助指標（わかりやすい表示）</h3></div>', unsafe_allow_html=True)
-    st.caption('※ 数字は0〜10。健康・しあわせは高いほど良い／ こころのつらさ・ひとりぼっち感は低いほど良い。')
+    st.markdown('<div class="section-title"><h3>補助指標（スコア表示）</h3></div>', unsafe_allow_html=True)
+    # 括弧書きで中立の注釈
+    st.markdown(
+        '<div style="font-size:0.95rem; color:#555; margin-top:-.25rem;">'
+        '(0〜10の自己評価スコアを表示します)'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     cols = st.columns(2)
     order = ['Health', 'Happiness', 'Negative Emotion', 'Loneliness']
     for i, key in enumerate(order):
         with cols[i % 2]:
             val = extras.get(key, np.nan)
-            mark, note, status = rate_extra(key, val)
             label = EXTRA_LABELS[key]
-            # バー表示（簡易）
-            bar_len = 10 if np.isnan(val) else int(round(val))
-            bar = '■' * bar_len + '□' * (10 - bar_len if bar_len <= 10 else 0)
-            color = {'good':'#2E7D32', 'watch':'#E65100', 'alert':'#D81B60', 'neutral':'#666'}.get(status, '#666')
+            # バー（■□）を中立色で表示
+            if np.isnan(val):
+                score_txt = '—'
+                bar = '□' * 10
+            else:
+                score_txt = f'{val:.1f}'
+                filled = int(round(val))
+                bar = '■' * filled + '□' * (10 - filled if filled <= 10 else 0)
+
             st.markdown(
                 f"<div style='border:1px solid #eee;border-radius:12px;padding:.7rem .8rem;margin:.35rem 0;'>"
                 f"<div style='font-weight:800'>{label}</div>"
                 f"<div style='font-size:1.12rem;margin:.25rem 0;'>スコア："
-                f"<span style='font-weight:800'>{'' if np.isnan(val) else f'{val:.1f}'}</span> / 10　"
-                f"<span style='color:{color};font-weight:900'>{mark}</span> "
-                f"<span style='color:{color}'>{note}</span></div>"
-                f"<div style='font-family:monospace;letter-spacing:.05em'>{bar}</div>"
-                f"<div style='color:#555;font-size:1.0rem;margin-top:.25rem'>{EXTRA_TIPS[key]}</div>"
+                f"<span style='font-weight:800'>{score_txt}</span> / 10</div>"
+                f"<div style='font-family:monospace;letter-spacing:.05em;color:#333'>{bar}</div>"
                 f"</div>", unsafe_allow_html=True
             )
 
     if not np.isnan(overall):
         st.markdown("<hr style='opacity:.2'>", unsafe_allow_html=True)
-        st.markdown(f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）")
+        st.markdown(
+            f"**しあわせ感（総合）**：**{overall:.1f} / 10**（PERMA15＋全体幸福）"
+        )
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
@@ -303,8 +305,14 @@ if uploaded:
                 st.markdown(
                     "この図は、しあわせを支える5つの要素（PERMA）の自己評価です。  \n"
                     "点数が高いほどその要素が生活のなかで満たされていることを示し、  \n"
-                    "どこが強みで、どこに伸びしろがあるかが一目でわかります。",
-                    help="0〜10で評価。平均7以上は強みの目安です。"
+                    "どこが強みで、どこに伸びしろがあるかが一目でわかります。"
+                )
+                # ←「？」のツールチップは使わず、括弧書きで下に表示
+                st.markdown(
+                    '<div style="font-size:0.95rem; color:#555; margin-top:.2rem;">'
+                    '(0〜10で評価。平均7以上は強みの目安です)'
+                    '</div>',
+                    unsafe_allow_html=True
                 )
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -341,7 +349,7 @@ if uploaded:
                     st.markdown(f"**Overall wellbeing**（主要15＋全体幸福の平均）：**{overall:.1f}** 点")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # 補助指標（見やすい表示）
+            # 補助指標（中立表示）
             render_extra_cards(extras, overall, show_extras)
 
             # あなたにおすすめな活動
