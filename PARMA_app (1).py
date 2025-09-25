@@ -101,11 +101,11 @@ extra_indices = {
 
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
-    'P':'Pー前向きな気持ち（Positive Emotion）',
-    'E':'Eー集中して取り組むこと（Engagement）',
-    'R':'Rー人間関係（Relationships）',
-    'M':'Mー意味づけ（Meaning）',
-    'A':'Aー達成感（Accomplishment）',
+    'P':'前向きな気持ち（Positive Emotion）',
+    'E':'集中して取り組むこと（Engagement）',
+    'R':'人間関係（Relationships）',
+    'M':'意味づけ（Meaning）',
+    'A':'達成感（Accomplishment）',
 }
 
 descriptions = {
@@ -180,7 +180,7 @@ def summarize(perma_scores):
         return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
     lines = [
-        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
+        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地あり**",
         f"**総合評価（PERMA平均）**：{avg:.1f} 点。"
     ]
     if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
