@@ -129,29 +129,32 @@ colors = ['#D81B60','#E65100','#2E7D32','#1E88E5','#6A1B9A']
 # =========================
 # ユーティリティ
 # =========================
-def compute_domain_avg(vals, idx_list):
-    scores = [vals[i] for i in idx_list if i < len(vals) and not np.isnan(vals[i])]
-    return float(np.mean(scores)) if scores else np.nan
+def summarize(results):
+    avg = float(np.mean(list(results.values())))
+    STRONG, GROWTH = 7.0, 5.0
+    by_short = {
+        'P': results['Positive Emotion'],
+        'E': results['Engagement'],
+        'R': results['Relationships'],
+        'M': results['Meaning'],
+        'A': results['Accomplishment'],
+    }
+    strong = [k for k in perma_short_keys if by_short[k] >= STRONG]
+    growth = [k for k in perma_short_keys if by_short[k] < GROWTH]
+    middle = [k for k in perma_short_keys if GROWTH <= by_short[k] < STRONG]
 
-def compute_results(selected_row: pd.DataFrame):
-    cols = [c for c in selected_row.columns if str(c).startswith("6_")]
-    vals = pd.to_numeric(selected_row[cols].values.flatten(), errors='coerce')
+    def ja(k): return full_labels[k].split('ー')[-1].split('（')[0]
+    def jlist(lst): return lst[0] if len(lst)==1 else "、".join(lst[:-1])+" と "+lst[-1] if lst else ""
 
-    # PERMA各領域
-    perma_scores = {k: compute_domain_avg(vals, idx) for k, idx in perma_indices.items()}
+    lines = [
+        "**基準：7点以上＝強み、5〜7点＝一定の満足、5点未満＝改善余地**",
+        f"**総合評価**：平均 {avg:.1f} 点。"
+    ]
+    if strong: lines.append(f"あなたは **{jlist([ja(s) for s in strong])}** が強みです。")
+    if middle: lines.append(f"**{jlist([ja(m) for m in middle])}** は一定の満足が見られます。")
+    if growth: lines.append(f"**{jlist([ja(g) for g in growth])}** は改善の余地があります。")
+    return {"summary_text":"\n\n".join(lines), "growth": growth}
 
-    # 補助指標
-    extras = {k: compute_domain_avg(vals, idx) for k, idx in extra_indices.items()}
-
-    # Overall wellbeing（主要15項目＋Happinessの平均）
-    main15_idx = sorted(sum(perma_indices.values(), []))  # PERMA 15項目
-    if not np.isnan(extras.get('Happiness', np.nan)):
-        overall_items = main15_idx + extra_indices['Happiness']
-    else:
-        overall_items = main15_idx
-    overall = compute_domain_avg(vals, overall_items)
-
-    return perma_scores, extras, overall
 
 # --- 高齢期向けの見やすい表示設定 ---
 EXTRA_LABELS = {
