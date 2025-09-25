@@ -101,11 +101,11 @@ extra_indices = {
 
 perma_short_keys = ['P','E','R','M','A']
 full_labels = {
-    'P':'前向きな気持ち（Positive Emotion）',
-    'E':'集中して取り組むこと（Engagement）',
-    'R':'人間関係（Relationships）',
-    'M':'意味づけ（Meaning）',
-    'A':'達成感（Accomplishment）',
+    'P':'前向きな気持ち',
+    'E':'集中して取り組むこと',
+    'R':'人間関係',
+    'M':'意味づけ',
+    'A':'達成感',
 }
 
 descriptions = {
