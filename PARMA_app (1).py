@@ -29,10 +29,11 @@ theme = {
     "card_bg": "#FFFFFF",
     "accent": "#4E73DF",
     "text": "#222",
+    "bar_bg": "#EEF2FB"
 }
 
 # =========================
-# CSS（透明バー除去・見出し拡大・印刷対応）
+# CSSスタイル（帯見出し化＋レイアウト調整）
 # =========================
 st.markdown(f"""
 <style>
@@ -53,20 +54,24 @@ h1 {{
   font-weight:800;
 }}
 
+.section-header {{
+  background:{theme['bar_bg']};
+  color:#333;
+  font-weight:800;
+  font-size:1.2rem;
+  padding:.6rem 1rem;
+  border-left:8px solid {theme['accent']};
+  border-radius:6px;
+  margin-top:1rem;
+  margin-bottom:.8rem;
+}}
+
 .section-card {{
   background:{theme['card_bg']};
   border-radius:14px;
-  box-shadow:0 3px 8px rgba(0,0,0,0.07);
-  padding:1.2rem 1.6rem;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  padding:1rem 1.2rem;
   margin:0.8rem 0;
-}}
-
-.section-title {{
-  font-weight:800;
-  font-size:1.3rem;
-  border-left:8px solid {theme['accent']};
-  padding-left:.6rem;
-  margin-bottom:.8rem;
 }}
 
 .color-label {{
@@ -76,16 +81,9 @@ h1 {{
   color:white;
 }}
 
-div[data-testid="stVerticalBlock"] > div {{
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}}
-
 div.block-container {{
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
 }}
 
 @media print {{
@@ -166,7 +164,6 @@ def plot_radar(perma_scores):
     fig, ax = plt.subplots(figsize=(3.2,3.2), subplot_kw=dict(polar=True), dpi=160)
     ax.set_theta_offset(np.pi/2)
     ax.set_theta_direction(-1)
-
     for i, k in enumerate(labels):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[k], linewidth=2.3)
     ax.fill(angles, values, alpha=0.15, color="#888")
@@ -179,7 +176,7 @@ def plot_radar(perma_scores):
     ax.set_rticks([2,5,8])
     ax.grid(alpha=0.3)
     ax.set_xticklabels([])
-    fig.tight_layout(pad=0.2)
+    fig.tight_layout(pad=0.1)
     st.pyplot(fig)
 
 # =========================
@@ -190,7 +187,7 @@ st.title("わらトレ　心の健康チェック")
 
 uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23列）をアップロードしてください", type="xlsx")
 
-# ---- 1ページ目：ID選択ページ ----
+# ---- 1ページ目 ----
 if not uploaded:
     st.info("まずはExcelファイルをアップロードしてください。")
     st.stop()
@@ -207,45 +204,26 @@ if selected_row.empty:
 # ---- ページ区切り ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 
-# ---- 2ページ目：チャート＋要素説明＋まとめ ----
-st.write("以下は、あなたの日ごろの気持ちについての結果です。")
-perma_scores, extras = compute_results(selected_row)
-
+# ---- 2ページ目：チャート＋まとめ ----
+st.markdown('<div class="section-header">PERMAバランスチャート・結果のまとめ</div>', unsafe_allow_html=True)
 col_chart, col_summary = st.columns([1, 1.2])
 with col_chart:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">PERMAバランスチャート</div>', unsafe_allow_html=True)
-    plot_radar(perma_scores)
-    st.markdown('</div>', unsafe_allow_html=True)
-
+    plot_radar(compute_results(selected_row)[0])
 with col_summary:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">結果のまとめ</div>', unsafe_allow_html=True)
+    perma_scores, extras = compute_results(selected_row)
     st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
     for k,v in perma_scores.items():
         st.write(f"{k}（{full_labels[k]}）：{int(round(v))} 点")
-    st.markdown('</div>', unsafe_allow_html=True)
 
-# 各要素説明
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">各要素の説明</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">各要素の説明</div>', unsafe_allow_html=True)
 for k in ['P','E','R','M','A']:
     st.markdown(f"<span class='color-label' style='background:{colors[k]}'>{k}</span> **{full_labels[k]}**：{descriptions[k]}", unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
 
 # ---- ページ区切り ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 
-# ---- 3ページ目：補助指標＋おすすめ＋注意 ----
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">補助指標（あくまで参考程度にしてください）</div>', unsafe_allow_html=True)
-for k,v in extras.items():
-    if not np.isnan(v):
-        st.write(f"{k}：{int(round(v))} 点")
-st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
+# ---- 3ページ目：おすすめ＋補助指標＋注意 ----
+st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
     for k in ['P','E','R']:
@@ -257,15 +235,21 @@ with col2:
         st.markdown(f"**{full_labels[k]}**", unsafe_allow_html=True)
         for t in tips[k]:
             st.markdown(f"- {t}")
-st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">この結果を受け取るうえで大切なこと</div>', unsafe_allow_html=True)
-st.markdown("""
-- 結果は“良い・悪い”ではなく、あなたの**今の状態や環境**を表しています。  
-- 改善のためには、**無理せず小さな一歩**から始めましょう（例：1日5分の散歩）。  
-- このチェックは**医療的診断ではありません**。気分の落ち込みが続く場合は、専門職にご相談ください。
-""")
-st.markdown('</div>', unsafe_allow_html=True)
+# 横並び：補助指標＋大切なこと
+st.markdown('<div class="section-header">補助指標と結果を受け取るうえで大切なこと</div>', unsafe_allow_html=True)
+colL, colR = st.columns([0.9, 1.1])
+with colL:
+    st.markdown("### 補助指標（参考）")
+    for k,v in extras.items():
+        if not np.isnan(v):
+            st.write(f"{k}：{int(round(v))} 点")
+with colR:
+    st.markdown("### この結果を受け取るうえで大切なこと")
+    st.markdown("""
+    - 結果は“良い・悪い”ではなく、あなたの**今の状態や環境**を表しています。  
+    - 改善のためには、**無理せず小さな一歩**から始めましょう（例：1日5分の散歩）。  
+    - このチェックは**医療的診断ではありません**。気分の落ち込みが続く場合は、専門職にご相談ください。
+    """)
 
 st.markdown('</div>', unsafe_allow_html=True)
