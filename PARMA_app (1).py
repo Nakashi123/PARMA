@@ -32,7 +32,7 @@ theme = {
 }
 
 # =========================
-# CSSスタイル
+# CSSスタイル（透明バー削除＆余白調整）
 # =========================
 st.markdown(f"""
 <style>
@@ -49,7 +49,7 @@ h1 {{ text-align:center; color:#333; margin-top:0.4em; }}
   border-radius:14px;
   box-shadow:0 3px 8px rgba(0,0,0,0.07);
   padding:1rem 1.4rem;
-  margin:1rem 0;
+  margin:0.6rem 0; /* ← 少し詰める */
 }}
 .section-title {{
   font-weight:700;
@@ -70,6 +70,18 @@ h1 {{ text-align:center; color:#333; margin-top:0.4em; }}
   padding:2px 8px;
   border-radius:6px;
   color:white;
+}}
+
+/* ✅ Streamlit の不要な透明バーを完全除去 */
+div[data-testid="stVerticalBlock"] > div:has(> div[class*="stMarkdown"]) {{
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}}
+div.block-container {{
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
 }}
 </style>
 """, unsafe_allow_html=True)
