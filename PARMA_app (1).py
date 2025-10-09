@@ -253,6 +253,72 @@ if uploaded:
         - このチェックは**医療的診断ではありません**。気分の落ち込みが続く場合は、専門職にご相談ください。
         """)
         st.markdown('</div>', unsafe_allow_html=True)
+        from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+
+# PDF生成関数
+def generate_pdf(perma_scores, extras, tips, chart_path):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("<b>わらトレ　心の健康チェック</b>", styles['Title']))
+    story.append(Spacer(1, 0.3*cm))
+    story.append(Paragraph("以下は、あなたの日ごろの気持ちについての結果です。", styles['Normal']))
+    story.append(Spacer(1, 0.4*cm))
+
+    story.append(Paragraph("<b>PERMAバランスチャート</b>", styles['Heading2']))
+    story.append(Image(chart_path, width=10*cm, height=10*cm))
+    story.append(Spacer(1, 0.5*cm))
+
+    story.append(Paragraph("<b>結果のまとめ</b>", styles['Heading2']))
+    story.append(Paragraph("0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要", styles['Normal']))
+    for k, v in perma_scores.items():
+        story.append(Paragraph(f"{k}：{int(round(v))} 点", styles['Normal']))
+
+    story.append(Spacer(1, 0.4*cm))
+    story.append(Paragraph("<b>補助指標（参考）</b>", styles['Heading2']))
+    for k, v in extras.items():
+        if not np.isnan(v):
+            story.append(Paragraph(f"{k}：{int(round(v))} 点", styles['Normal']))
+
+    story.append(Spacer(1, 0.4*cm))
+    story.append(Paragraph("<b>あなたにおすすめな行動（例）</b>", styles['Heading2']))
+    for k, acts in tips.items():
+        story.append(Paragraph(f"<b>{full_labels[k]}</b>", styles['Normal']))
+        for act in acts:
+            story.append(Paragraph(f"・{act}", styles['Normal']))
+        story.append(Spacer(1, 0.1*cm))
+
+    story.append(Spacer(1, 0.5*cm))
+    story.append(Paragraph("<b>この結果を受け取るうえで大切なこと</b>", styles['Heading2']))
+    story.append(Paragraph(
+        "・結果は“良い・悪い”ではなく、あなたの今の状態や環境を表しています。<br/>"
+        "・改善のためには、無理せず小さな一歩から始めましょう（例：1日5分の散歩）。<br/>"
+        "・このチェックは医療的診断ではありません。気分の落ち込みが続く場合は、専門職にご相談ください。",
+        styles['Normal']
+    ))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+# チャート画像を一時保存
+chart_path = "chart_tmp.png"
+plt.savefig(chart_path, dpi=200)
+
+pdf_buffer = generate_pdf(perma_scores, extras, tips, chart_path)
+st.download_button(
+    label="📥 結果をPDFで保存",
+    data=pdf_buffer,
+    file_name=f"PERMA_report_{sid}.pdf",
+    mime="application/pdf"
+)
+
 else:
     st.info("まずはExcelファイルをアップロードしてください。")
 
