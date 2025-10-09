@@ -86,6 +86,13 @@ perma_indices = {
 }
 extra_indices = {'Negative Emotion':[6,13,19],'Health':[3,12,17],'Loneliness':[11],'Happiness':[22]}
 
+extra_labels_ja = {
+    'Negative Emotion': '否定的な感情',
+    'Health': '健康感',
+    'Loneliness': '孤独感',
+    'Happiness': '幸福感',
+}
+
 full_labels = {
     'P':'前向きな気持ち（Positive Emotion）',
     'E':'集中して取り組むこと（Engagement）',
@@ -99,6 +106,13 @@ descriptions = {
     'R':'家族や友人、地域とのつながりを感じ、支え合えていることを示します。',
     'M':'自分の人生に目的や価値を見いだし、大切なことに沿って生きています。',
     'A':'目標に向かって取り組み、やり遂げた達成感を感じられています。',
+}
+tips = {
+    'P':['感謝を込めた手紙を書く','その日の「良かったこと」を3つ書く'],
+    'E':['自分の得意なことを活かす','小さな挑戦を設定して取り組む'],
+    'R':['日常で小さな親切を行う','家族や友人に感謝を伝える'],
+    'M':['自分の大切にしている価値を書き出す','過去の困難を乗り越えた経験を振り返る'],
+    'A':['小さな目標を達成する習慣を作る','失敗も学びととらえる'],
 }
 
 # =========================
@@ -116,7 +130,7 @@ def compute_results(selected_row: pd.DataFrame):
     return perma_scores, extras
 
 # =========================
-# レーダーチャート
+# レーダーチャート（文字色も要素色）
 # =========================
 def plot_radar(perma_scores):
     labels = list(perma_scores.keys())
@@ -125,18 +139,23 @@ def plot_radar(perma_scores):
     angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(3.4,3.4), subplot_kw=dict(polar=True), dpi=160)
+    fig, ax = plt.subplots(figsize=(3.8,3.8), subplot_kw=dict(polar=True), dpi=160)
     ax.set_theta_offset(np.pi/2)
     ax.set_theta_direction(-1)
 
     for i, k in enumerate(labels):
-        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]],
-                color=colors[k], linewidth=2.5)
-    ax.fill(angles, values, alpha=0.1, color="#999")
-    ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=11, fontweight='bold')
+        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[k], linewidth=2.5)
+    ax.fill(angles, values, alpha=0.1, color="#888")
+
+    # ラベル色統一
+    for i, label in enumerate(labels):
+        angle_rad = angles[i]
+        ax.text(angle_rad, 10.6, label, color=colors[label], fontsize=12, fontweight='bold', ha='center', va='center')
+
     ax.set_ylim(0,10)
     ax.set_rticks([2,5,8])
     ax.grid(alpha=0.3)
+    ax.set_xticklabels([])
     fig.tight_layout(pad=0.2)
     st.pyplot(fig)
 
@@ -157,7 +176,6 @@ if uploaded:
     if selected_row.empty:
         st.warning("選択されたIDが見つかりません。")
     else:
-        # 名前としてIDを利用
         name_display = f"{sid}様"
         st.write(f"以下は、**{name_display}の日ごろの気持ち**についての結果です。")
 
@@ -169,7 +187,7 @@ if uploaded:
         plot_radar(perma_scores)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # === 各要素の説明（色を統一） ===
+        # === 各要素の説明 ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">各要素の説明</div>', unsafe_allow_html=True)
         for k in ['P','E','R','M','A']:
@@ -188,24 +206,41 @@ if uploaded:
         以下は、PERMAの各要素ごとのスコアです。
         """)
         for k,v in perma_scores.items():
-            st.write(f"{k}（{full_labels[k]}）：{v:.2f}")
+            st.write(f"{k}（{full_labels[k]}）：{int(round(v))} 点")
         st.markdown('</div>', unsafe_allow_html=True)
 
         # === 補助指標 ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">補助指標</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">補助指標（あくまで参考程度にしてください）</div>', unsafe_allow_html=True)
         for k,v in extras.items():
             if not np.isnan(v):
-                st.write(f"{k}：{v:.2f}")
+                ja_label = extra_labels_ja.get(k, k)
+                st.write(f"{ja_label}：{v:.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # === コメント ===
+        # === おすすめ行動 ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">アドバイス</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            for k in ['P','E','R']:
+                st.markdown(f"**{full_labels[k]}**")
+                for t in tips[k]:
+                    st.markdown(f"- {t}")
+        with col2:
+            for k in ['M','A']:
+                st.markdown(f"**{full_labels[k]}**")
+                for t in tips[k]:
+                    st.markdown(f"- {t}")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # === 注意書き ===
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">この結果を受け取るうえで大切なこと</div>', unsafe_allow_html=True)
         st.markdown("""
-        - 高いスコアはあなたの強みとして活かしましょう。  
-        - 少し低めの要素は、日々の工夫でゆっくり伸ばせます。  
-        - 「感謝を記録する」「趣味の時間を作る」など小さな実践を続けることで、心の健康を維持できます。
+        - 結果は“良い・悪い”ではなく、あなたの**今の状態や環境**を表しています。  
+        - 改善のためには、**無理せず小さな一歩**から始めましょう（例：1日5分の散歩）。  
+        - このチェックは**医療的診断ではありません**。気分の落ち込みが続く場合は、専門職にご相談ください。
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 else:
