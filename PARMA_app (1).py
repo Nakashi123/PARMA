@@ -109,10 +109,10 @@ perma_indices = {
     'A':[1,7,15],
 }
 extra_indices = {
-    'ネガティブ感情':[6,13,19],
-    '健康感':[3,12,17],
-    '孤独感':[11],
-    '幸福感':[22],
+    'こころのつらさ':[6,13,19],
+    'からだの調子':[3,12,17],
+    'ひとりぼっち感':[11],
+    'しあわせ感':[22],
 }
 
 full_labels = {
@@ -243,7 +243,7 @@ with colL:
     st.markdown("### 補助指標（参考）")
     for k,v in extras.items():
         if not np.isnan(v):
-            st.write(f"{k}：{int(round(v))} 点")
+            st.write(f"{k}：{int(round(v))} /10点")
 with colR:
     st.markdown("### これらの結果を受け取るうえで大切なこと")
     st.markdown("""
