@@ -245,7 +245,7 @@ with colL:
         if not np.isnan(v):
             st.write(f"{k}：{int(round(v))} 点")
 with colR:
-    st.markdown("### この結果を受け取るうえで大切なこと")
+    st.markdown("### これらの結果を受け取るうえで大切なこと")
     st.markdown("""
     - 結果は“良い・悪い”ではなく、あなたの**今の状態や環境**を表しています。  
     - 改善のためには、**無理せず小さな一歩**から始めましょう（例：1日5分の散歩）。  
