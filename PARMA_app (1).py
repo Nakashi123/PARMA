@@ -7,6 +7,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
 # =========================
 # 基本設定
@@ -20,14 +22,19 @@ plt.rcParams.update({
 })
 
 # =========================
+# 日本語フォント登録（PDF用）
+# =========================
+pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))  # ゴシック体で日本語をきれいに表示
+
+# =========================
 # カラーテーマ
 # =========================
 colors = {
-    "P": "#F28B82",
-    "E": "#FDD663",
-    "R": "#81C995",
-    "M": "#AECBFA",
-    "A": "#F9AB00",
+    "P": "#F28B82",  # ピンク
+    "E": "#FDD663",  # 黄色
+    "R": "#81C995",  # 緑
+    "M": "#AECBFA",  # 水色
+    "A": "#F9AB00",  # オレンジ
 }
 theme = {
     "bg": "#FAFAFA",
@@ -161,49 +168,57 @@ def plot_radar(perma_scores, save_path=None):
     plt.close(fig)
 
 # =========================
-# PDF生成関数
+# PDF生成関数（日本語対応）
 # =========================
 def generate_pdf(perma_scores, extras, tips, chart_path):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
-    story = []
 
-    story.append(Paragraph("<b>わらトレ　心の健康チェック</b>", styles['Title']))
+    normal = styles["Normal"]
+    normal.fontName = "HeiseiKakuGo-W5"
+    normal.fontSize = 11
+    title = styles["Title"]
+    title.fontName = "HeiseiKakuGo-W5"
+    heading = styles["Heading2"]
+    heading.fontName = "HeiseiKakuGo-W5"
+
+    story = []
+    story.append(Paragraph("わらトレ　心の健康チェック", title))
     story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph("以下は、あなたの日ごろの気持ちについての結果です。", styles['Normal']))
+    story.append(Paragraph("以下は、あなたの日ごろの気持ちについての結果です。", normal))
     story.append(Spacer(1, 0.4*cm))
 
-    story.append(Paragraph("<b>PERMAバランスチャート</b>", styles['Heading2']))
+    story.append(Paragraph("PERMAバランスチャート", heading))
     story.append(Image(chart_path, width=10*cm, height=10*cm))
     story.append(Spacer(1, 0.5*cm))
 
-    story.append(Paragraph("<b>結果のまとめ</b>", styles['Heading2']))
-    story.append(Paragraph("0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要", styles['Normal']))
+    story.append(Paragraph("結果のまとめ", heading))
+    story.append(Paragraph("0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要", normal))
     for k, v in perma_scores.items():
-        story.append(Paragraph(f"{k}：{int(round(v))} 点", styles['Normal']))
+        story.append(Paragraph(f"{k}：{int(round(v))} 点", normal))
 
     story.append(Spacer(1, 0.4*cm))
-    story.append(Paragraph("<b>補助指標（参考）</b>", styles['Heading2']))
+    story.append(Paragraph("補助指標（参考）", heading))
     for k, v in extras.items():
         if not np.isnan(v):
-            story.append(Paragraph(f"{k}：{int(round(v))} 点", styles['Normal']))
+            story.append(Paragraph(f"{k}：{int(round(v))} 点", normal))
 
     story.append(Spacer(1, 0.4*cm))
-    story.append(Paragraph("<b>あなたにおすすめな行動（例）</b>", styles['Heading2']))
+    story.append(Paragraph("あなたにおすすめな行動（例）", heading))
     for k, acts in tips.items():
-        story.append(Paragraph(f"<b>{full_labels[k]}</b>", styles['Normal']))
+        story.append(Paragraph(full_labels[k], normal))
         for act in acts:
-            story.append(Paragraph(f"・{act}", styles['Normal']))
+            story.append(Paragraph(f"・{act}", normal))
         story.append(Spacer(1, 0.1*cm))
 
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph("<b>この結果を受け取るうえで大切なこと</b>", styles['Heading2']))
+    story.append(Paragraph("この結果を受け取るうえで大切なこと", heading))
     story.append(Paragraph(
         "・結果は“良い・悪い”ではなく、あなたの今の状態や環境を表しています。<br/>"
         "・改善のためには、無理せず小さな一歩から始めましょう（例：1日5分の散歩）。<br/>"
         "・このチェックは医療的診断ではありません。気分の落ち込みが続く場合は、専門職にご相談ください。",
-        styles['Normal']
+        normal
     ))
 
     doc.build(story)
@@ -211,7 +226,7 @@ def generate_pdf(perma_scores, extras, tips, chart_path):
     return buffer
 
 # =========================
-# 本体
+# Streamlit本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
@@ -227,15 +242,13 @@ if uploaded:
     if selected_row.empty:
         st.warning("選択されたIDが見つかりません。")
     else:
-        st.write(f"以下は、あなたの日ごろの気持ちについての結果です。")
-
+        st.write("以下は、あなたの日ごろの気持ちについての結果です。")
         perma_scores, extras = compute_results(selected_row)
 
-        # チャート保存
         chart_path = "chart_tmp.png"
         plot_radar(perma_scores, save_path=chart_path)
 
-        # 各セクション
+        # 各セクション表示
         st.markdown('<div class="section-card"><div class="section-title">各要素の説明</div>', unsafe_allow_html=True)
         for k in ['P','E','R','M','A']:
             st.markdown(
@@ -245,7 +258,7 @@ if uploaded:
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # 結果まとめ
+        # 結果のまとめ
         st.markdown('<div class="section-card"><div class="section-title">結果のまとめ</div>', unsafe_allow_html=True)
         st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
         for k,v in perma_scores.items():
@@ -259,7 +272,7 @@ if uploaded:
                 st.write(f"{k}：{int(round(v))} 点")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # PDFボタン
+        # PDFダウンロード
         pdf_buffer = generate_pdf(perma_scores, extras, tips, chart_path)
         st.download_button(
             label="📥 結果をPDFで保存",
