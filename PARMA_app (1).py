@@ -176,7 +176,7 @@ if uploaded:
         st.warning("選択されたIDが見つかりません。")
     else:
         name_display = f"{sid}様"
-        st.write(f"以下は、**{name_display}の日ごろの気持ち**についての結果です。")
+        st.write(f"以下は、あなたの日ごろの気持ちについての結果です。")
 
         perma_scores, extras = compute_results(selected_row)
 
