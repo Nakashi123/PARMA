@@ -84,13 +84,11 @@ perma_indices = {
     'M':[0,8,16],
     'A':[1,7,15],
 }
-extra_indices = {'Negative Emotion':[6,13,19],'Health':[3,12,17],'Loneliness':[11],'Happiness':[22]}
-
-extra_labels_ja = {
-    'Negative Emotion': '否定的な感情',
-    'Health': '健康感',
-    'Loneliness': '孤独感',
-    'Happiness': '幸福感',
+extra_indices = {
+    'ネガティブ感情':[6,13,19],
+    '健康感':[3,12,17],
+    '孤独感':[11],
+    '幸福感':[22],
 }
 
 full_labels = {
@@ -143,14 +141,15 @@ def plot_radar(perma_scores):
     ax.set_theta_offset(np.pi/2)
     ax.set_theta_direction(-1)
 
+    # 項目ごとの線と色
     for i, k in enumerate(labels):
         ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[k], linewidth=2.5)
     ax.fill(angles, values, alpha=0.1, color="#888")
 
-    # ラベル色統一
+    # ラベルを要素色で表示
     for i, label in enumerate(labels):
-        angle_rad = angles[i]
-        ax.text(angle_rad, 10.6, label, color=colors[label], fontsize=12, fontweight='bold', ha='center', va='center')
+        ax.text(angles[i], 10.6, label, color=colors[label], fontsize=12, fontweight='bold',
+                ha='center', va='center')
 
     ax.set_ylim(0,10)
     ax.set_rticks([2,5,8])
@@ -198,7 +197,7 @@ if uploaded:
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # === 結果のまとめ ===
+        # === 結果のまとめ（整数表示） ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">結果のまとめ</div>', unsafe_allow_html=True)
         st.markdown("""
@@ -214,27 +213,26 @@ if uploaded:
         st.markdown('<div class="section-title">補助指標（あくまで参考程度にしてください）</div>', unsafe_allow_html=True)
         for k,v in extras.items():
             if not np.isnan(v):
-                ja_label = extra_labels_ja.get(k, k)
-                st.write(f"{ja_label}：{v:.2f}")
+                st.write(f"{k}：{int(round(v))} 点")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # === おすすめ行動 ===
+        # === おすすめ活動 ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
             for k in ['P','E','R']:
-                st.markdown(f"**{full_labels[k]}**")
+                st.markdown(f"**{full_labels[k]}**", unsafe_allow_html=True)
                 for t in tips[k]:
                     st.markdown(f"- {t}")
         with col2:
             for k in ['M','A']:
-                st.markdown(f"**{full_labels[k]}**")
+                st.markdown(f"**{full_labels[k]}**", unsafe_allow_html=True)
                 for t in tips[k]:
                     st.markdown(f"- {t}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # === 注意書き ===
+        # === 注意事項 ===
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">この結果を受け取るうえで大切なこと</div>', unsafe_allow_html=True)
         st.markdown("""
