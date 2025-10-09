@@ -237,7 +237,7 @@ with col2:
             st.markdown(f"- {t}")
 
 # 横並び：補助指標＋大切なこと
-st.markdown('<div class="section-header">補助指標と結果を受け取るうえで大切なこと</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">さいごに</div>', unsafe_allow_html=True)
 colL, colR = st.columns([0.9, 1.1])
 with colL:
     st.markdown("### 補助指標（参考）")
