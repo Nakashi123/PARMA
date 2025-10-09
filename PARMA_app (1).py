@@ -213,7 +213,7 @@ with col_summary:
     perma_scores, extras = compute_results(selected_row)
     st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
     for k,v in perma_scores.items():
-        st.write(f"{k}（{full_labels[k]}）：{int(round(v))} 点")
+        st.write(f"{k}（{full_labels[k]}）：{int(round(v))} /10点")
 
 st.markdown('<div class="section-header">各要素の説明</div>', unsafe_allow_html=True)
 for k in ['P','E','R','M','A']:
