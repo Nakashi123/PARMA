@@ -144,7 +144,7 @@ def compute_results(selected_row: pd.DataFrame):
     return perma_scores, extras
 
 # =========================
-# 棒グラフ（アルファベットラベル）
+# シンプル棒グラフ（PERMAのみ）
 # =========================
 def plot_histogram(perma_scores):
     labels = list(perma_scores.keys())  # P, E, R, M, A
@@ -154,14 +154,16 @@ def plot_histogram(perma_scores):
     fig, ax = plt.subplots(figsize=(4.5,3), dpi=160)
     bars = ax.bar(labels, values, color=colors_list, alpha=0.85)
 
+    # スコア表示
     for bar, val in zip(bars, values):
         ax.text(bar.get_x() + bar.get_width()/2, val + 0.3, f"{val:.1f}",
                 ha='center', va='bottom', fontsize=10, fontweight='bold')
 
+    # 軸とタイトルの調整
     ax.set_ylim(0, 10)
-    ax.set_ylabel("スコア（0〜10）", fontsize=11)
-    ax.set_title("PERMAスコア分布", fontsize=12, fontweight='bold')
-    ax.grid(axis='y', alpha=0.3)
+    ax.set_title("PERMA", fontsize=13, fontweight='bold')
+    ax.set_ylabel("")  # 縦軸ラベル削除
+    ax.grid(axis='y', alpha=0.25)
     fig.tight_layout()
     st.pyplot(fig)
 
@@ -186,7 +188,7 @@ if selected_row.empty:
     st.warning("選択されたIDが見つかりません。")
     st.stop()
 
-# ---- 2ページ目 ----
+# ---- ページ ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-header">PERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
 
