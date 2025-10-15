@@ -33,7 +33,7 @@ theme = {
 }
 
 # =========================
-# CSSスタイル（帯見出し化＋レイアウト調整）
+# CSSスタイル
 # =========================
 st.markdown(f"""
 <style>
@@ -64,14 +64,6 @@ h1 {{
   border-radius:6px;
   margin-top:1rem;
   margin-bottom:.8rem;
-}}
-
-.section-card {{
-  background:{theme['card_bg']};
-  border-radius:14px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.05);
-  padding:1rem 1.2rem;
-  margin:0.8rem 0;
 }}
 
 .color-label {{
@@ -152,17 +144,16 @@ def compute_results(selected_row: pd.DataFrame):
     return perma_scores, extras
 
 # =========================
-# 棒グラフ（ヒストグラム）描画
+# 棒グラフ（アルファベットラベル）
 # =========================
 def plot_histogram(perma_scores):
-    labels = [full_labels[k] for k in perma_scores.keys()]
+    labels = list(perma_scores.keys())  # P, E, R, M, A
     values = list(perma_scores.values())
-    colors_list = [colors[k] for k in perma_scores.keys()]
+    colors_list = [colors[k] for k in labels]
 
     fig, ax = plt.subplots(figsize=(4.5,3), dpi=160)
-    bars = ax.bar(labels, values, color=colors_list, alpha=0.8)
+    bars = ax.bar(labels, values, color=colors_list, alpha=0.85)
 
-    # スコア表示
     for bar, val in zip(bars, values):
         ax.text(bar.get_x() + bar.get_width()/2, val + 0.3, f"{val:.1f}",
                 ha='center', va='bottom', fontsize=10, fontweight='bold')
@@ -171,7 +162,6 @@ def plot_histogram(perma_scores):
     ax.set_ylabel("スコア（0〜10）", fontsize=11)
     ax.set_title("PERMAスコア分布", fontsize=12, fontweight='bold')
     ax.grid(axis='y', alpha=0.3)
-    plt.xticks(rotation=20, ha='right')
     fig.tight_layout()
     st.pyplot(fig)
 
@@ -183,7 +173,6 @@ st.title("わらトレ　心の健康チェック")
 
 uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23列）をアップロードしてください", type="xlsx")
 
-# ---- 1ページ目 ----
 if not uploaded:
     st.info("まずはExcelファイルをアップロードしてください。")
     st.stop()
@@ -197,11 +186,10 @@ if selected_row.empty:
     st.warning("選択されたIDが見つかりません。")
     st.stop()
 
-# ---- ページ区切り ----
+# ---- 2ページ目 ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-
-# ---- 2ページ目：チャート＋まとめ ----
 st.markdown('<div class="section-header">PERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
+
 col_chart, col_summary = st.columns([1, 1.2])
 with col_chart:
     plot_histogram(compute_results(selected_row)[0])
@@ -215,10 +203,8 @@ st.markdown('<div class="section-header">各要素の説明</div>', unsafe_allow
 for k in ['P','E','R','M','A']:
     st.markdown(f"<span class='color-label' style='background:{colors[k]}'>{k}</span> **{full_labels[k]}**：{descriptions[k]}", unsafe_allow_html=True)
 
-# ---- ページ区切り ----
+# ---- 3ページ目 ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-
-# ---- 3ページ目：おすすめ＋補助指標＋注意 ----
 st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
@@ -232,7 +218,6 @@ with col2:
         for t in tips[k]:
             st.markdown(f"- {t}")
 
-# 横並び：補助指標＋大切なこと
 st.markdown('<div class="section-header">さいごに</div>', unsafe_allow_html=True)
 colL, colR = st.columns([0.9, 1.1])
 with colL:
