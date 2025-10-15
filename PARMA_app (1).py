@@ -190,7 +190,7 @@ if selected_row.empty:
 
 # ---- ページ ----
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-st.markdown('<div class="section-header">PERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">あなたのPERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
 
 col_chart, col_summary = st.columns([1, 1.2])
 with col_chart:
