@@ -116,11 +116,11 @@ extra_indices = {
 }
 
 full_labels = {
-    'P':'前向きな気持ち（Positive Emotion）',
-    'E':'集中して取り組むこと（Engagement）',
-    'R':'人とのつながり（Relationships）',
-    'M':'生きがいや目的（Meaning）',
-    'A':'達成感（Accomplishment）',
+    'P':'前向きな気持ち',
+    'E':'集中して取り組むこと',
+    'R':'人とのつながり',
+    'M':'生きがいや目的',
+    'A':'達成感',
 }
 descriptions = {
     'P':'楽しい気持ちや感謝、安心感など、心のゆとりを感じることができています。',
