@@ -152,31 +152,27 @@ def compute_results(selected_row: pd.DataFrame):
     return perma_scores, extras
 
 # =========================
-# レーダーチャート
+# 棒グラフ（ヒストグラム）描画
 # =========================
-def plot_radar(perma_scores):
-    labels = list(perma_scores.keys())
+def plot_histogram(perma_scores):
+    labels = [full_labels[k] for k in perma_scores.keys()]
     values = list(perma_scores.values())
-    values += values[:1]
-    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
-    angles += angles[:1]
+    colors_list = [colors[k] for k in perma_scores.keys()]
 
-    fig, ax = plt.subplots(figsize=(3.2,3.2), subplot_kw=dict(polar=True), dpi=160)
-    ax.set_theta_offset(np.pi/2)
-    ax.set_theta_direction(-1)
-    for i, k in enumerate(labels):
-        ax.plot([angles[i], angles[i+1]], [values[i], values[i+1]], color=colors[k], linewidth=2.3)
-    ax.fill(angles, values, alpha=0.15, color="#888")
+    fig, ax = plt.subplots(figsize=(4.5,3), dpi=160)
+    bars = ax.bar(labels, values, color=colors_list, alpha=0.8)
 
-    for i, label in enumerate(labels):
-        ax.text(angles[i], 10.5, label, color=colors[label], fontsize=11, fontweight='bold',
-                ha='center', va='center')
+    # スコア表示
+    for bar, val in zip(bars, values):
+        ax.text(bar.get_x() + bar.get_width()/2, val + 0.3, f"{val:.1f}",
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
 
-    ax.set_ylim(0,10)
-    ax.set_rticks([2,5,8])
-    ax.grid(alpha=0.3)
-    ax.set_xticklabels([])
-    fig.tight_layout(pad=0.1)
+    ax.set_ylim(0, 10)
+    ax.set_ylabel("スコア（0〜10）", fontsize=11)
+    ax.set_title("PERMAスコア分布", fontsize=12, fontweight='bold')
+    ax.grid(axis='y', alpha=0.3)
+    plt.xticks(rotation=20, ha='right')
+    fig.tight_layout()
     st.pyplot(fig)
 
 # =========================
@@ -205,10 +201,10 @@ if selected_row.empty:
 st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 
 # ---- 2ページ目：チャート＋まとめ ----
-st.markdown('<div class="section-header">PERMAバランスチャート・結果のまとめ</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">PERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
 col_chart, col_summary = st.columns([1, 1.2])
 with col_chart:
-    plot_radar(compute_results(selected_row)[0])
+    plot_histogram(compute_results(selected_row)[0])
 with col_summary:
     perma_scores, extras = compute_results(selected_row)
     st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
