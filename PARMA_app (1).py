@@ -47,7 +47,7 @@ html, body, [class*="css"] {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-  line-height:1.6;
+  line-height:1.8;
 }}
 
 div.block-container {{
@@ -64,7 +64,7 @@ h1 {{
   text-align:center;
   color:#333;
   margin-top:0.4em;
-  font-size:1.9rem;
+  font-size:2rem;
   font-weight:800;
 }}
 
@@ -72,12 +72,19 @@ h1 {{
   background:{theme['bar_bg']};
   color:#333;
   font-weight:800;
-  font-size:1.1rem;
-  padding:.5rem .9rem;
+  font-size:1.2rem;
+  padding:.6rem 1rem;
   border-left:8px solid {theme['accent']};
   border-radius:6px;
-  margin-top:0.9rem;
+  margin-top:1rem;
   margin-bottom:.4rem;
+}}
+
+.color-label {{
+  font-weight:bold;
+  padding:2px 8px;
+  border-radius:6px;
+  color:white;
 }}
 
 .section-caption {{
@@ -98,10 +105,11 @@ h1 {{
   margin-right:1.0rem;
 }}
 
+/* 結果カードのレイアウト */
 .factor-grid {{
   display:grid;
   gap:0.55rem;
-  margin-top:0.3rem;
+  margin-top:0.2rem;
 }}
 
 .factor-grid.perma {{
@@ -123,7 +131,7 @@ h1 {{
   border-radius:12px;
   padding:0.55rem 0.7rem 0.5rem;
   box-shadow:0 1px 3px rgba(0,0,0,.08);
-  min-height:100px;
+  min-height:90px;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
@@ -132,12 +140,6 @@ h1 {{
 .factor-title {{
   font-size:0.9rem;
   font-weight:700;
-}}
-
-.factor-sub {{
-  font-size:0.75rem;
-  color:#555;
-  margin-top:0.1rem;
 }}
 
 .factor-score {{
@@ -185,7 +187,7 @@ h1 {{
   background:#FFFDE7;
   border-radius:8px;
   padding:0.55rem 0.7rem;
-  margin-top:0.4rem;
+  margin-top:0.6rem;
   border:1px solid #FFE082;
 }}
 
@@ -226,7 +228,7 @@ full_labels = {
     'A':'達成感',
 }
 
-# （説明や行動提案は、別ページを作る場合用に残しておく）
+# 説明・行動提案（今回は画面では使わないが残しておく）
 descriptions = {
     'P':'楽しい気持ちや感謝、安心感、心のゆとりを感じることができています。',
     'E':'夢中で取り組む時間や没頭できる活動が生活の中にあります。',
@@ -256,6 +258,35 @@ def compute_results(selected_row: pd.DataFrame):
     extras = {k: compute_domain_avg(vals, idx) for k, idx in extra_indices.items()}
     return perma_scores, extras
 
+# =========================
+# ヒストグラム（PERMAのみ）※元の仕様を維持
+# =========================
+def plot_histogram(perma_scores):
+    labels = list(perma_scores.keys())  # P, E, R, M, A
+    values = list(perma_scores.values())
+    colors_list = [colors[k] for k in labels]
+
+    fig, ax = plt.subplots(figsize=(4.5,3), dpi=160)
+    bars = ax.bar(labels, values, color=colors_list, alpha=0.85)
+
+    # スコア表示
+    for bar, val in zip(bars, values):
+        if np.isnan(val):
+            continue
+        ax.text(bar.get_x() + bar.get_width()/2, val + 0.3, f"{val:.1f}",
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
+
+    # 軸とタイトルの調整
+    ax.set_ylim(0, 10)
+    ax.set_title("PERMA", fontsize=13, fontweight='bold')
+    ax.set_ylabel("")  # 縦軸ラベル削除
+    ax.grid(axis='y', alpha=0.25)
+    fig.tight_layout()
+    st.pyplot(fig)
+
+# =========================
+# カード表示用の関数
+# =========================
 def judge_level(score: float):
     """スコアから一言コメントとレベルクラスを返す"""
     if np.isnan(score):
@@ -266,77 +297,47 @@ def judge_level(score: float):
         return "おおむね良好", "level-mid"
     return "少し低め", "level-low"
 
-# =========================
-# シンプル棒グラフ（PERMAバランス）
-# =========================
-def plot_histogram(perma_scores):
-    labels = list(perma_scores.keys())  # P, E, R, M, A
-    values = list(perma_scores.values())
-    colors_list = [colors[k] for k in labels]
-
-    fig, ax = plt.subplots(figsize=(4,3), dpi=160)
-    bars = ax.bar(labels, values, color=colors_list, alpha=0.9)
-
-    for bar, val in zip(bars, values):
-        if np.isnan(val):
-            continue
-        ax.text(bar.get_x() + bar.get_width()/2, val + 0.25, f"{val:.1f}",
-                ha='center', va='bottom', fontsize=9, fontweight='bold')
-
-    ax.set_ylim(0, 10)
-    ax.set_title("PERMA のバランス", fontsize=11, fontweight='bold')
-    ax.set_ylabel("")
-    ax.grid(axis='y', alpha=0.25)
-    fig.tight_layout()
-    st.pyplot(fig)
-
-# =========================
-# カードHTML生成
-# =========================
 def render_perma_cards(perma_scores):
-    cards_html = '<div class="factor-grid perma">'
+    html = '<div class="factor-grid perma">'
     for k in ['P','E','R','M','A']:
         s = perma_scores.get(k, np.nan)
         label, lv_class = judge_level(s)
         score_txt = f"{s:.1f}" if not np.isnan(s) else "-"
-        cards_html += f"""
+        html += f"""
         <div class="factor-card" style="border-top:5px solid {colors[k]};">
-          <div>
-            <div class="factor-title">{k}　{full_labels[k]}</div>
-          </div>
+          <div class="factor-title">{k}　{full_labels[k]}</div>
           <div>
             <div class="factor-score">{score_txt}<span>/10</span></div>
             <div class="factor-level {lv_class}">{label}</div>
           </div>
         </div>
         """
-    cards_html += "</div>"
-    st.markdown(cards_html, unsafe_allow_html=True)
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
 
 def render_extra_cards(extras):
-    cards_html = '<div class="factor-grid extra">'
+    html = '<div class="factor-grid extra">'
     for name, s in extras.items():
         label, lv_class = judge_level(s)
         score_txt = f"{s:.1f}" if not np.isnan(s) else "-"
         color = extra_colors.get(name, "#B0BEC5")
-        cards_html += f"""
+        html += f"""
         <div class="factor-card" style="border-top:5px solid {color};">
-          <div>
-            <div class="factor-title">{name}</div>
-          </div>
+          <div class="factor-title">{name}</div>
           <div>
             <div class="factor-score">{score_txt}<span>/10</span></div>
             <div class="factor-level {lv_class}">{label}</div>
           </div>
         </div>
         """
-    cards_html += "</div>"
-    st.markdown(cards_html, unsafe_allow_html=True)
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
 
 # =========================
-# Streamlit本体（結果報告書 1ページ）
+# Streamlit本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
 
 uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23列）をアップロードしてください", type="xlsx")
 
@@ -353,45 +354,61 @@ if selected_row.empty:
     st.warning("選択されたIDが見つかりません。")
     st.stop()
 
+# スコア計算
 perma_scores, extras = compute_results(selected_row)
 
-# ---- タイトル＆基本情報 ----
-st.title("心の健康チェック　結果報告書")
+# =========================
+# 上段：PERMAヒストグラム＋数値まとめ（従来どおり）
+# =========================
+st.markdown('<div class="section-header">PERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
 
 st.markdown(
     f"""
 <div class="result-info">
-  <div>
-    <span><b>ID：{sid}</b></span>
-  </div>
+  <div><b>ID：{sid}</b></div>
   <div class="section-caption">
-    0〜10点であらわしています。点数が高いほど、その面がしっかりしていることを示します。
+    0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要と考えられます。
   </div>
 </div>
 """,
     unsafe_allow_html=True
 )
 
-# ---- PERMA 5要素 ----
-st.markdown('<div class="section-header">PERMA（5つのしあわせの柱）</div>', unsafe_allow_html=True)
-
-col_left, col_right = st.columns([1.8, 1.1])
-
-with col_left:
-    render_perma_cards(perma_scores)
-
-with col_right: 
+col_chart, col_summary = st.columns([1, 1.2])
+with col_chart:
     plot_histogram(perma_scores)
 
-# ---- こころとからだのようす（元・補助指標） ----
+with col_summary:
+    for k, v in perma_scores.items():
+        if np.isnan(v):
+            score_txt = "- /10点"
+        else:
+            score_txt = f"{int(round(v))} /10点"
+        st.write(f"{k}（{full_labels[k]}）：{score_txt}")
+
+# =========================
+# 中段：PERMA 5要素のカード表示
+# =========================
+st.markdown('<div class="section-header">PERMA（5つのしあわせの柱）</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-caption">点数が高いほど、その面がしっかりしていることを示します。</div>',
+    unsafe_allow_html=True
+)
+render_perma_cards(perma_scores)
+
+# =========================
+# 下段：こころとからだのようす（補助指標を主要要素として）
+# =========================
 st.markdown('<div class="section-header">こころとからだのようす</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="section-caption">PERMA と同じく、しあわせを支える大切な要素です。</div>',
+    '<div class="section-caption">PERMA と同じように、しあわせを支える大切な要素です。</div>',
     unsafe_allow_html=True
 )
 render_extra_cards(extras)
 
-# ---- 注意書き（短く） ----
+# =========================
+# 注意書き（短く要点のみ）
+# =========================
 st.markdown(
     """
 <div class="note-box">
