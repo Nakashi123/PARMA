@@ -380,7 +380,7 @@ col_left, col_right = st.columns([1.8, 1.1])
 with col_left:
     render_perma_cards(perma_scores)
 
-with col_right:
+with col_right: 
     plot_histogram(perma_scores)
 
 # ---- こころとからだのようす（元・補助指標） ----
