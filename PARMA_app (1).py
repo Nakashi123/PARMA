@@ -55,7 +55,7 @@ h1 {{
 
 .section-header {{
   background:{theme['bar_bg']};
-  color:#333;
+  color:{theme['text']};
   font-weight:800;
   font-size:1.2rem;
   padding:.6rem 1rem;
@@ -152,7 +152,6 @@ def score_label(v: float) -> str:
         cat = "（強み）"
     elif s >= 4:
         cat = "（おおむね良好）"
-        # 4〜6点
     else:
         cat = "（サポートが必要）"
     return f"{s}/10点{cat}"
@@ -271,12 +270,11 @@ if weak_keys:
             for t in tips[k]:
                 st.markdown(f"- {t}")
 
-    # 右：指定の画像を表示
+    # 右：指定の画像を表示（URL指定）
     with col_right2:
         st.image(
-    "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
-    use_column_width=True
-    )
-
+            "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
+            use_container_width=True
+        )
 
 st.markdown('</div>', unsafe_allow_html=True)
