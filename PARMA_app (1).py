@@ -286,5 +286,5 @@ if weak_keys:
             use_container_width=True
         )
 
-# ラッパー<div>を閉じる
+# ラッパー<div>を閉じる　
 st.markdown('</div>', unsafe_allow_html=True)
