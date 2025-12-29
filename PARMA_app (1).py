@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import math
 
 # =========================
@@ -192,28 +193,25 @@ def plot_radar(perma_scores):
     labels = list(perma_scores.keys())  # ['P','E','R','M','A']
     values = [perma_scores[k] if not np.isnan(perma_scores[k]) else 0 for k in labels]
 
-    # 閉じるために先頭を末尾に追加
-    values_cycle = values + [values[0]]
-    angles = [n / float(len(labels)) * 2 * math.pi for n in range(len(labels))]
-    angles += angles[:1]
+    # 角度（等間隔）
+    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
+    angles += angles[:1]  # 閉じる
 
-    fig, ax = plt.subplots(figsize=(3.0, 3.0), dpi=160, subplot_kw=dict(polar=True))
+    values_cycle = values + values[:1]
 
-    # 外周やグリッドを少し薄く
+    fig = plt.figure(figsize=(3.0, 2.6), dpi=160)
+    ax = fig.add_subplot(111, polar=True)
+
+    ax.set_ylim(0, 10)
+
+    # 軸ラベル類
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels([])
+
     ax.spines["polar"].set_visible(False)
     ax.grid(alpha=0.3)
 
-    # 0〜10の範囲
-    ax.set_ylim(0, 10)
-
-    # 角度位置にラベル（P,E,R,M,A）
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-
-    # 半径方向ラベルは非表示（スッキリさせる）
-    ax.set_yticklabels([])
-
-    # ライン＆塗りつぶし
     ax.plot(angles, values_cycle, linewidth=1.5)
     ax.fill(angles, values_cycle, alpha=0.25)
 
@@ -293,7 +291,8 @@ with col_left:
         )
 
 with col_right:
-    st.markdown("### 心の状態に関連する指標（参考）")
+    # （参考）を削除
+    st.markdown("### 心の状態に関連する指標")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
 
