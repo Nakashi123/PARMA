@@ -163,11 +163,9 @@ def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
     values = list(perma_scores.values())
 
-    # 小さめサイズ
-    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)
+    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)  # 小さめサイズ
 
     ax.bar(labels, values, color=[colors[k] for k in labels])
-
     ax.set_ylim(0, 10)
 
     # 軸ラベル・縦軸の目盛りを消す
@@ -175,7 +173,7 @@ def plot_hist(perma_scores):
     ax.set_xlabel("")
     ax.set_yticklabels([])
 
-    ax.set_title("PERMA", fontsize=12)
+    ax.set_title("PERMAスコア", fontsize=12)
 
     # 各バーの上に数値を表示
     for x, v in zip(labels, values):
@@ -192,23 +190,7 @@ def plot_hist(perma_scores):
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-# 冒頭説明文
-st.info("""
-このチェックは、ポジティブ心理学者 Martin Seligman が提唱した 
-PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
-
-PERMAとは 
-前向きな気持ち・集中・つながり・意味・達成感
-の5要素で構成されており、
-
-ネガティブな状態がないこと＝幸せ
-ではなく 、心が満たされ、前向きに生きられている状態
-をとらえます。 
-
-また、この結果は診断ではなく、 
-あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
-""")
-
+# ファイルアップロード & ID選択
 uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
 if not uploaded:
     st.stop()
@@ -222,6 +204,18 @@ if row.empty:
     st.warning("選択されたIDが見つかりません。")
     st.stop()
 
+# ⭐ ID選択の「下」に説明文を表示
+st.info("""
+このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
+
+PERMAとは 前向きな気持ち・集中・つながり・意味・達成感 の5要素で構成されており、
+
+ネガティブな状態がないこと＝幸せ ではなく 、心が満たされ、前向きに生きられている状態 をとらえます。
+
+また、この結果は診断ではなく、 あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
+""")
+
+# スコア計算
 perma_scores, extras = compute_results(row)
 
 # =========================
@@ -261,7 +255,7 @@ with col_left:
         )
 
 with col_right:
-    st.markdown("### 心の状態に関連する指標")
+    st.markdown("### 心の状態に関連する指標（参考）")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
 
