@@ -2,8 +2,6 @@
 import streamlit as st
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
-import math
 
 # =========================
 # 基本設定
@@ -187,38 +185,6 @@ def plot_hist(perma_scores):
     st.pyplot(fig)
 
 # =========================
-# レーダーチャート
-# =========================
-def plot_radar(perma_scores):
-    labels = list(perma_scores.keys())  # ['P','E','R','M','A']
-    values = [perma_scores[k] if not np.isnan(perma_scores[k]) else 0 for k in labels]
-
-    # 角度（等間隔）
-    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-    angles += angles[:1]  # 閉じる
-
-    values_cycle = values + values[:1]
-
-    fig = plt.figure(figsize=(3.0, 2.6), dpi=160)
-    ax = fig.add_subplot(111, polar=True)
-
-    ax.set_ylim(0, 10)
-
-    # 軸ラベル類
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    ax.set_yticklabels([])
-
-    ax.spines["polar"].set_visible(False)
-    ax.grid(alpha=0.3)
-
-    ax.plot(angles, values_cycle, linewidth=1.5)
-    ax.fill(angles, values_cycle, alpha=0.25)
-
-    fig.tight_layout()
-    st.pyplot(fig)
-
-# =========================
 # アプリ本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
@@ -260,9 +226,7 @@ st.markdown('<div class="section-header">あなたのPERMAスコアまとめ</di
 col_chart, col_desc = st.columns([1, 1.5])
 
 with col_chart:
-    # 上にバー、下にレーダーチャート
     plot_hist(perma_scores)
-    plot_radar(perma_scores)
 
 with col_desc:
     st.markdown("### 各要素の説明")
@@ -291,7 +255,6 @@ with col_left:
         )
 
 with col_right:
-    # （参考）を削除
     st.markdown("### 心の状態に関連する指標")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
