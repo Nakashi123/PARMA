@@ -175,7 +175,7 @@ def plot_hist(perma_scores):
     ax.set_xlabel("")
     ax.set_yticklabels([])
 
-    ax.set_title("PERMAスコア", fontsize=12)
+    ax.set_title("PERMA", fontsize=12)
 
     # 各バーの上に数値を表示
     for x, v in zip(labels, values):
