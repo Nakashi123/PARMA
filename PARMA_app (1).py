@@ -261,7 +261,7 @@ with col_left:
         )
 
 with col_right:
-    st.markdown("### 心の状態に関連する指標 ")
+    st.markdown("### 心の状態に関連する指標")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
 
