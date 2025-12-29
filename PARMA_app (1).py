@@ -238,9 +238,14 @@ if strong_keys:
 
 if weak_keys:
     st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
-    for k in weak_keys:
-        st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
-        for t in tips[k]:
-            st.markdown(f"- {t}")
 
-st.markdown('</div>', unsafe_allow_html=True)
+    col_text, col_img = st.columns([2,1])
+
+    with col_text:
+        for k in weak_keys:
+            st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
+            for t in tips[k]:
+                st.markdown(f"- {t}")
+
+    with col_img:
+        st.image("images/Image_smile.png", use_column_width=True)
