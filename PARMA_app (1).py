@@ -185,7 +185,12 @@ def plot_hist(perma_scores):
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
+uploaded = st.file_uploader(
+    "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
+    type="xlsx",
+    key="main_file_uploader"
+)
+
 if not uploaded:
     st.stop()
 
