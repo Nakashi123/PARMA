@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="わらトレ　心の健康チェック", layout="centered")
 
 plt.rcParams.update({
-    "font.sans-serif": ["BIZ UDPGothic","Meiryo","Noto Sans JP"],
+    "font.sans-serif": ["BIZ UDPGothic", "Meiryo", "Noto Sans JP"],
     "axes.unicode_minus": False,
     "font.size": 12,
 })
@@ -143,7 +143,6 @@ def compute_results(row):
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
     return perma, extras
 
-# 点数表示（◯/10点 + カテゴリ）
 def score_label(v: float) -> str:
     if np.isnan(v):
         return "未回答"
@@ -157,25 +156,21 @@ def score_label(v: float) -> str:
     return f"{s}/10点{cat}"
 
 # =========================
-# グラフ（小さめ & 軸ラベル非表示）
+# グラフ（棒グラフのみ）
 # =========================
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
     values = list(perma_scores.values())
 
-    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)  # 小さめサイズ
+    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)
 
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
-
-    # 軸ラベル・縦軸の目盛りを消す
     ax.set_ylabel("")
     ax.set_xlabel("")
     ax.set_yticklabels([])
+    ax.set_title("PERMA", fontsize=12)
 
-    ax.set_title("PERMAスコア", fontsize=12)
-
-    # 各バーの上に数値を表示
     for x, v in zip(labels, values):
         if not np.isnan(v):
             ax.text(x, v + 0.25, f"{v:.1f}",
@@ -190,8 +185,12 @@ def plot_hist(perma_scores):
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-# ---------- ファイルアップロード & ID選択 ----------
-uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
+uploaded = st.file_uploader(
+    "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
+    type="xlsx",
+    key="main_file_uploader"  # 重複エラー防止のため key を明示
+)
+
 if not uploaded:
     st.stop()
 
@@ -199,7 +198,7 @@ df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
 
-# ⭐ ID選択の「すぐ下」に説明文を表示 ⭐
+# IDの下に説明文
 st.info("""
 このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
 
@@ -215,21 +214,19 @@ if row.empty:
     st.warning("選択されたIDが見つかりません。")
     st.stop()
 
-# スコア計算
 perma_scores, extras = compute_results(row)
 
 # =========================
-# PERMAスコアまとめ（グラフ＋説明を横並び）
+# あなたのスコアと各要素の説明
 # =========================
-st.markdown('<div class="section-header">あなたのPERMAスコアまとめ</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">あなたのスコアと各要素の説明</div>', unsafe_allow_html=True)
 
 col_chart, col_desc = st.columns([1, 1.5])
-
 with col_chart:
     plot_hist(perma_scores)
 
 with col_desc:
-    st.markdown("### 各要素の説明")
+    # 「### 各要素の説明」は消して、いきなり要素ごとの説明を並べる
     for k in ['P', 'E', 'R', 'M', 'A']:
         st.markdown(
             f"<span class='color-label' style='background:{colors[k]}'>{k}</span> "
@@ -255,38 +252,36 @@ with col_left:
         )
 
 with col_right:
-    st.markdown("### 心の状態に関連する指標（参考）")
+    st.markdown("### 心の状態に関連する指標")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
 
 # =========================
-# 強み & おすすめ行動
+# 強み & おすすめ行動（復活）
 # =========================
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
+# 強み（満たされている要素）
 if strong_keys:
     st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
+# スコア5点以下の要素のみ、おすすめ行動を表示
 if weak_keys:
     st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
 
     col_left2, col_right2 = st.columns([2, 1])
 
-    # 左：スコアが5点以下の要素に対するおすすめ行動
     with col_left2:
         for k in weak_keys:
             st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
             for t in tips[k]:
                 st.markdown(f"- {t}")
 
-    # 右：指定の画像を表示（URL指定）
     with col_right2:
         st.image(
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
-
-st.markdown('</div>', unsafe_allow_html=True)
