@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import streamlit as st
+import streamlit as stあいう
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 
