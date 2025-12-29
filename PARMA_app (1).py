@@ -162,15 +162,35 @@ def score_label(v: float) -> str:
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
     values = list(perma_scores.values())
+
     fig, ax = plt.subplots(figsize=(4.5, 3), dpi=160)
+
     ax.bar(labels, values, color=[colors[k] for k in labels])
+
+    # 範囲設定
     ax.set_ylim(0, 10)
-    ax.set_ylabel("スコア")
+
+    # ★ 軸ラベルを削除（これで文字化けも消えます）
+    ax.set_ylabel("")
+    ax.set_xlabel("")
+
+    # ★ 縦軸の数値も消す（必要な場合）
+    ax.set_yticklabels([])
+
+    # タイトル
     ax.set_title("PERMAスコア")
+
+    # スコア表示
     for x, v in zip(labels, values):
         if not np.isnan(v):
-            ax.text(x, v + 0.3, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+            ax.text(x, v + 0.3, f"{v:.1f}",
+                    ha="center", va="bottom", fontsize=9)
+
+    # 余白調整
+    fig.tight_layout()
+
     st.pyplot(fig)
+
 
 # =========================
 # アプリ本体
