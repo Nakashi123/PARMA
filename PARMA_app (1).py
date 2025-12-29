@@ -198,7 +198,7 @@ df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
 
-# IDの下に説明文
+# ======= ★ ここが指定の文章 ★ =======
 st.info("""
 このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
 
@@ -260,31 +260,26 @@ with col_right:
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
-# 強み（満たされている要素）
 if strong_keys:
     st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
-# スコア5点以下の要素のみ、おすすめ行動を表示
 if weak_keys:
     st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
 
-    col_left2, col_right2 = st.columns([2, 1])
+    c1, c2 = st.columns([2, 1])
 
-    # 左：スコアが5点以下の要素に対するおすすめ行動
-    with col_left2:
+    with c1:
         for k in weak_keys:
             st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
             for t in tips[k]:
                 st.markdown(f"- {t}")
 
-    # 右：指定の画像を表示（URL指定）
-    with col_right2:
+    with c2:
         st.image(
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
 
-# ラッパー<div>を閉じる　
 st.markdown('</div>', unsafe_allow_html=True)
