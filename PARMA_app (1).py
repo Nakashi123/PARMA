@@ -188,7 +188,7 @@ st.title("わらトレ　心の健康チェック")
 uploaded = st.file_uploader(
     "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
     type="xlsx",
-    key="main_file_uploader"  # 重複エラー防止のため key を明示
+    key="main_file_uploader"
 )
 
 if not uploaded:
@@ -226,7 +226,6 @@ with col_chart:
     plot_hist(perma_scores)
 
 with col_desc:
-    # 「### 各要素の説明」は消して、いきなり要素ごとの説明を並べる
     for k in ['P', 'E', 'R', 'M', 'A']:
         st.markdown(
             f"<span class='color-label' style='background:{colors[k]}'>{k}</span> "
@@ -257,7 +256,7 @@ with col_right:
         st.write(f"{k}：{score_label(v)}")
 
 # =========================
-# 強み & おすすめ行動（復活）
+# 強み & おすすめ行動
 # =========================
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
@@ -274,14 +273,19 @@ if weak_keys:
 
     col_left2, col_right2 = st.columns([2, 1])
 
+    # 左：スコアが5点以下の要素に対するおすすめ行動
     with col_left2:
         for k in weak_keys:
             st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
             for t in tips[k]:
                 st.markdown(f"- {t}")
 
+    # 右：指定の画像を表示（URL指定）
     with col_right2:
         st.image(
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
+
+# ラッパー<div>を閉じる
+st.markdown('</div>', unsafe_allow_html=True)
