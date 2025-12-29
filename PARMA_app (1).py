@@ -157,40 +157,34 @@ def score_label(v: float) -> str:
     return f"{s}/10点{cat}"
 
 # =========================
-# グラフ
+# グラフ（小さめ & 軸ラベル非表示）
 # =========================
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
     values = list(perma_scores.values())
 
-    fig, ax = plt.subplots(figsize=(4.5, 3), dpi=160)
+    # 小さめサイズ
+    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)
 
     ax.bar(labels, values, color=[colors[k] for k in labels])
 
-    # 範囲設定
     ax.set_ylim(0, 10)
 
-    # ★ 軸ラベルを削除（これで文字化けも消えます）
+    # 軸ラベル・縦軸の目盛りを消す
     ax.set_ylabel("")
     ax.set_xlabel("")
-
-    # ★ 縦軸の数値も消す（必要な場合）
     ax.set_yticklabels([])
 
-    # タイトル
-    ax.set_title("PERMAスコア")
+    ax.set_title("PERMAスコア", fontsize=12)
 
-    # スコア表示
+    # 各バーの上に数値を表示
     for x, v in zip(labels, values):
         if not np.isnan(v):
-            ax.text(x, v + 0.3, f"{v:.1f}",
+            ax.text(x, v + 0.25, f"{v:.1f}",
                     ha="center", va="bottom", fontsize=9)
 
-    # 余白調整
     fig.tight_layout()
-
     st.pyplot(fig)
-
 
 # =========================
 # アプリ本体
@@ -231,12 +225,27 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================
-# PERMAスコアまとめ
+# PERMAスコアまとめ（グラフ＋説明を横並び）
 # =========================
 st.markdown('<div class="section-header">あなたのPERMAスコアまとめ</div>', unsafe_allow_html=True)
-plot_hist(perma_scores)
 
-# あなたのスコア（左）＋ 心の状態に関連する指標（右）
+col_chart, col_desc = st.columns([1, 1.5])
+
+with col_chart:
+    plot_hist(perma_scores)
+
+with col_desc:
+    st.markdown("### 各要素の説明")
+    for k in ['P', 'E', 'R', 'M', 'A']:
+        st.markdown(
+            f"<span class='color-label' style='background:{colors[k]}'>{k}</span> "
+            f"**{full_labels[k]}**：{descriptions[k]}",
+            unsafe_allow_html=True
+        )
+
+# =========================
+# あなたのスコア + 心の状態に関連する指標
+# =========================
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -255,17 +264,6 @@ with col_right:
     st.markdown("### 心の状態に関連する指標（参考）")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
-
-# =========================
-# 各要素の説明
-# =========================
-st.markdown('<div class="section-header">各要素の説明</div>', unsafe_allow_html=True)
-for k in ['P', 'E', 'R', 'M', 'A']:
-    st.markdown(
-        f"<span class='color-label' style='background:{colors[k]}'>{k}</span> "
-        f"**{full_labels[k]}**：{descriptions[k]}",
-        unsafe_allow_html=True
-    )
 
 # =========================
 # 強み & おすすめ行動
