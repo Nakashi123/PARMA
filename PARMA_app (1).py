@@ -3,9 +3,6 @@ import streamlit as st
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 
-# =========================
-# 基本設定
-# =========================
 st.set_page_config(page_title="わらトレ　心の健康チェック", layout="centered")
 
 plt.rcParams.update({
@@ -14,85 +11,56 @@ plt.rcParams.update({
     "font.size": 12,
 })
 
-# =========================
-# カラーテーマ
-# =========================
+# ------------ カラー設定 ------------
 colors = {
-    "P": "#F28B82",  # ピンク
-    "E": "#FDD663",  # 黄色
-    "R": "#81C995",  # 緑
-    "M": "#AECBFA",  # 水色
-    "A": "#F9AB00",  # オレンジ
+    "P": "#F28B82",
+    "E": "#FDD663",
+    "R": "#81C995",
+    "M": "#AECBFA",
+    "A": "#F9AB00",
 }
 theme = {
     "bg": "#FAFAFA",
-    "card_bg": "#FFFFFF",
+    "bar_bg": "#EEF2FB",
     "accent": "#4E73DF",
     "text": "#222",
-    "bar_bg": "#EEF2FB"
 }
 
-# =========================
-# CSSスタイル
-# =========================
+# ------------ CSS ------------
 st.markdown(f"""
 <style>
-html, body, [class*="css"] {{
-  background-color:{theme['bg']};
-  color:{theme['text']};
-  font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-  line-height:1.8;
-}}
-
-.main-wrap {{ max-width:880px; margin:0 auto; }}
-
-h1 {{
-  text-align:center;
-  color:#333;
-  margin-top:0.4em;
-  font-size:2rem;
-  font-weight:800;
-}}
-
-.section-header {{
-  background:{theme['bar_bg']};
-  color:#333;
-  font-weight:800;
-  font-size:1.2rem;
-  padding:.6rem 1rem;
-  border-left:8px solid {theme['accent']};
-  border-radius:6px;
-  margin-top:1rem;
-  margin-bottom:.8rem;
-}}
-
-.color-label {{
+.underline {{
   font-weight:bold;
-  padding:2px 8px;
-  border-radius:6px;
-  color:white;
-}}
-
-div.block-container {{
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-}}
-
-@media print {{
-  @page {{
-    size: A4;
-    margin: 15mm;
-  }}
-  .page-break {{
-    page-break-before: always;
-  }}
+  border-bottom:3px solid;
+  padding-bottom:2px;
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# データ定義
-# =========================
+# ------------ PERMA定義 ------------
+full_labels = {
+    'P':'前向きな気持ち',
+    'E':'集中して取り組むこと',
+    'R':'人とのつながり',
+    'M':'生きがいや目的',
+    'A':'達成感',
+}
+descriptions = {
+    'P':'楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。',
+    'E':'物事に没頭したり夢中になって取り組める状態を示します。',
+    'R':'支え合えるつながりや信頼関係を感じられている状態です。',
+    'M':'人生に目的や価値を感じて生きている状態です。',
+    'A':'努力し、達成感や成長を感じられている状態です。',
+}
+tips = {
+    'P':['感謝を書き出す','今日の良かったことを振り返る'],
+    'E':['小さな挑戦を設定する','得意なことを活かす'],
+    'R':['感謝を伝える','小さな親切をする'],
+    'M':['大切にしている価値を書き出す','経験から学びを見つける'],
+    'A':['小さな目標を作る','失敗を学びと捉える'],
+}
+
+# ------------ 質問項目位置 ------------
 perma_indices = {
     'P':[4,9,21],
     'E':[2,10,20],
@@ -107,132 +75,95 @@ extra_indices = {
     'しあわせ感':[22],
 }
 
-full_labels = {
-    'P':'前向きな気持ち',
-    'E':'集中して取り組むこと',
-    'R':'人とのつながり',
-    'M':'生きがいや目的',
-    'A':'達成感',
-}
-descriptions = {
-    'P':'楽しい気持ちや感謝、安心感、心のゆとりを感じることができています。',
-    'E':'夢中で取り組む時間や没頭できる活動が生活の中にあります。',
-    'R':'家族や友人、地域とのつながりを感じ、支え合えていることを示します。',
-    'M':'自分の人生に目的や価値を見いだし、大切なことに沿って生きています。',
-    'A':'目標に向かって取り組み、やり遂げた達成感を感じられています。',
-}
-tips = {
-    'P':['感謝を込めた手紙を書く','その日の「良かったこと」を3つ書く'],
-    'E':['自分の得意なことを活かす','小さな挑戦を設定して取り組む'],
-    'R':['日常で小さな親切を行う','家族や友人に感謝を伝える'],
-    'M':['自分の大切にしている価値を書き出す','過去の困難を乗り越えた経験を振り返る'],
-    'A':['小さな目標を達成する習慣を作る','失敗も学びととらえる'],
-}
+# ------------ 計算 ------------
+def compute_domain_avg(vals, idx):
+    s = [vals[i] for i in idx if not np.isnan(vals[i])]
+    return float(np.mean(s)) if s else np.nan
 
-# =========================
-# 計算関数
-# =========================
-def compute_domain_avg(vals, idx_list):
-    scores = [vals[i] for i in idx_list if i < len(vals) and not np.isnan(vals[i])]
-    return float(np.mean(scores)) if scores else np.nan
+def compute_results(row):
+    cols=[c for c in row.columns if str(c).startswith("6_")]
+    vals=pd.to_numeric(row[cols].values.flatten(),errors="coerce")
+    perma={k:compute_domain_avg(vals,v) for k,v in perma_indices.items()}
+    extras={k:compute_domain_avg(vals,v) for k,v in extra_indices.items()}
+    return perma,extras
 
-def compute_results(selected_row: pd.DataFrame):
-    cols = [c for c in selected_row.columns if str(c).startswith("6_")]
-    vals = pd.to_numeric(selected_row[cols].values.flatten(), errors='coerce')
-    perma_scores = {k: compute_domain_avg(vals, idx) for k, idx in perma_indices.items()}
-    extras = {k: compute_domain_avg(vals, idx) for k, idx in extra_indices.items()}
-    return perma_scores, extras
-
-# =========================
-# シンプル棒グラフ（PERMAのみ）
-# =========================
-def plot_histogram(perma_scores):
-    labels = list(perma_scores.keys())  # P, E, R, M, A
-    values = list(perma_scores.values())
-    colors_list = [colors[k] for k in labels]
-
-    fig, ax = plt.subplots(figsize=(4.5,3), dpi=160)
-    bars = ax.bar(labels, values, color=colors_list, alpha=0.85)
-
-    # スコア表示
-    for bar, val in zip(bars, values):
-        ax.text(bar.get_x() + bar.get_width()/2, val + 0.3, f"{val:.1f}",
-                ha='center', va='bottom', fontsize=10, fontweight='bold')
-
-    # 軸とタイトルの調整
-    ax.set_ylim(0, 10)
-    ax.set_title("PERMA", fontsize=13, fontweight='bold')
-    ax.set_ylabel("")  # 縦軸ラベル削除
-    ax.grid(axis='y', alpha=0.25)
-    fig.tight_layout()
+# ------------ 表示用 ------------
+def plot_hist(perma):
+    labels=list(perma.keys())
+    values=list(perma.values())
+    fig,ax=plt.subplots(figsize=(4.5,3),dpi=160)
+    ax.bar(labels,values,color=[colors[k] for k in labels])
+    ax.set_ylim(0,10)
     st.pyplot(fig)
 
-# =========================
-# Streamlit本体
-# =========================
-st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
+def score_label(v):
+    if np.isnan(v): return "未回答"
+    s=int(round(v))
+    if s>=7: return f"{s}点（強み）"
+    if s>=4: return f"{s}点（おおむね良好）"
+    return f"{s}点（サポートが必要）"
+
+# ------------ アプリ ------------
 st.title("わらトレ　心の健康チェック")
 
-uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23列）をアップロードしてください", type="xlsx")
+# ======= 追加：わかりやすい説明 =======
+st.info("""
+このチェックは、ポジティブ心理学者 **Martin Seligman** が提唱した  
+**PERMAモデル** に基づいて、心の健康や満たされている度合いを測定するものです。
 
-if not uploaded:
-    st.info("まずはExcelファイルをアップロードしてください。")
-    st.stop()
+PERMAは  
+**前向きな気持ち・集中・つながり・意味・達成感**  
+の5要素で構成されており、
 
-df = pd.read_excel(uploaded)
-id_list = df.iloc[:,0].dropna().astype(str).tolist()
-sid = st.selectbox("IDを選んでください", options=id_list)
-selected_row = df[df.iloc[:,0].astype(str)==sid]
+> ネガティブな状態がないこと＝幸せ  
+ではなく  
+> 心が満たされ、前向きに生きられている状態（Flourishing）
 
-if selected_row.empty:
-    st.warning("選択されたIDが見つかりません。")
-    st.stop()
+をとらえます。
 
-# ---- ページ ----
-st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-st.markdown('<div class="section-header">あなたのPERMAスコア分布・結果のまとめ</div>', unsafe_allow_html=True)
+この結果は診断ではなく、  
+**あなたの今の状態を理解し、より良く生きるヒントを得るためのツール**です。
+""")
 
-col_chart, col_summary = st.columns([1, 1.2])
-with col_chart:
-    plot_histogram(compute_results(selected_row)[0])
-with col_summary:
-    perma_scores, extras = compute_results(selected_row)
-    st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
-    for k,v in perma_scores.items():
-        st.write(f"{k}（{full_labels[k]}）：{int(round(v))} /10点")
+uploaded = st.file_uploader("Excelファイルをアップロード", type="xlsx")
+if not uploaded: st.stop()
 
-st.markdown('<div class="section-header">各要素の説明</div>', unsafe_allow_html=True)
-for k in ['P','E','R','M','A']:
-    st.markdown(f"<span class='color-label' style='background:{colors[k]}'>{k}</span> **{full_labels[k]}**：{descriptions[k]}", unsafe_allow_html=True)
+df=pd.read_excel(uploaded)
+sid=st.selectbox("IDを選択",df.iloc[:,0].astype(str))
+row=df[df.iloc[:,0].astype(str)==sid]
 
-# ---- 3ページ目 ----
-st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
-col1, col2 = st.columns(2)
-with col1:
-    for k in ['P','E','R']:
-        st.markdown(f"**{full_labels[k]}**", unsafe_allow_html=True)
+perma,extras=compute_results(row)
+
+# ------ グラフ ------
+st.header("PERMAスコアまとめ")
+plot_hist(perma)
+
+# ------ スコア表示（補助指標含む） ------
+st.markdown("### あなたのスコア")
+for k in perma:
+    st.markdown(
+        f"<span class='underline' style='border-color:{colors[k]};'>{full_labels[k]}</span>：{score_label(perma[k])}",
+        unsafe_allow_html=True
+    )
+
+st.write("---")
+
+st.markdown("#### 心の状態に関連する指標（参考）")
+for k,v in extras.items():
+    st.write(f"{k}：{score_label(v)}")
+
+# ------ 行動提案 & 強み ------
+weak=[k for k,v in perma.items() if not np.isnan(v) and v<=5]
+strong=[k for k,v in perma.items() if not np.isnan(v) and v>=7]
+
+if strong:
+    st.subheader("あなたの強み（満たされている要素）")
+    for k in strong:
+        st.write(f"✔ {full_labels[k]}")
+
+if weak:
+    st.subheader("あなたにおすすめな行動")
+    for k in weak:
+        st.write(f"**{full_labels[k]}**")
         for t in tips[k]:
-            st.markdown(f"- {t}")
-with col2:
-    for k in ['M','A']:
-        st.markdown(f"**{full_labels[k]}**", unsafe_allow_html=True)
-        for t in tips[k]:
-            st.markdown(f"- {t}")
-
-st.markdown('<div class="section-header">さいごに</div>', unsafe_allow_html=True)
-colL, colR = st.columns([0.9, 1.1])
-with colL:
-    st.markdown("### 補助指標（参考）")
-    for k,v in extras.items():
-        if not np.isnan(v):
-            st.write(f"{k}：{int(round(v))} /10点")
-with colR:
-    st.markdown("### これらの結果を受け取るうえで大切なこと")
-    st.markdown("""
-    - 結果は“良い・悪い”ではなく、あなたの**今の状態や環境**を表しています。  
-    - 改善のためには、**無理せず小さな一歩**から始めましょう（例：1日5分の散歩）。  
-    - これは**医療的診断ではありません**。
-    """)
-
-st.markdown('</div>', unsafe_allow_html=True)
+            st.write(f"- {t}")
