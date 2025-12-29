@@ -190,7 +190,7 @@ def plot_hist(perma_scores):
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-# ファイルアップロード & ID選択
+# ---------- ファイルアップロード & ID選択 ----------
 uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
 if not uploaded:
     st.stop()
@@ -198,13 +198,8 @@ if not uploaded:
 df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
-row = df[df.iloc[:, 0].astype(str) == sid]
 
-if row.empty:
-    st.warning("選択されたIDが見つかりません。")
-    st.stop()
-
-# ⭐ ID選択の「下」に説明文を表示
+# ⭐ ID選択の「すぐ下」に説明文を表示 ⭐
 st.info("""
 このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
 
@@ -214,6 +209,11 @@ PERMAとは 前向きな気持ち・集中・つながり・意味・達成感 �
 
 また、この結果は診断ではなく、 あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
 """)
+
+row = df[df.iloc[:, 0].astype(str) == sid]
+if row.empty:
+    st.warning("選択されたIDが見つかりません。")
+    st.stop()
 
 # スコア計算
 perma_scores, extras = compute_results(row)
@@ -255,7 +255,7 @@ with col_left:
         )
 
 with col_right:
-    st.markdown("### 心の状態に関連する指標")
+    st.markdown("### 心の状態に関連する指標（参考）")
     for k, v in extras.items():
         st.write(f"{k}：{score_label(v)}")
 
