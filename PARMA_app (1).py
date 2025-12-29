@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
+import math
 
 # =========================
 # 基本設定
@@ -157,7 +158,7 @@ def score_label(v: float) -> str:
     return f"{s}/10点{cat}"
 
 # =========================
-# グラフ（小さめ & 軸ラベル非表示）
+# グラフ（小さめバー）
 # =========================
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
@@ -173,13 +174,48 @@ def plot_hist(perma_scores):
     ax.set_xlabel("")
     ax.set_yticklabels([])
 
-    ax.set_title("PERMAスコア", fontsize=12)
+    ax.set_title("PERMA", fontsize=12)
 
     # 各バーの上に数値を表示
     for x, v in zip(labels, values):
         if not np.isnan(v):
             ax.text(x, v + 0.25, f"{v:.1f}",
                     ha="center", va="bottom", fontsize=9)
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
+# =========================
+# レーダーチャート
+# =========================
+def plot_radar(perma_scores):
+    labels = list(perma_scores.keys())  # ['P','E','R','M','A']
+    values = [perma_scores[k] if not np.isnan(perma_scores[k]) else 0 for k in labels]
+
+    # 閉じるために先頭を末尾に追加
+    values_cycle = values + [values[0]]
+    angles = [n / float(len(labels)) * 2 * math.pi for n in range(len(labels))]
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(3.0, 3.0), dpi=160, subplot_kw=dict(polar=True))
+
+    # 外周やグリッドを少し薄く
+    ax.spines["polar"].set_visible(False)
+    ax.grid(alpha=0.3)
+
+    # 0〜10の範囲
+    ax.set_ylim(0, 10)
+
+    # 角度位置にラベル（P,E,R,M,A）
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(labels)
+
+    # 半径方向ラベルは非表示（スッキリさせる）
+    ax.set_yticklabels([])
+
+    # ライン＆塗りつぶし
+    ax.plot(angles, values_cycle, linewidth=1.5)
+    ax.fill(angles, values_cycle, alpha=0.25)
 
     fig.tight_layout()
     st.pyplot(fig)
@@ -199,7 +235,7 @@ df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
 
-# ⭐ ID選択の「すぐ下」に説明文を表示 ⭐
+# IDのすぐ下に説明文
 st.info("""
 このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
 
@@ -226,7 +262,9 @@ st.markdown('<div class="section-header">あなたのPERMAスコアまとめ</di
 col_chart, col_desc = st.columns([1, 1.5])
 
 with col_chart:
+    # 上にバー、下にレーダーチャート
     plot_hist(perma_scores)
+    plot_radar(perma_scores)
 
 with col_desc:
     st.markdown("### 各要素の説明")
