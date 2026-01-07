@@ -156,20 +156,121 @@ def score_label(v: float) -> str:
     return f"{s}/10点{cat}"
 
 # =========================
+# スコア → カテゴリ
+# =========================
+def score_category(v: float):
+    """カテゴリ名と色（バッジ用）を返す"""
+    if np.isnan(v):
+        return "未回答", "#9E9E9E"
+    s = int(round(v))
+    if s >= 7:
+        return "強み", "#43A047"       # 緑
+    elif s >= 4:
+        return "おおむね良好", "#FB8C00"  # オレンジ
+    else:
+        return "サポートが必要", "#E53935"  # 赤
+
+# =========================
+# 視覚的なスコアブロック
+# =========================
+def render_score_block(label, short, score, base_color):
+    """
+    高齢者向けの横棒つきスコア表示
+    label: 日本語ラベル
+    short: P/E/R/M/A など
+    base_color: その項目の色
+    """
+    cat, cat_color = score_category(score)
+
+    if np.isnan(score):
+        s_int = "ー"
+        width = 0
+        score_text = "未回答"
+    else:
+        s_int = int(round(score))
+        width = max(0, min(100, s_int * 10))  # 0〜100%
+        score_text = f"{s_int} / 10点"
+
+    st.markdown(f"""
+    <div style="margin-bottom:0.8rem;">
+      <div style="font-size:1rem; font-weight:bold; margin-bottom:0.15rem;">
+        <span class='color-label' style='background:{base_color}; margin-right:0.4rem;'>{short}</span>
+        {label}
+      </div>
+      <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem; margin-bottom:0.2rem;">
+        <div>{score_text}</div>
+        <div style="
+            padding:0.1rem 0.6rem;
+            border-radius:999px;
+            background:{cat_color};
+            color:white;
+            font-size:0.8rem;
+        ">
+            {cat}
+        </div>
+      </div>
+      <div style="
+          background:#E0E0E0;
+          border-radius:999px;
+          height:14px;
+          overflow:hidden;
+      ">
+        <div style="
+            background:{base_color};
+            width:{width}%;
+            height:100%;
+        "></div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================
+# カテゴリの凡例
+# =========================
+def render_legend():
+    st.markdown("""
+    <div style="
+        background-color:#F5F5F5;
+        border-radius:12px;
+        padding:8px 10px;
+        margin-bottom:10px;
+        border:1px solid #E0E0E0;
+        font-size:0.9rem;
+    ">
+      <div style="font-weight:bold; margin-bottom:4px;">色の目安</div>
+      <div style="display:flex; flex-wrap:wrap; gap:0.6rem;">
+        <div style="display:flex; align-items:center; gap:0.3rem;">
+          <span style="display:inline-block; width:14px; height:14px; background:#C8E6C9; border-radius:4px; border:1px solid #81C784;"></span>
+          強み（7〜10点）
+        </div>
+        <div style="display:flex; align-items:center; gap:0.3rem;">
+          <span style="display:inline-block; width:14px; height:14px; background:#FFE0B2; border-radius:4px; border:1px solid #FFB74D;"></span>
+          おおむね良好（4〜6点）
+        </div>
+        <div style="display:flex; align-items:center; gap:0.3rem;">
+          <span style="display:inline-block; width:14px; height:14px; background:#FFCDD2; border-radius:4px; border:1px solid #E57373;"></span>
+          サポートが必要（0〜3点）
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================
 # グラフ（棒グラフのみ）
 # =========================
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
     values = list(perma_scores.values())
 
-    fig, ax = plt.subplots(figsize=(3.4, 2.6), dpi=160)
+    fig, ax = plt.subplots(figsize=(3.6, 2.8), dpi=160)
 
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_ylabel("")
     ax.set_xlabel("")
+    ax.set_yticks([0, 2, 4, 6, 8, 10])
     ax.set_yticklabels([])
-    ax.set_title("PERMA", fontsize=12)
+    ax.set_title("PERMAの全体バランス", fontsize=12)
 
     for x, v in zip(labels, values):
         if not np.isnan(v):
@@ -198,15 +299,18 @@ df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
 
-# ======= ★ ここが指定の文章 ★ =======
+# ======= ★ 説明文 ★ =======
 st.info("""
-このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
+このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
+心の健康や満たされている度合いを測定するものです。
 
 PERMAとは 前向きな気持ち・集中・つながり・意味・達成感 の5要素で構成されており、
 幸せを「心が満たされ、前向きに生きられている状態」としてとらえます。
 
-また、この結果は診断ではなく、 あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
+また、この結果は診断ではなく、あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
 """)
+
+render_legend()
 
 row = df[df.iloc[:, 0].astype(str) == sid]
 if row.empty:
@@ -240,19 +344,16 @@ col_left, col_right = st.columns(2)
 with col_left:
     st.markdown("### あなたのスコア")
     st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
+
     for k in ['P', 'E', 'R', 'M', 'A']:
         v = perma_scores.get(k, np.nan)
-        st.markdown(
-            f"<span class='underline' style='border-color:{colors[k]};'>"
-            f"{full_labels[k]}（{k}）"
-            f"</span>：{score_label(v)}",
-            unsafe_allow_html=True
-        )
+        render_score_block(full_labels[k], k, v, colors[k])
 
 with col_right:
     st.markdown("### 心の状態に関連する指標")
-    for k, v in extras.items():
-        st.write(f"{k}：{score_label(v)}")
+    for name, v in extras.items():
+        # 関連指標には共通色（テーマアクセント）を使用
+        render_score_block(name, "", v, theme["accent"])
 
 # =========================
 # 強み & おすすめ行動
