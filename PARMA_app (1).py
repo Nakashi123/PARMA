@@ -264,7 +264,7 @@ perma_scores, extras = compute_results(row)
 # 冒頭の1文（簡単説明）
 # =========================
 st.markdown(
-    "この評価用紙は、**心の状態を、様々な側面から0〜10点で見える化したもの**です。"
+    "この評価用紙は、**心の状態を、PARMA モデルというものを用いて、様々な側面から0〜10点で見える化したもの**です。"
 )
 
 # =========================
@@ -308,12 +308,12 @@ weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
-    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">今のところ満たされている心の要素）</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
 if weak_keys:
-    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns([2, 1])
 
