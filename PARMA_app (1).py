@@ -35,7 +35,7 @@ theme = {
 
 # =========================
 # CSS（画面用 + 印刷/PDF用）
-# 目的：Streamlit画面のレイアウト（columns）をPDFでも崩さない
+# 目的：画面のレイアウトを崩さず、PDFでは「各ページに必ず収める」
 # =========================
 st.markdown(f"""
 <style>
@@ -93,7 +93,10 @@ h1 {{
   margin-bottom:0.55rem;
   box-shadow:0 1px 3px rgba(0,0,0,0.06);
 }}
-.score-title {{ font-weight:800; margin-bottom:0.2rem; }}
+.score-title {{
+  font-weight:800;
+  margin-bottom:0.2rem;
+}}
 
 .meter {{
   background:#E0E0E0;
@@ -134,8 +137,8 @@ h1 {{
 /* ===== お問い合わせフッター ===== */
 .footer-box {{
   border-top: 2px solid #DDD;
-  margin-top: 2.0rem;
-  padding-top: 1.2rem;
+  margin-top: 1.6rem;
+  padding-top: 1.0rem;
   font-size: 0.98rem;
   color: #333;
   line-height: 1.8;
@@ -145,8 +148,48 @@ h1 {{
   margin-bottom: 0.4rem;
 }}
 .footer-thanks {{
-  margin-top: 1.0rem;
+  margin-top: 0.85rem;
   font-weight: 800;
+}}
+
+/* ===== 3枚目の「5要素説明」を2列にするためのグリッド ===== */
+.desc-grid {{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}}
+.desc-item {{
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.55rem 0.85rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}}
+.desc-item .head {{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom: 0.15rem;
+}}
+.desc-item .chip {{
+  display:inline-block;
+  min-width: 28px;
+  text-align:center;
+  padding: 3px 8px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 900;
+}}
+.desc-item .label {{
+  font-weight: 900;
+}}
+.desc-item .text {{
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color:#222;
+}}
+
+@media (max-width: 680px) {{
+  .desc-grid {{ grid-template-columns: 1fr; }}
 }}
 
 /* ===== 印刷/PDF用：ここが重要 ===== */
@@ -159,13 +202,13 @@ h1 {{
     background: white !important;
   }}
 
-  /* ★色・背景をPDFに反映（これがないと背景色やカードが落ちやすい） */
+  /* ★色・背景をPDFに反映 */
   * {{
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }}
 
-  /* ★ページ単位で改ページ（ページ構成は維持） */
+  /* ★ページ単位で改ページ */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -175,16 +218,75 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★途中で切らない（カードや段がページ途中で分断されにくくする） */
+  /* ★分割しない（カードや段が途中で切れにくくする） */
   .page-header, .section-header, .score-card, .perma-box, .footer-box,
   img, figure,
-  div[data-testid="stHorizontalBlock"], div[data-testid="column"] {{
+  div[data-testid="stHorizontalBlock"], div[data-testid="column"],
+  .desc-item {{
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }}
 
-  /* 影は印刷で不要なら消す（お好みで） */
-  .page-header, .score-card {{
+  /* ★印刷時だけ全体を少しコンパクト化（＝1枚に収める調整） */
+  h1 {{
+    font-size: 1.65rem !important;
+    margin-top: 0.15rem !important;
+    margin-bottom: 0.2rem !important;
+  }}
+
+  .page-header {{
+    padding: 0.75rem 0.95rem !important;
+    margin: 0.55rem 0 0.55rem 0 !important;
+  }}
+  .page-header .title {{
+    font-size: 1.18rem !important;
+  }}
+  .page-header .sub {{
+    font-size: 0.96rem !important;
+  }}
+
+  .section-header {{
+    font-size: 1.05rem !important;
+    padding: 0.45rem 0.85rem !important;
+    margin-top: 0.55rem !important;
+    margin-bottom: 0.45rem !important;
+  }}
+
+  .score-card {{
+    padding: 0.45rem 0.75rem !important;
+    margin-bottom: 0.35rem !important;
+  }}
+  .meter {{
+    height: 12px !important;
+  }}
+  .meter-score-text {{
+    font-size: 0.92rem !important;
+  }}
+
+  .perma-box {{
+    padding: 0.85rem 1.05rem !important;
+  }}
+  .perma-box p {{
+    font-size: 0.98rem !important;
+    margin-bottom: 0.55rem !important;
+  }}
+
+  .desc-item .text {{
+    font-size: 0.94rem !important;
+    line-height: 1.55 !important;
+  }}
+
+  .footer-box {{
+    margin-top: 1.0rem !important;
+    padding-top: 0.65rem !important;
+    font-size: 0.92rem !important;
+  }}
+  .footer-thanks {{
+    margin-top: 0.55rem !important;
+  }}
+
+  /* 影は印刷で不要なら消す */
+  .page-header, .score-card, .desc-item {{
     box-shadow: none !important;
   }}
 
@@ -220,7 +322,7 @@ tips = {
     "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
     "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
-action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🏁"}
+action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 perma_indices = {
     "P": [4, 9, 21],
@@ -243,6 +345,7 @@ def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
+
 def compute_results(row):
     cols = [c for c in row.columns if str(c).startswith("6_")]
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
@@ -250,10 +353,12 @@ def compute_results(row):
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
     return perma, extras
 
+
 def score_label(v: float) -> str:
     if np.isnan(v):
         return "未回答"
     return f"{v:.1f}/10点"
+
 
 # =========================
 # 表示関数
@@ -280,11 +385,13 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None):
         unsafe_allow_html=True
     )
 
+
 def plot_hist(perma_scores: dict):
     labels = list(perma_scores.keys())
     values = [perma_scores.get(k, np.nan) for k in labels]
 
-    fig, ax = plt.subplots(figsize=(3.0, 2.4), dpi=160)
+    # ※PDFで高さが増えすぎないように少しだけ小さめ
+    fig, ax = plt.subplots(figsize=(2.9, 2.25), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
@@ -297,17 +404,6 @@ def plot_hist(perma_scores: dict):
     fig.tight_layout()
     st.pyplot(fig)
 
-def render_color_heading(k: str):
-    st.markdown(
-        f"""
-        <div class="score-card">
-          <span class="color-chip" style="background:{colors[k]};">{k}</span>
-          <b>{full_labels[k]}</b><br>
-          {descriptions[k]}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 def page_header(title: str, sub: str):
     st.markdown(
@@ -319,6 +415,24 @@ def page_header(title: str, sub: str):
         """,
         unsafe_allow_html=True
     )
+
+
+def render_desc_grid_html() -> str:
+    # 3-2は「確実に3枚目に収める」ため、StreamlitコンポーネントではなくHTMLで2列グリッド化
+    order = ["P", "E", "R", "M", "A"]
+    items = []
+    for k in order:
+        items.append(f"""
+        <div class="desc-item">
+          <div class="head">
+            <span class="chip" style="background:{colors[k]};">{k}</span>
+            <span class="label">{full_labels[k]}</span>
+          </div>
+          <div class="text">{descriptions[k]}</div>
+        </div>
+        """)
+    return f"<div class='desc-grid'>{''.join(items)}</div>"
+
 
 # =========================
 # セッション（アップロードUIを消す）
@@ -374,9 +488,9 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（印刷/PDFでは必ず1ページ）
+# 1枚目（必ずここまでが1ページに収まる調整込み）
 # =========================================================
-st.markdown("<div class='print-page'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 
 page_header(
     "1. 結果（あなたの心の状態）",
@@ -385,15 +499,14 @@ page_header(
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
 
-# （画面のレイアウトをそのままPDFへ）
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
     col_left, col_right = st.columns(2)
     with col_left:
-        for k in ['P', 'E', 'R']:
+        for k in ["P", "E", "R"]:
             render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
     with col_right:
-        for k in ['M', 'A']:
+        for k in ["M", "A"]:
             render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
 
 with col_chart:
@@ -410,9 +523,9 @@ for i, (k, v) in enumerate(extras_items):
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 2枚目
+# 2枚目（必ずここまでが2ページ目に収まる）
 # =========================================================
-st.markdown("<div class='print-page'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
 page_header(
     "2. 強みとおすすめ行動",
@@ -445,9 +558,9 @@ if weak_keys:
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 3枚目
+# 3枚目（3-2 + お問い合わせまで、必ずこのページに収める）
 # =========================================================
-st.markdown("<div class='print-page'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 
 page_header(
     "3. 備考",
@@ -483,8 +596,7 @@ st.markdown(
 )
 
 st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
-for k in ['P', 'E', 'R', 'M', 'A']:
-    render_color_heading(k)
+st.markdown(render_desc_grid_html(), unsafe_allow_html=True)
 
 # =========================
 # お問い合わせ先（末尾）
