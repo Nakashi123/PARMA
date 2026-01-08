@@ -359,7 +359,7 @@ page_header(
     "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。"
 )
 
-st.markdown('<div class="section-header">1-1. PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
 
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
