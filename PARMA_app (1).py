@@ -333,7 +333,7 @@ perma_scores, extras = compute_results(row)
 # =========================================================
 # 1枚目：結果（PERMA + 心の状態）
 # =========================================================
-st.markdown("<div class='page-title'>1枚目：結果</div>", unsafe_allow_html=True)
+st.markdown("<div class='page-title'>1. 結果</div>", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
@@ -371,7 +371,7 @@ st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 # =========================================================
 # 2枚目：強み・おすすめ行動
 # =========================================================
-st.markdown("<div class='page-title'>2枚目：強みとおすすめ行動</div>", unsafe_allow_html=True)
+st.markdown("<div class='page-title'>2. 強みとおすすめ行動</div>", unsafe_allow_html=True)
 
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
@@ -407,7 +407,7 @@ st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
 # =========================================================
 # 3枚目：備考（PERMAとは？ + 詳しい説明）
 # =========================================================
-st.markdown("<div class='page-title'>3枚目：備考（PERMAの説明）</div>", unsafe_allow_html=True)
+st.markdown("<div class='page-title'>3. 備考</div>", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
 
