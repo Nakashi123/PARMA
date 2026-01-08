@@ -35,7 +35,6 @@ theme = {
 
 # =========================
 # CSS（画面用 + 印刷/PDF用）
-# 目的：画面のレイアウトを崩さず、PDFでは「各ページに必ず収める」
 # =========================
 st.markdown(f"""
 <style>
@@ -192,7 +191,11 @@ h1 {{
   .desc-grid {{ grid-template-columns: 1fr; }}
 }}
 
-/* ===== 印刷/PDF用：ここが重要 ===== */
+/* ===== 見出し孤立防止：見出し＋直後ブロックを一塊にする ===== */
+.keep-together {{
+  /* 画面では何もしない */
+}}
+
 @media print {{
   @page {{
     size: A4;
@@ -202,13 +205,11 @@ h1 {{
     background: white !important;
   }}
 
-  /* ★色・背景をPDFに反映 */
   * {{
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }}
 
-  /* ★ページ単位で改ページ */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -218,8 +219,19 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★分割しない（カードや段が途中で切れにくくする） */
-  .page-header, .section-header, .score-card, .perma-box, .footer-box,
+  /* ★見出しが次の内容と分離しないようにする（孤立防止の基本） */
+  .section-header {{
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }}
+
+  /* ★「見出し＋本文」の塊を分割禁止：入らなければ塊ごと次ページへ */
+  .keep-together {{
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }}
+
+  .page-header, .score-card, .perma-box, .footer-box,
   img, figure,
   div[data-testid="stHorizontalBlock"], div[data-testid="column"],
   .desc-item {{
@@ -227,7 +239,6 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
-  /* ★印刷時だけ全体を少しコンパクト化（＝1枚に収める調整） */
   h1 {{
     font-size: 1.65rem !important;
     margin-top: 0.15rem !important;
@@ -285,12 +296,10 @@ h1 {{
     margin-top: 0.55rem !important;
   }}
 
-  /* 影は印刷で不要なら消す */
   .page-header, .score-card, .desc-item {{
     box-shadow: none !important;
   }}
 
-  /* アップロードなど印刷不要要素 */
   .no-print {{
     display: none !important;
   }}
@@ -408,7 +417,6 @@ def page_header(title: str, sub: str):
     )
 
 def render_desc_grid_html() -> str:
-    # ★先頭にスペースを置かない（Markdownがコードブロック化してHTMLが文字になるのを防ぐ）
     order = ["P", "E", "R", "M", "A"]
     items = []
     for k in order:
@@ -537,6 +545,8 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
+# ★ 3-1 見出し＋本文を一塊にして孤立防止
+st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
 st.markdown(
     f"""
@@ -562,7 +572,10 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
 
+# ★ 3-2 見出し＋説明＋お問い合わせも一塊に（ここも崩れ防止）
+st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 st.markdown(render_desc_grid_html(), unsafe_allow_html=True)
 
@@ -582,6 +595,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
 
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
