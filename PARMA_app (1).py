@@ -337,7 +337,7 @@ ui.empty()
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
-st.markdown("この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。")
+st.markdown("この評価用紙は、**PARMA モデルを用いて、様々な観点から心の状態を0〜10点で見える化したもの**です。")
 
 df = st.session_state.df
 sid = st.session_state.sid
@@ -355,11 +355,11 @@ perma_scores, extras = compute_results(row)
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
 page_header(
-    "結果（今の心の状態）",
-    "PERMAの5つの要素と、こころ・からだの今の状態を点数で確認します。"
+    "1. 結果（今の心の状態）",
+    "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。"
 )
 
-st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">1-1. PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
@@ -374,7 +374,7 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">1-2. 心の状態に関連する項目</div>', unsafe_allow_html=True)
 col_ex1, col_ex2 = st.columns(2)
 extras_items = list(extras.items())
 for i, (k, v) in enumerate(extras_items):
@@ -390,20 +390,20 @@ st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
 page_header(
-    "強みとおすすめ行動",
-    "満たされているところを大切にしつつ、できそうな行動を“1つだけ”選びます。"
+    "2. 強みとおすすめ行動",
+    "満たされているところを大切にしつつ、これから伸ばせる要素を確認します。"
 )
 
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
-    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
 if weak_keys:
-    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([2, 1])
     with c1:
         for k in weak_keys:
@@ -425,7 +425,7 @@ st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
 page_header(
-    "備考（PERMAの説明）",
+    "3. 備考（PERMAの説明）",
     "必要なときにだけ読み返せる、チェックの背景説明です。"
 )
 
