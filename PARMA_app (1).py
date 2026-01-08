@@ -35,6 +35,7 @@ theme = {
 
 # =========================
 # CSS（画面用 + 印刷/PDF用）
+# 目的：Streamlit画面のレイアウト（columns）をPDFでも崩さない
 # =========================
 st.markdown(f"""
 <style>
@@ -130,7 +131,7 @@ h1 {{
   font-weight:900;
 }}
 
-/* ===== 追加：お問い合わせフッター ===== */
+/* ===== お問い合わせフッター ===== */
 .footer-box {{
   border-top: 2px solid #DDD;
   margin-top: 2.0rem;
@@ -158,29 +159,13 @@ h1 {{
     background: white !important;
   }}
 
-  /* Streamlit columns(flex)は改ページが崩れやすいので基本は縦積みにする */
-  div[data-testid="stHorizontalBlock"] {{
-    display: block !important;
-  }}
-  div[data-testid="column"] {{
-    width: 100% !important;
-    flex: none !important;
+  /* ★色・背景をPDFに反映（これがないと背景色やカードが落ちやすい） */
+  * {{
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }}
 
-  /* ★1枚目（グラフ＋メーター）だけは2列を維持して、グラフが次ページに飛ぶのを防ぐ */
-  .keep-cols div[data-testid="stHorizontalBlock"] {{
-    display: flex !important;
-    gap: 12px !important;
-  }}
-  .keep-cols div[data-testid="column"] {{
-    width: auto !important;
-    flex: 1 1 0 !important;
-  }}
-  .keep-cols div[data-testid="column"]:first-child {{
-    flex: 2 1 0 !important;  /* 左（メーター）を広く */
-  }}
-
-  /* ページ単位で必ず改ページ */
+  /* ★ページ単位で改ページ（ページ構成は維持） */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -190,31 +175,15 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★途中で切らない（分割禁止） */
-  .page-header, .section-header, .score-card, .perma-box, .footer-box, img, figure {{
+  /* ★途中で切らない（カードや段がページ途中で分断されにくくする） */
+  .page-header, .section-header, .score-card, .perma-box, .footer-box,
+  img, figure,
+  div[data-testid="stHorizontalBlock"], div[data-testid="column"] {{
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }}
 
-  /* ★印刷時だけ少し詰める（3枚に収まりやすくする） */
-  .section-header {{
-    margin-top: 0.55rem !important;
-    margin-bottom: 0.45rem !important;
-  }}
-  .score-card {{
-    padding: 0.45rem 0.75rem !important;
-    margin-bottom: 0.35rem !important;
-  }}
-  .perma-box p {{
-    font-size: 0.98rem !important;
-    margin-bottom: 0.55rem !important;
-  }}
-  .footer-box {{
-    margin-top: 1.1rem !important;
-    padding-top: 0.7rem !important;
-  }}
-
-  /* 影は印刷で不要なら消す */
+  /* 影は印刷で不要なら消す（お好みで） */
   .page-header, .score-card {{
     box-shadow: none !important;
   }}
@@ -416,9 +385,7 @@ page_header(
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
 
-# ★ここだけ印刷時も2列を維持して、グラフが次ページに飛ぶのを防ぐ
-st.markdown("<div class='keep-cols'>", unsafe_allow_html=True)
-
+# （画面のレイアウトをそのままPDFへ）
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
     col_left, col_right = st.columns(2)
@@ -431,8 +398,6 @@ with col_meter:
 
 with col_chart:
     plot_hist(perma_scores)
-
-st.markdown("</div>", unsafe_allow_html=True)  # keep-cols end
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 col_ex1, col_ex2 = st.columns(2)
