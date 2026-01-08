@@ -418,20 +418,20 @@ def page_header(title: str, sub: str):
 
 
 def render_desc_grid_html() -> str:
-    # 3-2は「確実に3枚目に収める」ため、StreamlitコンポーネントではなくHTMLで2列グリッド化
+    # ★先頭にスペースを置かない（Markdownがコードブロック化してHTMLが文字になるのを防ぐ）
     order = ["P", "E", "R", "M", "A"]
     items = []
     for k in order:
-        items.append(f"""
-        <div class="desc-item">
-          <div class="head">
-            <span class="chip" style="background:{colors[k]};">{k}</span>
-            <span class="label">{full_labels[k]}</span>
-          </div>
-          <div class="text">{descriptions[k]}</div>
-        </div>
-        """)
-    return f"<div class='desc-grid'>{''.join(items)}</div>"
+        items.append(
+            f'<div class="desc-item">'
+            f'  <div class="head">'
+            f'    <span class="chip" style="background:{colors[k]};">{k}</span>'
+            f'    <span class="label">{full_labels[k]}</span>'
+            f'  </div>'
+            f'  <div class="text">{descriptions[k]}</div>'
+            f'</div>'
+        )
+    return '<div class="desc-grid">' + "".join(items) + "</div>"
 
 
 # =========================
@@ -488,7 +488,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（必ずここまでが1ページに収まる調整込み）
+# 1枚目（1-1 + 1-2 までを必ず1ページ）
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 
@@ -523,7 +523,7 @@ for i, (k, v) in enumerate(extras_items):
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 2枚目（必ずここまでが2ページ目に収まる）
+# 2枚目（2-1 + 2-2 までを必ず2ページ）
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
@@ -558,7 +558,7 @@ if weak_keys:
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 3枚目（3-2 + お問い合わせまで、必ずこのページに収める）
+# 3枚目（3-1 + 3-2 + お問い合わせまでを必ず3ページ）
 # =========================================================
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 
@@ -618,5 +618,4 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page end
-st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
+st.markdown
