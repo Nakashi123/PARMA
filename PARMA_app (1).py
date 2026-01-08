@@ -429,7 +429,7 @@ page_header(
     "この評価に関する詳しい情報は以下の通りです。"
 )
 
-st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
 st.markdown(
     f"""
     <div class="perma-box">
@@ -439,7 +439,7 @@ st.markdown(
       </p>
 
       <p>
-        3-1. PERMAとは
+        PERMAとは
         <span class="perma-highlight">
         前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
         生きがいや目的（M）・達成感（A）の5要素
