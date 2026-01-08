@@ -130,6 +130,24 @@ h1 {{
   font-weight:900;
 }}
 
+/* ===== 追加：お問い合わせフッター ===== */
+.footer-box {{
+  border-top: 2px solid #DDD;
+  margin-top: 2.0rem;
+  padding-top: 1.2rem;
+  font-size: 0.98rem;
+  color: #333;
+  line-height: 1.8;
+}}
+.footer-title {{
+  font-weight: 900;
+  margin-bottom: 0.4rem;
+}}
+.footer-thanks {{
+  margin-top: 1.0rem;
+  font-weight: 800;
+}}
+
 /* ===== 印刷/PDF用：ここが重要 ===== */
 @media print {{
   @page {{
@@ -460,6 +478,26 @@ st.markdown(
 st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 for k in ['P', 'E', 'R', 'M', 'A']:
     render_color_heading(k)
+
+# =========================
+# ★ 追加：お問い合わせ先（末尾）
+# =========================
+st.markdown(
+    """
+    <div class="footer-box">
+      <div class="footer-title">この評価結果に関するお問い合わせは以下まで</div>
+      <div>
+        〈お問い合わせ先〉〒 474-0037<br>
+        愛知県大府市半月町三丁目294番地<br>
+        ☎ 0562-44-5551　研究代表者：李 相侖
+      </div>
+      <div class="footer-thanks">
+        この度は、ご協力ありがとうございました。
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
