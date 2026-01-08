@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-import pandas as pd, numpy as np
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 # =========================
@@ -78,6 +79,82 @@ h1 {{
   color:white;
 }}
 
+.summary-card {{
+  background:white;
+  border-radius:12px;
+  padding:0.9rem 1.1rem;
+  margin-top:0.7rem;
+  margin-bottom:0.9rem;
+  box-shadow:0 1px 5px rgba(0,0,0,0.08);
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.6rem;
+  align-items:center;
+  justify-content:space-between;
+}}
+
+.summary-title {{
+  font-weight:700;
+  font-size:1rem;
+  margin-bottom:0.2rem;
+}}
+
+.summary-score {{
+  font-size:2.0rem;
+  font-weight:800;
+}}
+
+.summary-text {{
+  font-size:0.95rem;
+  max-width:420px;
+}}
+
+.score-card {{
+  background:white;
+  border-radius:10px;
+  padding:0.6rem 0.8rem;
+  margin-bottom:0.5rem;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}}
+
+.score-title {{
+  font-weight:700;
+  margin-bottom:0.15rem;
+}}
+
+.score-value {{
+  font-size:1.3rem;
+  font-weight:800;
+  margin-bottom:0.1rem;
+}}
+
+.score-comment {{
+  font-size:0.9rem;
+  color:#555;
+}}
+
+/* 物差しバー */
+.meter {{
+  background:#E0E0E0;
+  border-radius:999px;
+  height:14px;
+  width:100%;
+  margin-top:4px;
+  margin-bottom:2px;
+  overflow:hidden;
+}}
+
+.meter-fill {{
+  height:100%;
+  border-radius:999px;
+}}
+
+.meter-score-text {{
+  font-size:0.9rem;
+  margin-top:2px;
+  color:#444;
+}}
+
 div.block-container {{
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
@@ -88,6 +165,7 @@ div.block-container {{
 # =========================
 # PERMA定義
 # =========================
+# 1枚目では「アルファベット + 一言」のみ使用
 full_labels = {
     'P': '前向きな気持ち',
     'E': '集中して取り組むこと',
@@ -96,6 +174,7 @@ full_labels = {
     'A': '達成感',
 }
 
+# 2枚目（備考）で使う、もともとの説明文
 descriptions = {
     'P': '楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。',
     'E': '物事に没頭したり夢中になって取り組める状態を示します。',
@@ -110,6 +189,15 @@ tips = {
     'R': ['感謝を伝える', '小さな親切をする'],
     'M': ['大切にしている価値を書き出す', '経験から学びを見つける'],
     'A': ['小さな目標を作る', '失敗を学びと捉える'],
+}
+
+# おすすめ行動用の絵文字
+action_emojis = {
+    'P': '😊',  # 前向きな気持ち
+    'E': '🧩',  # 集中
+    'R': '🤝',  # つながり
+    'M': '🌱',  # 生きがい・目的
+    'A': '🏁',  # 達成感
 }
 
 # =========================
@@ -144,19 +232,14 @@ def compute_results(row):
     return perma, extras
 
 def score_label(v: float) -> str:
+    """カテゴリ名は付けず、素の点数だけを返す"""
     if np.isnan(v):
         return "未回答"
     s = int(round(v))
-    if s >= 7:
-        cat = "（強み）"
-    elif s >= 4:
-        cat = "（おおむね良好）"
-    else:
-        cat = "（サポートが必要）"
-    return f"{s}/10点{cat}"
+    return f"{s}/10点"
 
 # =========================
-# グラフ（棒グラフのみ）
+# グラフ（棒グラフ：必要なら使用）
 # =========================
 def plot_hist(perma_scores):
     labels = list(perma_scores.keys())
@@ -180,6 +263,33 @@ def plot_hist(perma_scores):
     st.pyplot(fig)
 
 # =========================
+# 物差しバー描画
+# =========================
+def render_meter_block(title: str, score: float, color: str | None = None):
+    """タイトル + 物差しバー + 数字をまとめて表示"""
+    if np.isnan(score):
+        width = "0%"
+        score_text = "未回答"
+    else:
+        width = f"{score * 10:.0f}%"   # 0〜10点 → 0〜100%
+        score_text = f"{score:.1f}/10点"
+
+    bar_color = color if color is not None else "#999999"
+
+    st.markdown(
+        f"""
+        <div class="score-card">
+          <div class="score-title">{title}</div>
+          <div class="meter">
+            <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
+          </div>
+          <div class="meter-score-text">{score_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# =========================
 # アプリ本体
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
@@ -198,16 +308,6 @@ df = pd.read_excel(uploaded)
 id_list = df.iloc[:, 0].dropna().astype(str).tolist()
 sid = st.selectbox("IDを選んでください", options=id_list)
 
-# ======= ★ ここが指定の文章 ★ =======
-st.info("""
-このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、心の健康や満たされている度合いを測定するものです。
-
-PERMAとは 前向きな気持ち・集中・つながり・意味・達成感 の5要素で構成されており、
-幸せを「心が満たされ、前向きに生きられている状態」としてとらえます。
-
-また、この結果は診断ではなく、 あなたの今の状態を理解し、より良く生きるヒントを得るためのツールです。
-""")
-
 row = df[df.iloc[:, 0].astype(str) == sid]
 if row.empty:
     st.warning("選択されたIDが見つかりません。")
@@ -215,71 +315,97 @@ if row.empty:
 
 perma_scores, extras = compute_results(row)
 
-# =========================
-# あなたのスコアと各要素の説明
-# =========================
-st.markdown('<div class="section-header">あなたのスコアと各要素の説明</div>', unsafe_allow_html=True)
+# 1枚目（結果）・2枚目（備考）のタブ
+tab_main, tab_note = st.tabs(["1枚目：結果", "2枚目：備考・この結果の見方"])
 
-col_chart, col_desc = st.columns([1, 1.5])
-with col_chart:
-    plot_hist(perma_scores)
+# =========================
+# 1枚目：メイン結果
+# =========================
+with tab_main:
+    st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
-with col_desc:
+    # 5要素を「アルファベット + 一言」＋ 物差しバーで表示
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        for k in ['P', 'E', 'R']:
+            v = perma_scores.get(k, np.nan)
+            title = f"{k}：{full_labels[k]}"   # 例）P：前向きな気持ち
+            render_meter_block(title, v, colors[k])
+
+    with col_right:
+        for k in ['M', 'A']:
+            v = perma_scores.get(k, np.nan)
+            title = f"{k}：{full_labels[k]}"
+            render_meter_block(title, v, colors[k])
+
+    st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
+
+    # こころ・からだ・ひとりぼっち感・しあわせ感も物差しで（色はニュートラル）
+    col_ex1, col_ex2 = st.columns(2)
+    extras_items = list(extras.items())
+
+    for i, (k, v) in enumerate(extras_items):
+        col = col_ex1 if i % 2 == 0 else col_ex2
+        with col:
+            render_meter_block(k, v, None)
+
+    # ========= おすすめ行動（絵文字つき） =========
+    weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
+    strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
+
+    if strong_keys:
+        st.markdown('<div class="section-header">今のあなたの「いいところ」</div>', unsafe_allow_html=True)
+        for k in strong_keys:
+            st.write(f"・{k}：{full_labels[k]}　（{score_label(perma_scores[k])}）")
+
+    if weak_keys:
+        st.markdown('<div class="section-header">今日からできそうなこと（おすすめ行動）</div>', unsafe_allow_html=True)
+        st.markdown("やってみやすそうなものを、1つだけ選んでみましょう。")
+
+        c1, c2 = st.columns([2, 1])
+
+        with c1:
+            for k in weak_keys:
+                emoji = action_emojis.get(k, "💡")
+                st.markdown(f"**{emoji} {full_labels[k]}（{k}）**", unsafe_allow_html=True)
+                for t in tips[k]:
+                    st.markdown(f"- {t}")
+
+        with c2:
+            st.image(
+                "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
+                use_container_width=True
+            )
+
+# =========================
+# 2枚目：備考・PERMAとは？
+# =========================
+with tab_note:
+    st.markdown("### PERMAとは？")
+    st.info("""
+このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
+心の健康や満たされている度合いを測定するものです。
+
+PERMAとは **前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
+生きがいや目的（M）・達成感（A）** の5要素で構成されており、
+「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
+
+この結果は診断ではなく、「今の自分の状態を知る」「どうすれば自分らしく過ごせそうか」を
+考えるための資料としてお使いください。
+""")
+
+    st.markdown("### 5つの要素のくわしい説明")
+
     for k in ['P', 'E', 'R', 'M', 'A']:
-        st.markdown(
-            f"<span class='color-label' style='background:{colors[k]}'>{k}</span> "
-            f"**{full_labels[k]}**：{descriptions[k]}",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"**{k}：{full_labels[k]}**")
+        st.markdown(f"- {descriptions[k]}")
 
-# =========================
-# あなたのスコア + 心の状態に関連する指標
-# =========================
-col_left, col_right = st.columns(2)
-
-with col_left:
-    st.markdown("### あなたのスコア")
-    st.markdown("**0〜10点満点のうち、7点以上＝強み、4〜6点＝おおむね良好、3点以下＝サポートが必要**")
-    for k in ['P', 'E', 'R', 'M', 'A']:
-        v = perma_scores.get(k, np.nan)
-        st.markdown(
-            f"<span class='underline' style='border-color:{colors[k]};'>"
-            f"{full_labels[k]}（{k}）"
-            f"</span>：{score_label(v)}",
-            unsafe_allow_html=True
-        )
-
-with col_right:
-    st.markdown("### 心の状態に関連する指標")
-    for k, v in extras.items():
-        st.write(f"{k}：{score_label(v)}")
-
-# =========================
-# 強み & おすすめ行動
-# =========================
-weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
-strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
-
-if strong_keys:
-    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
-    for k in strong_keys:
-        st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
-
-if weak_keys:
-    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
-
-    c1, c2 = st.columns([2, 1])
-
-    with c1:
-        for k in weak_keys:
-            st.markdown(f"**{full_labels[k]}（{k}）**", unsafe_allow_html=True)
-            for t in tips[k]:
-                st.markdown(f"- {t}")
-
-    with c2:
-        st.image(
-            "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
-            use_container_width=True
-        )
+    st.markdown("### この結果の見方のめやす")
+    st.markdown("""
+- 点数は **0〜10点** です。数字が高いほど、その要素が「今は比較的満たされている」ことを表します。  
+- 時期や体調によって変動します。**一度の結果で「よい／悪い」を決めつけない**ようにしましょう。  
+- 気になるところがあれば、一人で抱え込まず、家族やスタッフと一緒に確認していきましょう。
+""")
 
 st.markdown('</div>', unsafe_allow_html=True)
