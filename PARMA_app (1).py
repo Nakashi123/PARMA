@@ -374,7 +374,7 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-st.markdown('<div class="section-header">1-2. 心の状態に関連する項目</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 col_ex1, col_ex2 = st.columns(2)
 extras_items = list(extras.items())
 for i, (k, v) in enumerate(extras_items):
