@@ -355,7 +355,7 @@ perma_scores, extras = compute_results(row)
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
 page_header(
-    "1. 結果（今の心の状態）",
+    "1. 結果（あなたの心の状態）",
     "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。"
 )
 
