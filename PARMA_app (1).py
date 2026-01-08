@@ -34,7 +34,7 @@ theme = {
 }
 
 # =========================
-# CSS（画面用 + 印刷用の強制改ページ）
+# CSS（画面用 + 印刷/PDF用）
 # =========================
 st.markdown(f"""
 <style>
@@ -159,12 +159,12 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* 影などは印刷では邪魔なら消す（必要なら消さなくてもOK） */
+  /* 影は印刷で不要なら消す */
   .page-header, .score-card {{
     box-shadow: none !important;
   }}
 
-  /* アップロードなど印刷不要要素があれば隠す */
+  /* アップロードなど印刷不要要素 */
   .no-print {{
     display: none !important;
   }}
@@ -258,16 +258,18 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None):
 
 def plot_hist(perma_scores: dict):
     labels = list(perma_scores.keys())
-    values = [perma_scores[k] for k in labels remembering if not np.isnan(perma_scores[k]) else np.nan]
+    values = [perma_scores.get(k, np.nan) for k in labels]
 
     fig, ax = plt.subplots(figsize=(3.0, 2.4), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
     ax.set_title("PERMA", fontsize=12)
+
     for i, v in enumerate(values):
         if not np.isnan(v):
             ax.text(i, v + 0.22, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
     fig.tight_layout()
     st.pyplot(fig)
 
@@ -325,6 +327,7 @@ if not st.session_state.ready:
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
+
     st.stop()
 
 ui.empty()
@@ -347,7 +350,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（print-pageで包む＝印刷時に必ず1ページ）
+# 1枚目（印刷/PDFでは必ず1ページ）
 # =========================================================
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
@@ -358,7 +361,6 @@ page_header(
 
 st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
-# 画面では2カラム、印刷時はCSSで自動的に1カラム化される
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
     col_left, col_right = st.columns(2)
@@ -375,8 +377,6 @@ with col_chart:
 st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
 col_ex1, col_ex2 = st.columns(2)
 extras_items = list(extras.items())
-for i, (k, v) in enumerate(extras_items):
-    (col_ex1 if i % 2 == 0 else col_ex2).write("")  # column init
 for i, (k, v) in enumerate(extras_items):
     col = col_ex1 if i % 2 == 0 else col_ex2
     with col:
