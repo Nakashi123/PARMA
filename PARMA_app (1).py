@@ -11,19 +11,6 @@ from typing import Optional
 st.set_page_config(page_title="わらトレ　心の健康チェック", layout="centered")
 
 plt.rcParams.update({
-    "font.sans-serif": ["BIZ UDPGothic", "Meiryo",# -*- coding: utf-8 -*-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Optional
-
-# =========================
-# 基本設定
-# =========================
-st.set_page_config(page_title="わらトレ　心の健康チェック", layout="centered")
-
-plt.rcParams.update({
     "font.sans-serif": ["BIZ UDPGothic", "Meiryo", "Noto Sans JP"],
     "axes.unicode_minus": False,
     "font.size": 12,
@@ -47,18 +34,16 @@ theme = {
 }
 
 # =========================
-# CSS（画面用 + 印刷用）
+# CSS（画面用 + 印刷用の強制改ページ）
 # =========================
 st.markdown(f"""
 <style>
-/* --------- 画面全体 --------- */
 html, body {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
   line-height:1.9;
 }}
-
 .main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
 h1 {{
@@ -107,11 +92,7 @@ h1 {{
   margin-bottom:0.55rem;
   box-shadow:0 1px 3px rgba(0,0,0,0.06);
 }}
-
-.score-title {{
-  font-weight:800;
-  margin-bottom:0.2rem;
-}}
+.score-title {{ font-weight:800; margin-bottom:0.2rem; }}
 
 .meter {{
   background:#E0E0E0;
@@ -120,15 +101,8 @@ h1 {{
   width:100%;
   overflow:hidden;
 }}
-.meter-fill {{
-  height:100%;
-  border-radius:999px;
-}}
-.meter-score-text {{
-  font-size:0.95rem;
-  margin-top:2px;
-  color:#444;
-}}
+.meter-fill {{ height:100%; border-radius:999px; }}
+.meter-score-text {{ font-size:0.95rem; margin-top:2px; color:#444; }}
 
 .color-chip {{
   display:inline-block;
@@ -156,47 +130,41 @@ h1 {{
   font-weight:900;
 }}
 
-/* --------- “印刷用” ページ --------- */
-.print-page {{
-  background: white;
-  border: 1px solid #EAEAEA;
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin: 14px auto 22px auto;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-}}
-
-/* 印刷時に本当に改ページさせる */
+/* ===== 印刷/PDF用：ここが重要 ===== */
 @media print {{
   @page {{
     size: A4;
     margin: 10mm;
   }}
-
   html, body {{
     background: white !important;
   }}
 
-  /* 影や枠を消してスッキリ（好みで残してOK） */
-  .print-page {{
-    box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  /* Streamlit columns(flex)があると改ページが無視されやすいので「印刷時だけ」無効化 */
+  div[data-testid="stHorizontalBlock"] {{
+    display: block !important;
+  }}
+  div[data-testid="column"] {{
+    width: 100% !important;
+    flex: none !important;
   }}
 
-  /* ここが本命：ページ単位で強制改ページ */
+  /* ページ単位で必ず改ページ */
   .print-page {{
-    break-after: page;
-    page-break-after: always;
+    break-after: page !important;
+    page-break-after: always !important;
   }}
   .print-page:last-child {{
-    break-after: auto;
-    page-break-after: auto;
+    break-after: auto !important;
+    page-break-after: auto !important;
   }}
 
-  /* アップロードUIなど印刷不要なら隠す */
+  /* 影などは印刷では邪魔なら消す（必要なら消さなくてもOK） */
+  .page-header, .score-card {{
+    box-shadow: none !important;
+  }}
+
+  /* アップロードなど印刷不要要素があれば隠す */
   .no-print {{
     display: none !important;
   }}
@@ -290,19 +258,16 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None):
 
 def plot_hist(perma_scores: dict):
     labels = list(perma_scores.keys())
-    values = [perma_scores[k] for k in labels]
+    values = [perma_scores[k] for k in labels remembering if not np.isnan(perma_scores[k]) else np.nan]
 
-    # 印刷で崩れにくいサイズに固定（小さめ）
     fig, ax = plt.subplots(figsize=(3.0, 2.4), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
     ax.set_title("PERMA", fontsize=12)
-
     for i, v in enumerate(values):
         if not np.isnan(v):
             ax.text(i, v + 0.22, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
-
     fig.tight_layout()
     st.pyplot(fig)
 
@@ -339,9 +304,6 @@ if "df" not in st.session_state:
 if "sid" not in st.session_state:
     st.session_state.sid = None
 
-# =========================
-# アップロード＆ID選択（完了後は消す）
-# =========================
 ui = st.empty()
 
 if not st.session_state.ready:
@@ -353,7 +315,6 @@ if not st.session_state.ready:
             "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
             type="xlsx"
         )
-
         if uploaded:
             df = pd.read_excel(uploaded)
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
@@ -364,7 +325,6 @@ if not st.session_state.ready:
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
-
     st.stop()
 
 ui.empty()
@@ -374,13 +334,10 @@ ui.empty()
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
-st.markdown(
-    "この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。"
-)
+st.markdown("この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。")
 
 df = st.session_state.df
 sid = st.session_state.sid
-
 row = df[df.iloc[:, 0].astype(str) == str(sid)]
 if row.empty:
     st.warning("選択されたIDが見つかりません。最初からやり直してください。")
@@ -390,7 +347,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（必ず1ページで区切る）
+# 1枚目（print-pageで包む＝印刷時に必ず1ページ）
 # =========================================================
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
@@ -400,8 +357,9 @@ page_header(
 )
 
 st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
-col_meter, col_chart = st.columns([2, 1])
 
+# 画面では2カラム、印刷時はCSSで自動的に1カラム化される
+col_meter, col_chart = st.columns([2, 1])
 with col_meter:
     col_left, col_right = st.columns(2)
     with col_left:
@@ -418,14 +376,16 @@ st.markdown('<div class="section-header">心の状態に関連する項目</div>
 col_ex1, col_ex2 = st.columns(2)
 extras_items = list(extras.items())
 for i, (k, v) in enumerate(extras_items):
+    (col_ex1 if i % 2 == 0 else col_ex2).write("")  # column init
+for i, (k, v) in enumerate(extras_items):
     col = col_ex1 if i % 2 == 0 else col_ex2
     with col:
         render_meter_block(k, v, None)
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page 終了
+st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 2枚目（必ず1ページで区切る）
+# 2枚目
 # =========================================================
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
@@ -457,10 +417,10 @@ if weak_keys:
             use_container_width=True
         )
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page 終了
+st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 
 # =========================================================
-# 3枚目（必ず1ページで区切る）
+# 3枚目
 # =========================================================
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
@@ -501,438 +461,5 @@ st.markdown('<div class="section-header">5つの要素のくわしい説明</div
 for k in ['P', 'E', 'R', 'M', 'A']:
     render_color_heading(k)
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page 終了
-
-st.markdown("</div>", unsafe_allow_html=True)  # main-wrap 終了
- "Noto Sans JP"],
-    "axes.unicode_minus": False,
-    "font.size": 12,
-})
-
-# =========================
-# カラー設定
-# =========================
-colors = {
-    "P": "#F28B82",
-    "E": "#FDD663",
-    "R": "#81C995",
-    "M": "#AECBFA",
-    "A": "#F9AB00",
-}
-theme = {
-    "bg": "#FAFAFA",
-    "accent": "#4E73DF",
-    "text": "#222",
-    "bar_bg": "#EEF2FB",
-}
-
-# =========================
-# CSS
-# =========================
-st.markdown(f"""
-<style>
-html, body {{
-  background-color:{theme['bg']};
-  color:{theme['text']};
-  font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-  line-height:1.9;
-}}
-
-.main-wrap {{ max-width:880px; margin:0 auto; }}
-
-h1 {{
-  text-align:center;
-  font-size:2rem;
-  font-weight:800;
-  margin-top:0.4rem;
-  margin-bottom:0.4rem;
-}}
-
-.section-header {{
-  background:{theme['bar_bg']};
-  font-weight:800;
-  font-size:1.2rem;
-  padding:.6rem 1rem;
-  border-left:8px solid {theme['accent']};
-  border-radius:6px;
-  margin-top:1.2rem;
-  margin-bottom:.8rem;
-}}
-
-.page-title {{
-  margin-top: 0.6rem;
-  margin-bottom: 0.6rem;
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: #111;
-}}
-
-.page-sub {{
-  font-size: 1.02rem;
-  margin-bottom: 0.4rem;
-  color:#222;
-}}
-
-.page-break {{
-  margin-top: 3.2rem;
-  margin-bottom: 3.2rem;
-  border-top: 3px dashed #CCCCCC;
-}}
-
-.score-card {{
-  background:white;
-  border-radius:10px;
-  padding:0.6rem 0.9rem;
-  margin-bottom:0.6rem;
-  box-shadow:0 1px 3px rgba(0,0,0,0.06);
-}}
-
-.score-title {{
-  font-weight:700;
-  margin-bottom:0.2rem;
-}}
-
-.meter {{
-  background:#E0E0E0;
-  border-radius:999px;
-  height:14px;
-  width:100%;
-  overflow:hidden;
-}}
-
-.meter-fill {{
-  height:100%;
-  border-radius:999px;
-}}
-
-.meter-score-text {{
-  font-size:0.95rem;
-  margin-top:2px;
-  color:#444;
-}}
-
-.color-chip {{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:8px;
-  color:white;
-  font-weight:800;
-  margin-right:6px;
-}}
-
-.perma-box {{
-  border:3px solid {theme['accent']};
-  border-radius:12px;
-  padding:1.2rem 1.4rem;
-  margin-top:0.6rem;
-  background:white;
-}}
-
-.perma-box p {{
-  font-size:1.08rem;
-  color:#222;
-  margin-bottom:0.9rem;
-}}
-
-.perma-highlight {{
-  color:{theme['accent']};
-  font-weight:900;
-}}
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# 定義
-# =========================
-full_labels = {
-    "P": "前向きな気持ち",
-    "E": "集中して取り組むこと",
-    "R": "人とのつながり",
-    "M": "生きがいや目的",
-    "A": "達成感",
-}
-
-descriptions = {
-    "P": "楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。",
-    "E": "物事に没頭したり夢中になって取り組める状態を示します。",
-    "R": "支え合えるつながりや信頼関係を感じられている状態です。",
-    "M": "人生に目的や価値を感じて生きている状態です。",
-    "A": "努力し、達成感や成長を感じられている状態です。",
-}
-
-tips = {
-    "P": ["感謝を書き出す", "今日の良かったことを振り返る"],
-    "E": ["小さな挑戦を設定する", "得意なことを活かす"],
-    "R": ["感謝を伝える", "小さな親切をする"],
-    "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
-    "A": ["小さな目標を作る", "失敗を学びと捉える"],
-}
-
-action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🏁"}
-
-perma_indices = {
-    "P": [4, 9, 21],
-    "E": [2, 10, 20],
-    "R": [5, 14, 18],
-    "M": [0, 8, 16],
-    "A": [1, 7, 15],
-}
-extra_indices = {
-    "こころのつらさ": [6, 13, 19],
-    "からだの調子": [3, 12, 17],
-    "ひとりぼっち感": [11],
-    "しあわせ感": [22],
-}
-
-# =========================
-# 計算関数
-# =========================
-def compute_domain_avg(vals, idx):
-    scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
-    return float(np.mean(scores)) if scores else np.nan
-
-def compute_results(row):
-    cols = [c for c in row.columns if str(c).startswith("6_")]
-    vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
-    perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
-    extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
-    return perma, extras
-
-def score_label(v: float) -> str:
-    if np.isnan(v):
-        return "未回答"
-    return f"{v:.1f}/10点"
-
-# =========================
-# 表示関数
-# =========================
-def render_meter_block(title: str, score: float, color: Optional[str] = None):
-    if np.isnan(score):
-        width = "0%"
-        score_text = "未回答"
-    else:
-        width = f"{score * 10:.0f}%"
-        score_text = f"{score:.1f}/10点"
-
-    bar_color = color if color is not None else "#999999"
-
-    st.markdown(
-        f"""
-        <div class="score-card">
-          <div class="score-title">{title}</div>
-          <div class="meter">
-            <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
-          </div>
-          <div class="meter-score-text">{score_text}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-def plot_hist(perma_scores: dict):
-    labels = list(perma_scores.keys())
-    values = [perma_scores[k] for k in labels]
-
-    fig, ax = plt.subplots(figsize=(3.2, 2.6), dpi=160)
-    ax.bar(labels, values, color=[colors[k] for k in labels])
-    ax.set_ylim(0, 10)
-    ax.set_yticks([])
-    ax.set_title("PERMA", fontsize=12)
-
-    for i, v in enumerate(values):
-        if not np.isnan(v):
-            ax.text(i, v + 0.25, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
-
-    fig.tight_layout()
-    st.pyplot(fig)
-
-def render_color_heading(k: str):
-    st.markdown(
-        f"""
-        <div class="score-card">
-          <span class="color-chip" style="background:{colors[k]};">{k}</span>
-          <b>{full_labels[k]}</b><br>
-          {descriptions[k]}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# =========================
-# セッション（アップロードUIを消す）
-# =========================
-if "ready" not in st.session_state:
-    st.session_state.ready = False
-if "df" not in st.session_state:
-    st.session_state.df = None
-if "sid" not in st.session_state:
-    st.session_state.sid = None
-
-# =========================
-# アップロード＆ID選択（完了後は消す）
-# =========================
-ui = st.empty()
-
-if not st.session_state.ready:
-    with ui.container():
-        st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
-        st.title("わらトレ　心の健康チェック")
-
-        uploaded = st.file_uploader(
-            "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
-            type="xlsx"
-        )
-
-        if uploaded:
-            df = pd.read_excel(uploaded)
-            id_list = df.iloc[:, 0].dropna().astype(str).tolist()
-            sid = st.selectbox("IDを選んでください", options=id_list)
-
-            if st.button("このIDで結果を表示"):
-                st.session_state.df = df
-                st.session_state.sid = sid
-                st.session_state.ready = True
-                st.rerun()
-
-    st.stop()
-
-# アップロードUIを消す
-ui.empty()
-
-# =========================
-# 結果表示（ここが最初に見える）
-# =========================
-st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
-st.title("わらトレ　心の健康チェック")
-
-st.markdown(
-    "<div class='page-sub'>"
-    "この評価用紙は、<b>心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック</b>です。"
-    "</div>",
-    unsafe_allow_html=True
-)
-
-df = st.session_state.df
-sid = st.session_state.sid
-
-row = df[df.iloc[:, 0].astype(str) == str(sid)]
-if row.empty:
-    st.warning("選択されたIDが見つかりません。最初からやり直してください。")
-    st.session_state.ready = False
-    st.rerun()
-
-perma_scores, extras = compute_results(row)
-
-# =========================================================
-# 1枚目：結果（PERMA + 心の状態）
-# =========================================================
-st.markdown("<div class='page-title'>1. 結果</div>", unsafe_allow_html=True)
-
-st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
-
-col_meter, col_chart = st.columns([2, 1])
-
-with col_meter:
-    col_left, col_right = st.columns(2)
-
-    with col_left:
-        for k in ['P', 'E', 'R']:
-            render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
-
-    with col_right:
-        for k in ['M', 'A']:
-            render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
-
-with col_chart:
-    plot_hist(perma_scores)
-
-st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
-
-col_ex1, col_ex2 = st.columns(2)
-extras_items = list(extras.items())
-
-for i, (k, v) in enumerate(extras_items):
-    col = col_ex1 if i % 2 == 0 else col_ex2
-    with col:
-        render_meter_block(k, v, None)
-
-# =========================
-# 改ページ（見た目）
-# =========================
-st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-
-# =========================================================
-# 2枚目：強み・おすすめ行動
-# =========================================================
-st.markdown("<div class='page-title'>2. 強みとおすすめ行動</div>", unsafe_allow_html=True)
-
-weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
-strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
-
-if strong_keys:
-    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
-    for k in strong_keys:
-        st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
-
-if weak_keys:
-    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
-
-    c1, c2 = st.columns([2, 1])
-
-    with c1:
-        for k in weak_keys:
-            emoji = action_emojis.get(k, "💡")
-            st.markdown(f"**{emoji} {full_labels[k]}（{k}）**", unsafe_allow_html=True)
-            for t in tips[k]:
-                st.markdown(f"- {t}")
-
-    with c2:
-        st.image(
-            "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
-            use_container_width=True
-        )
-
-# =========================
-# 改ページ（見た目）
-# =========================
-st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
-
-# =========================================================
-# 3枚目：備考（PERMAとは？ + 詳しい説明）
-# =========================================================
-st.markdown("<div class='page-title'>3. 備考</div>", unsafe_allow_html=True)
-
-st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
-
-st.markdown(
-    f"""
-    <div class="perma-box">
-      <p>
-        このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
-        <span class="perma-highlight">心の健康や満たされている度合い</span>を測定するものです。
-      </p>
-
-      <p>
-        PERMAとは
-        <span class="perma-highlight">
-        前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
-        生きがいや目的（M）・達成感（A）の5要素
-        </span>
-        で構成されており、
-        「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
-      </p>
-
-      <p>
-        この結果は診断ではなく、「今の自分の状態を知る」「どうすれば自分らしく過ごせそうか」を
-        考えるための資料としてお使いください。
-      </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.markdown('<div class="section-header">5つの要素のくわしい説明</div>', unsafe_allow_html=True)
-for k in ['P', 'E', 'R', 'M', 'A']:
-    render_color_heading(k)
-
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)  # print-page end
+st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
