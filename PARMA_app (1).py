@@ -135,7 +135,6 @@ full_labels = {
     "M": "生きがいや目的",
     "A": "達成感",
 }
-
 descriptions = {
     "P": "楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。",
     "E": "物事に没頭したり夢中になって取り組める状態を示します。",
@@ -143,7 +142,6 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
-
 tips = {
     "P": ["感謝を書き出す", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -151,8 +149,7 @@ tips = {
     "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
     "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
-
-action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🚩"}
+action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🏁"}
 
 perma_indices = {
     "P": [4, 9, 21],
@@ -169,7 +166,7 @@ extra_indices = {
 }
 
 # =========================
-# 関数
+# 計算関数
 # =========================
 def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
@@ -187,6 +184,9 @@ def score_label(v: float) -> str:
         return "未回答"
     return f"{v:.1f}/10点"
 
+# =========================
+# 表示関数（物差し・棒グラフ）
+# =========================
 def render_meter_block(title: str, score: float, color: Optional[str] = None):
     if np.isnan(score):
         width = "0%"
@@ -220,7 +220,7 @@ def plot_hist(perma_scores: dict):
     ax.set_yticks([])
     ax.set_title("PERMA", fontsize=12)
 
-    for i, (k, v) in enumerate(zip(labels, values)):
+    for i, v in enumerate(values):
         if not np.isnan(v):
             ax.text(i, v + 0.25, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
@@ -240,32 +240,67 @@ def render_color_heading(k: str):
     )
 
 # =========================
-# アプリ本体
+# セッション（アップロードUIを消すため）
+# =========================
+if "ready" not in st.session_state:
+    st.session_state.ready = False
+if "df" not in st.session_state:
+    st.session_state.df = None
+if "sid" not in st.session_state:
+    st.session_state.sid = None
+
+# =========================
+# 画面：アップロード＆ID選択（完了後は消す）
+# =========================
+ui = st.empty()
+
+if not st.session_state.ready:
+    with ui.container():
+        st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
+        st.title("わらトレ　心の健康チェック")
+
+        uploaded = st.file_uploader(
+            "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
+            type="xlsx"
+        )
+
+        if uploaded:
+            df = pd.read_excel(uploaded)
+            id_list = df.iloc[:, 0].dropna().astype(str).tolist()
+            sid = st.selectbox("IDを選んでください", options=id_list)
+
+            # 「表示」ボタンを押したときだけ確定（押さない間はUIを保持）
+            if st.button("このIDで結果を表示"):
+                st.session_state.df = df
+                st.session_state.sid = sid
+                st.session_state.ready = True
+                st.rerun()
+
+    st.stop()
+
+# ここに来たら「アップロードUIは消す」
+ui.empty()
+
+# =========================
+# 結果表示（ここが最初に見える）
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
-if not uploaded:
-    st.stop()
+st.markdown(
+    "この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。"
+)
 
-df = pd.read_excel(uploaded)
-id_list = df.iloc[:, 0].dropna().astype(str).tolist()
-sid = st.selectbox("IDを選んでください", options=id_list)
+df = st.session_state.df
+sid = st.session_state.sid
 
-row = df[df.iloc[:, 0].astype(str) == sid]
+row = df[df.iloc[:, 0].astype(str) == str(sid)]
 if row.empty:
-    st.warning("選択されたIDが見つかりません。")
-    st.stop()
+    st.warning("選択されたIDが見つかりません。最初からやり直してください。")
+    st.session_state.ready = False
+    st.rerun()
 
 perma_scores, extras = compute_results(row)
-
-# =========================
-# 冒頭の1文（簡単説明）
-# =========================
-st.markdown(
-    "この評価用紙は、**心の状態を、PARMA モデルというものを用いて、様々な側面から0〜10点で見える化したもの**です。"
-)
 
 # =========================
 # PERMA（物差しバー + 右に棒グラフ）
@@ -299,21 +334,21 @@ extras_items = list(extras.items())
 for i, (k, v) in enumerate(extras_items):
     col = col_ex1 if i % 2 == 0 else col_ex2
     with col:
-        render_meter_block(k, v, None)  # ニュートラルなグレー
+        render_meter_block(k, v, None)
 
 # =========================
-# 強み & おすすめ行動（1枚目の最後にしっかり）
+# 強み & おすすめ行動（1枚目の最後）
 # =========================
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
-    st.markdown('<div class="section-header">今のところ満たされている心の要素</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
 if weak_keys:
-    st.markdown('<div class="section-header">これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns([2, 1])
 
