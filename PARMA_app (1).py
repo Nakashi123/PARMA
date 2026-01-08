@@ -30,6 +30,7 @@ theme = {
     "bg": "#FAFAFA",
     "accent": "#4E73DF",
     "text": "#222",
+    "bar_bg": "#EEF2FB",
 }
 
 # =========================
@@ -50,10 +51,12 @@ h1 {{
   text-align:center;
   font-size:2rem;
   font-weight:800;
+  margin-top:0.4rem;
+  margin-bottom:0.4rem;
 }}
 
 .section-header {{
-  background:#EEF2FB;
+  background:{theme['bar_bg']};
   font-weight:800;
   font-size:1.2rem;
   padding:.6rem 1rem;
@@ -61,6 +64,26 @@ h1 {{
   border-radius:6px;
   margin-top:1.2rem;
   margin-bottom:.8rem;
+}}
+
+.page-title {{
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #111;
+}}
+
+.page-sub {{
+  font-size: 1.02rem;
+  margin-bottom: 0.4rem;
+  color:#222;
+}}
+
+.page-break {{
+  margin-top: 3.2rem;
+  margin-bottom: 3.2rem;
+  border-top: 3px dashed #CCCCCC;
 }}
 
 .score-card {{
@@ -90,7 +113,7 @@ h1 {{
 }}
 
 .meter-score-text {{
-  font-size:0.9rem;
+  font-size:0.95rem;
   margin-top:2px;
   color:#444;
 }}
@@ -108,19 +131,19 @@ h1 {{
   border:3px solid {theme['accent']};
   border-radius:12px;
   padding:1.2rem 1.4rem;
-  margin-top:1rem;
+  margin-top:0.6rem;
   background:white;
 }}
 
 .perma-box p {{
-  font-size:1.05rem;
+  font-size:1.08rem;
   color:#222;
   margin-bottom:0.9rem;
 }}
 
 .perma-highlight {{
   color:{theme['accent']};
-  font-weight:800;
+  font-weight:900;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -135,6 +158,7 @@ full_labels = {
     "M": "生きがいや目的",
     "A": "達成感",
 }
+
 descriptions = {
     "P": "楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。",
     "E": "物事に没頭したり夢中になって取り組める状態を示します。",
@@ -142,6 +166,7 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
+
 tips = {
     "P": ["感謝を書き出す", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -149,6 +174,7 @@ tips = {
     "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
     "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
+
 action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🏁"}
 
 perma_indices = {
@@ -185,7 +211,7 @@ def score_label(v: float) -> str:
     return f"{v:.1f}/10点"
 
 # =========================
-# 表示関数（物差し・棒グラフ）
+# 表示関数
 # =========================
 def render_meter_block(title: str, score: float, color: Optional[str] = None):
     if np.isnan(score):
@@ -240,7 +266,7 @@ def render_color_heading(k: str):
     )
 
 # =========================
-# セッション（アップロードUIを消すため）
+# セッション（アップロードUIを消す）
 # =========================
 if "ready" not in st.session_state:
     st.session_state.ready = False
@@ -250,7 +276,7 @@ if "sid" not in st.session_state:
     st.session_state.sid = None
 
 # =========================
-# 画面：アップロード＆ID選択（完了後は消す）
+# アップロード＆ID選択（完了後は消す）
 # =========================
 ui = st.empty()
 
@@ -269,7 +295,6 @@ if not st.session_state.ready:
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
             sid = st.selectbox("IDを選んでください", options=id_list)
 
-            # 「表示」ボタンを押したときだけ確定（押さない間はUIを保持）
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
@@ -278,7 +303,7 @@ if not st.session_state.ready:
 
     st.stop()
 
-# ここに来たら「アップロードUIは消す」
+# アップロードUIを消す
 ui.empty()
 
 # =========================
@@ -288,7 +313,10 @@ st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
 st.markdown(
-    "この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。"
+    "<div class='page-sub'>"
+    "この評価用紙は、<b>心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック</b>です。"
+    "</div>",
+    unsafe_allow_html=True
 )
 
 df = st.session_state.df
@@ -302,9 +330,11 @@ if row.empty:
 
 perma_scores, extras = compute_results(row)
 
-# =========================
-# PERMA（物差しバー + 右に棒グラフ）
-# =========================
+# =========================================================
+# 1枚目：結果（PERMA + 心の状態）
+# =========================================================
+st.markdown("<div class='page-title'>1枚目：結果</div>", unsafe_allow_html=True)
+
 st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
 col_meter, col_chart = st.columns([2, 1])
@@ -323,9 +353,6 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-# =========================
-# 心の状態に関連する項目（物差しバー）
-# =========================
 st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
 
 col_ex1, col_ex2 = st.columns(2)
@@ -337,8 +364,15 @@ for i, (k, v) in enumerate(extras_items):
         render_meter_block(k, v, None)
 
 # =========================
-# 強み & おすすめ行動（1枚目の最後）
+# 改ページ（見た目）
 # =========================
+st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
+
+# =========================================================
+# 2枚目：強み・おすすめ行動
+# =========================================================
+st.markdown("<div class='page-title'>2枚目：強みとおすすめ行動</div>", unsafe_allow_html=True)
+
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
@@ -366,8 +400,15 @@ if weak_keys:
         )
 
 # =========================
-# 備考：PERMAとは？（青枠・白背景・黒字）
+# 改ページ（見た目）
 # =========================
+st.markdown('<div class="page-break"></div>', unsafe_allow_html=True)
+
+# =========================================================
+# 3枚目：備考（PERMAとは？ + 詳しい説明）
+# =========================================================
+st.markdown("<div class='page-title'>3枚目：備考（PERMAの説明）</div>", unsafe_allow_html=True)
+
 st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
 
 st.markdown(
@@ -397,11 +438,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# =========================
-# 5つの要素のくわしい説明（色対応）
-# =========================
 st.markdown('<div class="section-header">5つの要素のくわしい説明</div>', unsafe_allow_html=True)
-
 for k in ['P', 'E', 'R', 'M', 'A']:
     render_color_heading(k)
 
