@@ -107,15 +107,6 @@ h1 {{
 .meter-fill {{ height:100%; border-radius:999px; }}
 .meter-score-text {{ font-size:0.95rem; margin-top:2px; color:#444; }}
 
-.color-chip {{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:8px;
-  color:white;
-  font-weight:900;
-  margin-right:6px;
-}}
-
 .perma-box {{
   border:3px solid {theme['accent']};
   border-radius:12px;
@@ -178,9 +169,7 @@ h1 {{
   color: white;
   font-weight: 900;
 }}
-.desc-item .label {{
-  font-weight: 900;
-}}
+.desc-item .label {{ font-weight: 900; }}
 .desc-item .text {{
   font-size: 0.98rem;
   line-height: 1.65;
@@ -191,10 +180,10 @@ h1 {{
   .desc-grid {{ grid-template-columns: 1fr; }}
 }}
 
-/* ===== 見出し孤立防止：見出し＋直後ブロックを一塊にする ===== */
-.keep-together {{
-  /* 画面では何もしない */
-}}
+/* ===== 見出し孤立防止（印刷時に効かせる） ===== */
+.keep-together {{}}
+
+.force-page-break {{ display:none; }}
 
 @media print {{
   @page {{
@@ -210,6 +199,7 @@ h1 {{
     print-color-adjust: exact !important;
   }}
 
+  /* ★ページ単位で改ページ（後ろ側） */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -219,13 +209,27 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★見出しが次の内容と分離しないようにする（孤立防止の基本） */
+  /* ★【重要】3枚目は必ず新しいページから開始（＝備考見出しの孤立を根絶） */
+  .page-3 {{
+    break-before: page !important;
+    page-break-before: always !important;
+  }}
+
+  /* ★任意の場所で強制改ページ（2→3の境界で使う） */
+  .force-page-break {{
+    display:block !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    height: 0 !important;
+  }}
+
+  /* ★見出しが次の内容と分離しない */
   .section-header {{
     break-after: avoid !important;
     page-break-after: avoid !important;
   }}
 
-  /* ★「見出し＋本文」の塊を分割禁止：入らなければ塊ごと次ページへ */
+  /* ★塊で分割しない */
   .keep-together {{
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -239,6 +243,7 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
+  /* ★印刷時だけ少しコンパクト化 */
   h1 {{
     font-size: 1.65rem !important;
     margin-top: 0.15rem !important;
@@ -267,16 +272,10 @@ h1 {{
     padding: 0.45rem 0.75rem !important;
     margin-bottom: 0.35rem !important;
   }}
-  .meter {{
-    height: 12px !important;
-  }}
-  .meter-score-text {{
-    font-size: 0.92rem !important;
-  }}
+  .meter {{ height: 12px !important; }}
+  .meter-score-text {{ font-size: 0.92rem !important; }}
 
-  .perma-box {{
-    padding: 0.85rem 1.05rem !important;
-  }}
+  .perma-box {{ padding: 0.85rem 1.05rem !important; }}
   .perma-box p {{
     font-size: 0.98rem !important;
     margin-bottom: 0.55rem !important;
@@ -292,9 +291,7 @@ h1 {{
     padding-top: 0.65rem !important;
     font-size: 0.92rem !important;
   }}
-  .footer-thanks {{
-    margin-top: 0.55rem !important;
-  }}
+  .footer-thanks {{ margin-top: 0.55rem !important; }}
 
   .page-header, .score-card, .desc-item {{
     box-shadow: none !important;
@@ -537,15 +534,18 @@ if weak_keys:
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
+
+# ★ 2枚目→3枚目の境界で確実に改ページ（印刷時のみ効く）
+st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
+
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目
+# 3枚目（必ず新しいページから開始）
 # =========================================================
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
-# ★ 3-1 見出し＋本文を一塊にして孤立防止
 st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
 st.markdown(
@@ -572,9 +572,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
+st.markdown("</div>", unsafe_allow_html=True)
 
-# ★ 3-2 見出し＋説明＋お問い合わせも一塊に（ここも崩れ防止）
 st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 st.markdown(render_desc_grid_html(), unsafe_allow_html=True)
@@ -595,7 +594,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
