@@ -308,7 +308,7 @@ weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
-    st.markdown('<div class="section-header">今のところ満たされている心の要素）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">今のところ満たされている心の要素</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
