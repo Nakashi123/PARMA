@@ -425,8 +425,8 @@ st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("<div class='print-page'>", unsafe_allow_html=True)
 
 page_header(
-    "3. 備考（PERMAの説明）",
-    "必要なときにだけ読み返せる、チェックの背景説明です。"
+    "3. 備考",
+    "この評価に関する詳しい情報は以下の通りです。"
 )
 
 st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
