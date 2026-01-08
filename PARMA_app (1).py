@@ -439,7 +439,7 @@ st.markdown(
       </p>
 
       <p>
-        PERMAとは
+        3-1. PERMAとは
         <span class="perma-highlight">
         前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
         生きがいや目的（M）・達成感（A）の5要素
@@ -457,7 +457,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown('<div class="section-header">5つの要素のくわしい説明</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 for k in ['P', 'E', 'R', 'M', 'A']:
     render_color_heading(k)
 
