@@ -345,7 +345,6 @@ def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
-
 def compute_results(row):
     cols = [c for c in row.columns if str(c).startswith("6_")]
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
@@ -353,12 +352,10 @@ def compute_results(row):
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
     return perma, extras
 
-
 def score_label(v: float) -> str:
     if np.isnan(v):
         return "未回答"
     return f"{v:.1f}/10点"
-
 
 # =========================
 # 表示関数
@@ -385,25 +382,19 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None):
         unsafe_allow_html=True
     )
 
-
 def plot_hist(perma_scores: dict):
     labels = list(perma_scores.keys())
     values = [perma_scores.get(k, np.nan) for k in labels]
-
-    # ※PDFで高さが増えすぎないように少しだけ小さめ
     fig, ax = plt.subplots(figsize=(2.9, 2.25), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
     ax.set_title("PERMA", fontsize=12)
-
     for i, v in enumerate(values):
         if not np.isnan(v):
             ax.text(i, v + 0.22, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
-
     fig.tight_layout()
     st.pyplot(fig)
-
 
 def page_header(title: str, sub: str):
     st.markdown(
@@ -416,7 +407,6 @@ def page_header(title: str, sub: str):
         unsafe_allow_html=True
     )
 
-
 def render_desc_grid_html() -> str:
     # ★先頭にスペースを置かない（Markdownがコードブロック化してHTMLが文字になるのを防ぐ）
     order = ["P", "E", "R", "M", "A"]
@@ -424,15 +414,14 @@ def render_desc_grid_html() -> str:
     for k in order:
         items.append(
             f'<div class="desc-item">'
-            f'  <div class="head">'
-            f'    <span class="chip" style="background:{colors[k]};">{k}</span>'
-            f'    <span class="label">{full_labels[k]}</span>'
-            f'  </div>'
-            f'  <div class="text">{descriptions[k]}</div>'
+            f'<div class="head">'
+            f'<span class="chip" style="background:{colors[k]};">{k}</span>'
+            f'<span class="label">{full_labels[k]}</span>'
+            f'</div>'
+            f'<div class="text">{descriptions[k]}</div>'
             f'</div>'
         )
-    return '<div class="desc-grid">' + "".join(items) + "</div>"
-
+    return '<div class="desc-grid">' + "".join(items) + '</div>'
 
 # =========================
 # セッション（アップロードUIを消す）
@@ -450,7 +439,6 @@ if not st.session_state.ready:
     with ui.container():
         st.markdown('<div class="main-wrap no-print">', unsafe_allow_html=True)
         st.title("わらトレ　心の健康チェック")
-
         uploaded = st.file_uploader(
             "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
             type="xlsx"
@@ -459,13 +447,11 @@ if not st.session_state.ready:
             df = pd.read_excel(uploaded)
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
             sid = st.selectbox("IDを選んでください", options=id_list)
-
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
-
     st.stop()
 
 ui.empty()
@@ -488,17 +474,12 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（1-1 + 1-2 までを必ず1ページ）
+# 1枚目
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
-
-page_header(
-    "1. 結果（あなたの心の状態）",
-    "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。"
-)
+page_header("1. 結果（あなたの心の状態）", "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
-
 col_meter, col_chart = st.columns([2, 1])
 with col_meter:
     col_left, col_right = st.columns(2)
@@ -508,7 +489,6 @@ with col_meter:
     with col_right:
         for k in ["M", "A"]:
             render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
-
 with col_chart:
     plot_hist(perma_scores)
 
@@ -519,18 +499,13 @@ for i, (k, v) in enumerate(extras_items):
     col = col_ex1 if i % 2 == 0 else col_ex2
     with col:
         render_meter_block(k, v, None)
-
-st.markdown("</div>", unsafe_allow_html=True)  # print-page end
+st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2枚目（2-1 + 2-2 までを必ず2ページ）
+# 2枚目
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
-
-page_header(
-    "2. 強みとおすすめ行動",
-    "満たされているところを大切にしつつ、これから伸ばせる要素を確認します。"
-)
+page_header("2. 強みとおすすめ行動", "満たされているところを大切にしつつ、これから伸ばせる要素を確認します。")
 
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
@@ -554,18 +529,13 @@ if weak_keys:
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
-
-st.markdown("</div>", unsafe_allow_html=True)  # print-page end
+st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目（3-1 + 3-2 + お問い合わせまでを必ず3ページ）
+# 3枚目
 # =========================================================
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
-
-page_header(
-    "3. 備考",
-    "この評価に関する詳しい情報は以下の通りです。"
-)
+page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
 st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
 st.markdown(
@@ -575,7 +545,6 @@ st.markdown(
         このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
         <span class="perma-highlight">心の健康や満たされている度合い</span>を測定するものです。
       </p>
-
       <p>
         PERMAとは
         <span class="perma-highlight">
@@ -585,7 +554,6 @@ st.markdown(
         で構成されており、
         「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
       </p>
-
       <p>
         この結果は診断ではなく、「今の自分の状態を知る」「どうすれば自分らしく過ごせそうか」を
         考えるための資料としてお使いください。
@@ -598,9 +566,6 @@ st.markdown(
 st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 st.markdown(render_desc_grid_html(), unsafe_allow_html=True)
 
-# =========================
-# お問い合わせ先（末尾）
-# =========================
 st.markdown(
     """
     <div class="footer-box">
@@ -618,4 +583,5 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown
+st.markdown("</div>", unsafe_allow_html=True)  # print-page end
+st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
