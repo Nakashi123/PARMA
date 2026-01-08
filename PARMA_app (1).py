@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Optional
 
 # =========================
 # 基本設定
@@ -91,6 +92,7 @@ h1 {{
 .meter-score-text {{
   font-size:0.9rem;
   margin-top:2px;
+  color:#444;
 }}
 
 .color-chip {{
@@ -146,13 +148,11 @@ tips = {
     "P": ["感謝を書き出す", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
     "R": ["感謝を伝える", "小さな親切をする"],
-    "M": ["大切にしている価値を書き出す"],
-    "A": ["小さな目標を作る"],
+    "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
+    "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
 
-action_emojis = {
-    "P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"
-}
+action_emojis = {"P":"😊","E":"🧩","R":"🤝","M":"🌱","A":"🏁"}
 
 perma_indices = {
     "P": [4, 9, 21],
@@ -161,24 +161,83 @@ perma_indices = {
     "M": [0, 8, 16],
     "A": [1, 7, 15],
 }
+extra_indices = {
+    "こころのつらさ": [6, 13, 19],
+    "からだの調子": [3, 12, 17],
+    "ひとりぼっち感": [11],
+    "しあわせ感": [22],
+}
 
 # =========================
 # 関数
 # =========================
-def compute_avg(vals, idx):
-    return float(np.mean([vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]))
+def compute_domain_avg(vals, idx):
+    scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
+    return float(np.mean(scores)) if scores else np.nan
 
-def render_meter(title, score, color):
-    width = f"{score*10:.0f}%" if not np.isnan(score) else "0%"
-    st.markdown(f"""
-    <div class="score-card">
-      <div class="score-title">{title}</div>
-      <div class="meter">
-        <div class="meter-fill" style="width:{width};background:{color};"></div>
-      </div>
-      <div class="meter-score-text">{score:.1f}/10点</div>
-    </div>
-    """, unsafe_allow_html=True)
+def compute_results(row):
+    cols = [c for c in row.columns if str(c).startswith("6_")]
+    vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
+    perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
+    extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
+    return perma, extras
+
+def score_label(v: float) -> str:
+    if np.isnan(v):
+        return "未回答"
+    return f"{v:.1f}/10点"
+
+def render_meter_block(title: str, score: float, color: Optional[str] = None):
+    if np.isnan(score):
+        width = "0%"
+        score_text = "未回答"
+    else:
+        width = f"{score * 10:.0f}%"
+        score_text = f"{score:.1f}/10点"
+
+    bar_color = color if color is not None else "#999999"
+
+    st.markdown(
+        f"""
+        <div class="score-card">
+          <div class="score-title">{title}</div>
+          <div class="meter">
+            <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
+          </div>
+          <div class="meter-score-text">{score_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+def plot_hist(perma_scores: dict):
+    labels = list(perma_scores.keys())
+    values = [perma_scores[k] for k in labels]
+
+    fig, ax = plt.subplots(figsize=(3.2, 2.6), dpi=160)
+    ax.bar(labels, values, color=[colors[k] for k in labels])
+    ax.set_ylim(0, 10)
+    ax.set_yticks([])
+    ax.set_title("PERMA", fontsize=12)
+
+    for i, (k, v) in enumerate(zip(labels, values)):
+        if not np.isnan(v):
+            ax.text(i, v + 0.25, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
+def render_color_heading(k: str):
+    st.markdown(
+        f"""
+        <div class="score-card">
+          <span class="color-chip" style="background:{colors[k]};">{k}</span>
+          <b>{full_labels[k]}</b><br>
+          {descriptions[k]}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # =========================
 # アプリ本体
@@ -186,95 +245,129 @@ def render_meter(title, score, color):
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-uploaded = st.file_uploader("Excelファイルをアップロード", type="xlsx")
+uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜の列）をアップロードしてください", type="xlsx")
 if not uploaded:
     st.stop()
 
 df = pd.read_excel(uploaded)
-sid = st.selectbox("IDを選択", df.iloc[:,0].astype(str))
-row = df[df.iloc[:,0].astype(str)==sid]
+id_list = df.iloc[:, 0].dropna().astype(str).tolist()
+sid = st.selectbox("IDを選んでください", options=id_list)
 
-vals = pd.to_numeric(row.filter(like="6_").values.flatten(), errors="coerce")
-perma = {k: compute_avg(vals,v) for k,v in perma_indices.items()}
+row = df[df.iloc[:, 0].astype(str) == sid]
+if row.empty:
+    st.warning("選択されたIDが見つかりません。")
+    st.stop()
+
+perma_scores, extras = compute_results(row)
 
 # =========================
-# 冒頭説明
+# 冒頭の1文（簡単説明）
 # =========================
 st.markdown(
-"この評価用紙は、**心の元気度（PERMAの5要素）と今の心の状態を、点数で見える化するチェック**です。"
+    "この評価用紙は、**心の元気度（PERMAの5要素）と、こころ・からだの今の状態を0〜10点で見える化するチェック**です。"
 )
 
 # =========================
-# PERMA結果
+# PERMA（物差しバー + 右に棒グラフ）
 # =========================
 st.markdown('<div class="section-header">PERMAの5つの要素と今の状態</div>', unsafe_allow_html=True)
 
-c1, c2 = st.columns([2,1])
+col_meter, col_chart = st.columns([2, 1])
 
-with c1:
-    for k in ["P","E","R","M","A"]:
-        render_meter(f"{k}：{full_labels[k]}", perma[k], colors[k])
+with col_meter:
+    col_left, col_right = st.columns(2)
 
-with c2:
-    fig, ax = plt.subplots(figsize=(3,2.6))
-    ax.bar(perma.keys(), perma.values(), color=[colors[k] for k in perma])
-    ax.set_ylim(0,10)
-    ax.set_yticks([])
-    for i,(k,v) in enumerate(perma.items()):
-        ax.text(i, v+0.2, f"{v:.1f}", ha="center")
-    st.pyplot(fig)
+    with col_left:
+        for k in ['P', 'E', 'R']:
+            render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
 
-# =========================
-# ★ 1枚目の最後：おすすめ行動
-# =========================
-st.markdown('<div class="section-header">今日からできそうなこと（おすすめ行動の例）</div>', unsafe_allow_html=True)
+    with col_right:
+        for k in ['M', 'A']:
+            render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
 
-for k,v in perma.items():
-    if v <= 5:
-        st.markdown(f"**{action_emojis[k]} {full_labels[k]}**")
-        for t in tips[k]:
-            st.markdown(f"- {t}")
+with col_chart:
+    plot_hist(perma_scores)
 
 # =========================
-# 備考：PERMAとは？
+# 心の状態に関連する項目（物差しバー）
+# =========================
+st.markdown('<div class="section-header">心の状態に関連する項目</div>', unsafe_allow_html=True)
+
+col_ex1, col_ex2 = st.columns(2)
+extras_items = list(extras.items())
+
+for i, (k, v) in enumerate(extras_items):
+    col = col_ex1 if i % 2 == 0 else col_ex2
+    with col:
+        render_meter_block(k, v, None)  # ニュートラルなグレー
+
+# =========================
+# 強み & おすすめ行動（1枚目の最後にしっかり）
+# =========================
+weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
+strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
+
+if strong_keys:
+    st.markdown('<div class="section-header">あなたの強み（満たされている要素）</div>', unsafe_allow_html=True)
+    for k in strong_keys:
+        st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
+
+if weak_keys:
+    st.markdown('<div class="section-header">あなたにおすすめな行動（例）</div>', unsafe_allow_html=True)
+
+    c1, c2 = st.columns([2, 1])
+
+    with c1:
+        for k in weak_keys:
+            emoji = action_emojis.get(k, "💡")
+            st.markdown(f"**{emoji} {full_labels[k]}（{k}）**", unsafe_allow_html=True)
+            for t in tips[k]:
+                st.markdown(f"- {t}")
+
+    with c2:
+        st.image(
+            "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
+            use_container_width=True
+        )
+
+# =========================
+# 備考：PERMAとは？（青枠・白背景・黒字）
 # =========================
 st.markdown('<div class="section-header">PERMAとは？</div>', unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="perma-box">
-<p>
-このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
-<span class="perma-highlight">心の健康や満たされている度合い</span>を測定するものです。
-</p>
+st.markdown(
+    f"""
+    <div class="perma-box">
+      <p>
+        このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
+        <span class="perma-highlight">心の健康や満たされている度合い</span>を測定するものです。
+      </p>
 
-<p>
-PERMAとは
-<span class="perma-highlight">
-前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
-生きがいや目的（M）・達成感（A）の5要素
-</span>
-で構成されています。
-</p>
+      <p>
+        PERMAとは
+        <span class="perma-highlight">
+        前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
+        生きがいや目的（M）・達成感（A）の5要素
+        </span>
+        で構成されており、
+        「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
+      </p>
 
-<p>
-この結果は診断ではなく、今の自分の状態を知り、
-これからの過ごし方を考えるための資料としてお使いください。
-</p>
-</div>
-""", unsafe_allow_html=True)
+      <p>
+        この結果は診断ではなく、「今の自分の状態を知る」「どうすれば自分らしく過ごせそうか」を
+        考えるための資料としてお使いください。
+      </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================
-# 詳しい説明（色対応）
+# 5つの要素のくわしい説明（色対応）
 # =========================
 st.markdown('<div class="section-header">5つの要素のくわしい説明</div>', unsafe_allow_html=True)
 
-for k in ["P","E","R","M","A"]:
-    st.markdown(f"""
-    <div class="score-card">
-      <span class="color-chip" style="background:{colors[k]};">{k}</span>
-      <b>{full_labels[k]}</b><br>
-      {descriptions[k]}
-    </div>
-    """, unsafe_allow_html=True)
+for k in ['P', 'E', 'R', 'M', 'A']:
+    render_color_heading(k)
 
 st.markdown('</div>', unsafe_allow_html=True)
