@@ -124,6 +124,37 @@ h1 {{
   font-weight:900;
 }}
 
+/* ===== 冒頭の「かんたん説明」ボックス ===== */
+.intro-box {{
+  background: #ffffff;
+  border: 2px solid #E6EAF5;
+  border-left: 10px solid {theme['accent']};
+  border-radius: 14px;
+  padding: 0.9rem 1.1rem;
+  margin: 0.8rem 0 0.9rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}}
+.intro-title {{
+  font-size: 1.10rem;
+  font-weight: 950;
+  color: #1b2a4a;
+  margin-bottom: 0.25rem;
+}}
+.intro-text {{
+  font-size: 1.02rem;
+  color: #222;
+  line-height: 1.8;
+}}
+.intro-list {{
+  margin: 0.35rem 0 0.15rem 0;
+  padding-left: 1.2rem;
+}}
+.intro-note {{
+  margin-top: 0.35rem;
+  color: #333;
+  font-size: 0.98rem;
+}}
+
 /* ===== お問い合わせフッター ===== */
 .footer-box {{
   border-top: 2px solid #DDD;
@@ -182,7 +213,6 @@ h1 {{
 
 /* ===== 見出し孤立防止（印刷時に効かせる） ===== */
 .keep-together {{}}
-
 .force-page-break {{ display:none; }}
 
 @media print {{
@@ -199,7 +229,6 @@ h1 {{
     print-color-adjust: exact !important;
   }}
 
-  /* ★ページ単位で改ページ（後ろ側） */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -209,13 +238,11 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★【重要】3枚目は必ず新しいページから開始（＝備考見出しの孤立を根絶） */
   .page-3 {{
     break-before: page !important;
     page-break-before: always !important;
   }}
 
-  /* ★任意の場所で強制改ページ（2→3の境界で使う） */
   .force-page-break {{
     display:block !important;
     break-before: page !important;
@@ -223,19 +250,17 @@ h1 {{
     height: 0 !important;
   }}
 
-  /* ★見出しが次の内容と分離しない */
   .section-header {{
     break-after: avoid !important;
     page-break-after: avoid !important;
   }}
 
-  /* ★塊で分割しない */
   .keep-together {{
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }}
 
-  .page-header, .score-card, .perma-box, .footer-box,
+  .page-header, .score-card, .perma-box, .footer-box, .intro-box,
   img, figure,
   div[data-testid="stHorizontalBlock"], div[data-testid="column"],
   .desc-item {{
@@ -243,7 +268,6 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
-  /* ★印刷時だけ少しコンパクト化 */
   h1 {{
     font-size: 1.65rem !important;
     margin-top: 0.15rem !important;
@@ -275,6 +299,14 @@ h1 {{
   .meter {{ height: 12px !important; }}
   .meter-score-text {{ font-size: 0.92rem !important; }}
 
+  .intro-box {{
+    padding: 0.75rem 0.95rem !important;
+    margin: 0.55rem 0 0.55rem 0 !important;
+  }}
+  .intro-title {{ font-size: 1.02rem !important; }}
+  .intro-text {{ font-size: 0.98rem !important; }}
+  .intro-note {{ font-size: 0.95rem !important; }}
+
   .perma-box {{ padding: 0.85rem 1.05rem !important; }}
   .perma-box p {{
     font-size: 0.98rem !important;
@@ -293,7 +325,7 @@ h1 {{
   }}
   .footer-thanks {{ margin-top: 0.55rem !important; }}
 
-  .page-header, .score-card, .desc-item {{
+  .page-header, .score-card, .desc-item, .intro-box {{
     box-shadow: none !important;
   }}
 
@@ -305,7 +337,7 @@ h1 {{
 """, unsafe_allow_html=True)
 
 # =========================
-# 定義
+# 定義（表示用）
 # =========================
 full_labels = {
     "P": "前向きな気持ち",
@@ -331,7 +363,7 @@ tips = {
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 # =========================
-# 換算（あなたが提示した条件を厳密に反映）
+# 換算（提示条件を厳密に反映）
 # Excel列：6_1〜6_23 を Q1〜Q23 とみなす
 # 0始まり index：Qn -> n-1
 # =========================
@@ -343,10 +375,10 @@ perma_indices = {
     "A": [1, 7, 15],     # Q2, Q8, Q16
 }
 extra_indices = {
-    "Negative Emotion": [6, 13, 19],   # Q7, Q14, Q20
-    "Physical Health":  [3, 12, 17],   # Q4, Q13, Q18
-    "Loneliness":       [11],          # Q12（単項目）
-    "Overall Happiness": [22],         # Q23（単項目：全体的幸福感）
+    "こころのつらさ": [6, 13, 19],   # Negative Emotion
+    "からだの調子":  [3, 12, 17],   # Physical Health
+    "ひとりぼっち感": [11],          # Loneliness
+    "全体的なしあわせ感": [22],      # Q23
 }
 
 # =========================
@@ -357,22 +389,22 @@ def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
     return float(np.mean(scores)) if scores else np.nan
 
 def compute_results(row: pd.DataFrame):
-    # 6_1〜6_23 を「数値順」に必ず並べる（列順の崩れ対策）
+    # 6_1〜6_23 を数値順に並べる（列順の崩れ対策）
     cols = [c for c in row.columns if str(c).startswith("6_")]
-    cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))  # "6_12" -> 12
+    cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
 
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
 
     # PERMA（5領域）
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
 
-    # Negative Emotion / Physical Health / Loneliness / Overall Happiness(Q23)
+    # 追加項目（こころ/からだ/ひとりぼっち/しあわせ）
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
 
-    # Overall Wellbeing ＝ PERMA本体15項目 + Q23（全体的幸福感）の16項目平均
+    # 心の健康の総合得点（PERMA15項目 + 全体的なしあわせ感 の16項目平均）
     perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
-    overall_wellbeing_indices = perma_15_indices + [22]  # + Q23
-    extras["Overall Wellbeing"] = compute_domain_avg(vals, overall_wellbeing_indices)
+    overall_wellbeing_indices = perma_15_indices + [22]
+    extras["心の健康の総合得点"] = compute_domain_avg(vals, overall_wellbeing_indices)
 
     return perma, extras
 
@@ -446,6 +478,26 @@ def render_desc_grid_html() -> str:
         )
     return '<div class="desc-grid">' + "".join(items) + '</div>'
 
+def render_intro_box():
+    st.markdown(
+        f"""
+        <div class="intro-box">
+          <div class="intro-title">この結果用紙は「心の健康チェック」です</div>
+          <div class="intro-text">
+            このチェックは <b>PERMA（パーマ）</b>という考え方を使って、<b>今の心の状態</b>を0〜10点で分かりやすく見える化したものです。<br>
+            <ul class="intro-list">
+              <li><b>心の5つの元気さ</b>（前向きな気持ち／集中／つながり／生きがい／達成感）が分かります。</li>
+              <li><b>こころのつらさ</b>や<b>からだの調子</b>、<b>ひとりぼっち感</b>なども一緒に確認できます。</li>
+            </ul>
+            <div class="intro-note">
+              ※これは病気の診断ではありません。<b>「今の自分を知る」</b>ための目安としてご利用ください。
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 # =========================
 # セッション（アップロードUIを消す）
 # =========================
@@ -484,7 +536,9 @@ ui.empty()
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
-st.markdown("この評価用紙は、**PERMA モデルを用いて、様々な観点から心の状態を0〜10点で見える化したもの**です。")
+
+# ★ 冒頭に「かんたん説明」を追加
+render_intro_box()
 
 df = st.session_state.df
 sid = st.session_state.sid
@@ -517,13 +571,12 @@ with col_chart:
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-# 表示順を整える（あなたの換算の並びに近い形）
 extras_display_order = [
-    ("Overall Wellbeing", "心の健康の総合得点"),
-    ("Physical Health", "からだの調子"),
-    ("Overall Happiness", "全体的なしあわせ感"),
-    ("Negative Emotion", "こころのつらさ"),
-    ("Loneliness", "ひとりぼっち感"),
+    ("心の健康の総合得点", "心の健康の総合得点"),
+    ("こころのつらさ", "こころのつらさ"),
+    ("からだの調子", "からだの調子"),
+    ("ひとりぼっち感", "ひとりぼっち感"),
+    ("全体的なしあわせ感", "全体的なしあわせ感"),
 ]
 
 col_ex1, col_ex2 = st.columns(2)
@@ -564,13 +617,11 @@ if weak_keys:
             use_container_width=True
         )
 
-# ★ 2枚目→3枚目の境界で確実に改ページ（印刷時のみ効く）
 st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
-
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目（必ず新しいページから開始）
+# 3枚目
 # =========================================================
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
