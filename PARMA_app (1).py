@@ -519,11 +519,11 @@ st.markdown('<div class="section-header">1-2. こころ・からだの調子</di
 
 # 表示順を整える（あなたの換算の並びに近い形）
 extras_display_order = [
-    ("Overall Wellbeing", "Overall Wellbeing（16項目平均）"),
-    ("Negative Emotion", "Negative Emotion（Q7・Q14・Q20 平均）"),
-    ("Physical Health", "Physical Health（Q4・Q13・Q18 平均）"),
-    ("Loneliness", "Loneliness（Q12）"),
-    ("Overall Happiness", "Overall Happiness（Q23）"),
+    ("Overall Wellbeing", "心の健康の総合得点"),
+    ("Physical Health", "からだの調子"),
+    ("Overall Happiness", "全体的なしあわせ感"),
+    ("Negative Emotion", "こころのつらさ"),
+    ("Loneliness", "ひとりぼっち感"),
 ]
 
 col_ex1, col_ex2 = st.columns(2)
