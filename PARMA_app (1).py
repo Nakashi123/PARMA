@@ -124,35 +124,39 @@ h1 {{
   font-weight:900;
 }}
 
-/* ===== 冒頭の「かんたん説明」ボックス ===== */
+/* ===== 冒頭の「かんたん説明」ボックス（強調版） ===== */
 .intro-box {{
-  background: #ffffff;
-  border: 2px solid #E6EAF5;
-  border-left: 10px solid {theme['accent']};
-  border-radius: 14px;
-  padding: 0.9rem 1.1rem;
-  margin: 0.8rem 0 0.9rem 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  background: #F7FAFF;
+  border: 3px solid {theme['accent']};
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  margin: 0.9rem 0 1.1rem 0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
 }}
 .intro-title {{
-  font-size: 1.10rem;
-  font-weight: 950;
+  font-size: 1.20rem;
+  font-weight: 1000;
   color: #1b2a4a;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.45rem;
 }}
 .intro-text {{
-  font-size: 1.02rem;
-  color: #222;
-  line-height: 1.8;
+  font-size: 1.05rem;
+  color: #111;
+  line-height: 1.9;
 }}
 .intro-list {{
-  margin: 0.35rem 0 0.15rem 0;
-  padding-left: 1.2rem;
+  margin: 0.5rem 0 0.3rem 0;
+  padding-left: 1.3rem;
+}}
+.intro-list li {{
+  margin-bottom: 0.3rem;
 }}
 .intro-note {{
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #999;
   color: #333;
-  font-size: 0.98rem;
+  font-size: 1.0rem;
 }}
 
 /* ===== お問い合わせフッター ===== */
@@ -375,10 +379,10 @@ perma_indices = {
     "A": [1, 7, 15],     # Q2, Q8, Q16
 }
 extra_indices = {
-    "こころのつらさ": [6, 13, 19],   # Negative Emotion
-    "からだの調子":  [3, 12, 17],   # Physical Health
-    "ひとりぼっち感": [11],          # Loneliness
-    "全体的なしあわせ感": [22],      # Q23
+    "こころのつらさ": [6, 13, 19],      # Negative Emotion
+    "からだの調子":  [3, 12, 17],      # Physical Health
+    "ひとりぼっち感": [11],             # Loneliness
+    "全体的なしあわせ感": [22],         # Q23
 }
 
 # =========================
@@ -480,17 +484,18 @@ def render_desc_grid_html() -> str:
 
 def render_intro_box():
     st.markdown(
-        f"""
+        """
         <div class="intro-box">
-          <div class="intro-title">この結果用紙は「心の健康チェック」です</div>
+          <div class="intro-title">はじめに（この用紙でわかること）</div>
           <div class="intro-text">
-            このチェックは <b>PERMA（パーマ）</b>という考え方を使って、<b>今の心の状態</b>を0〜10点で分かりやすく見える化したものです。<br>
+            この用紙は、<b>心の健康チェック</b>の結果です。<br>
+            <b>今の心の元気さ</b>を、0〜10点でわかりやすく見える化しています。
             <ul class="intro-list">
-              <li><b>心の5つの元気さ</b>（前向きな気持ち／集中／つながり／生きがい／達成感）が分かります。</li>
-              <li><b>こころのつらさ</b>や<b>からだの調子</b>、<b>ひとりぼっち感</b>なども一緒に確認できます。</li>
+              <li><b>心の5つの元気さ</b>（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
+              <li><b>こころのつらさ</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
             </ul>
             <div class="intro-note">
-              ※これは病気の診断ではありません。<b>「今の自分を知る」</b>ための目安としてご利用ください。
+              ※これは病気の診断ではありません。<b>今の自分の状態を知るための目安</b>としてご利用ください。
             </div>
           </div>
         </div>
@@ -537,7 +542,7 @@ ui.empty()
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-# ★ 冒頭に「かんたん説明」を追加
+# ★ 冒頭に分かりやすい説明を追加
 render_intro_box()
 
 df = st.session_state.df
@@ -554,7 +559,7 @@ perma_scores, extras = compute_results(row)
 # 1枚目
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
-page_header("1. 結果（あなたの心の状態）", "PERMA の5つの要素と、こころ・からだの今の状態を点数で確認します。")
+page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
 col_meter, col_chart = st.columns([2, 1])
