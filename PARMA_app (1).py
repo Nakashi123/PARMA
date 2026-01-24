@@ -330,32 +330,50 @@ tips = {
 }
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
+# =========================
+# 換算（あなたが提示した条件を厳密に反映）
+# Excel列：6_1〜6_23 を Q1〜Q23 とみなす
+# 0始まり index：Qn -> n-1
+# =========================
 perma_indices = {
-    "P": [4, 9, 21],
-    "E": [2, 10, 20],
-    "R": [5, 14, 18],
-    "M": [0, 8, 16],
-    "A": [1, 7, 15],
+    "P": [4, 9, 21],     # Q5, Q10, Q22
+    "E": [2, 10, 20],    # Q3, Q11, Q21
+    "R": [5, 14, 18],    # Q6, Q15, Q19
+    "M": [0, 8, 16],     # Q1, Q9, Q17
+    "A": [1, 7, 15],     # Q2, Q8, Q16
 }
 extra_indices = {
-    "こころのつらさ": [6, 13, 19],
-    "からだの調子": [3, 12, 17],
-    "ひとりぼっち感": [11],
-    "しあわせ感": [22],
+    "Negative Emotion": [6, 13, 19],   # Q7, Q14, Q20
+    "Physical Health":  [3, 12, 17],   # Q4, Q13, Q18
+    "Loneliness":       [11],          # Q12（単項目）
+    "Overall Happiness": [22],         # Q23（単項目：全体的幸福感）
 }
 
 # =========================
 # 計算関数
 # =========================
-def compute_domain_avg(vals, idx):
+def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
-def compute_results(row):
+def compute_results(row: pd.DataFrame):
+    # 6_1〜6_23 を「数値順」に必ず並べる（列順の崩れ対策）
     cols = [c for c in row.columns if str(c).startswith("6_")]
+    cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))  # "6_12" -> 12
+
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
+
+    # PERMA（5領域）
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
+
+    # Negative Emotion / Physical Health / Loneliness / Overall Happiness(Q23)
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
+
+    # Overall Wellbeing ＝ PERMA本体15項目 + Q23（全体的幸福感）の16項目平均
+    perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
+    overall_wellbeing_indices = perma_15_indices + [22]  # + Q23
+    extras["Overall Wellbeing"] = compute_domain_avg(vals, overall_wellbeing_indices)
+
     return perma, extras
 
 def score_label(v: float) -> str:
@@ -389,7 +407,7 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None):
     )
 
 def plot_hist(perma_scores: dict):
-    labels = list(perma_scores.keys())
+    labels = ["P", "E", "R", "M", "A"]
     values = [perma_scores.get(k, np.nan) for k in labels]
     fig, ax = plt.subplots(figsize=(2.9, 2.25), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
@@ -445,7 +463,7 @@ if not st.session_state.ready:
         st.markdown('<div class="main-wrap no-print">', unsafe_allow_html=True)
         st.title("わらトレ　心の健康チェック")
         uploaded = st.file_uploader(
-            "Excelファイル（ID列＋6_1〜の列）をアップロードしてください",
+            "Excelファイル（ID列＋6_1〜6_23 の列）をアップロードしてください",
             type="xlsx"
         )
         if uploaded:
@@ -466,7 +484,7 @@ ui.empty()
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
-st.markdown("この評価用紙は、**PARMA モデルを用いて、様々な観点から心の状態を0〜10点で見える化したもの**です。")
+st.markdown("この評価用紙は、**PERMA モデルを用いて、様々な観点から心の状態を0〜10点で見える化したもの**です。")
 
 df = st.session_state.df
 sid = st.session_state.sid
@@ -498,12 +516,23 @@ with col_chart:
     plot_hist(perma_scores)
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
+
+# 表示順を整える（あなたの換算の並びに近い形）
+extras_display_order = [
+    ("Overall Wellbeing", "Overall Wellbeing（16項目平均）"),
+    ("Negative Emotion", "Negative Emotion（Q7・Q14・Q20 平均）"),
+    ("Physical Health", "Physical Health（Q4・Q13・Q18 平均）"),
+    ("Loneliness", "Loneliness（Q12）"),
+    ("Overall Happiness", "Overall Happiness（Q23）"),
+]
+
 col_ex1, col_ex2 = st.columns(2)
-extras_items = list(extras.items())
-for i, (k, v) in enumerate(extras_items):
+for i, (key, label) in enumerate(extras_display_order):
+    v = extras.get(key, np.nan)
     col = col_ex1 if i % 2 == 0 else col_ex2
     with col:
-        render_meter_block(k, v, None)
+        render_meter_block(label, v, None)
+
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
