@@ -159,6 +159,26 @@ h1 {{
   font-size: 1.0rem;
 }}
 
+/* ===== 追加：説明（短い解説）ボックス ===== */
+.note-box {{
+  background: #FFFFFF;
+  border: 2px solid #E6EAF5;
+  border-left: 10px solid {theme['accent']};
+  border-radius: 14px;
+  padding: 0.9rem 1.05rem;
+  margin: 0.65rem 0 0.65rem 0;
+}}
+.note-box .nt {{
+  font-weight: 950;
+  margin-bottom: 0.15rem;
+  color: #1b2a4a;
+}}
+.note-box .tx {{
+  color:#222;
+  font-size: 1.0rem;
+  line-height: 1.8;
+}}
+
 /* ===== お問い合わせフッター ===== */
 .footer-box {{
   border-top: 2px solid #DDD;
@@ -264,7 +284,7 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
-  .page-header, .score-card, .perma-box, .footer-box, .intro-box,
+  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .note-box,
   img, figure,
   div[data-testid="stHorizontalBlock"], div[data-testid="column"],
   .desc-item {{
@@ -311,6 +331,11 @@ h1 {{
   .intro-text {{ font-size: 0.98rem !important; }}
   .intro-note {{ font-size: 0.95rem !important; }}
 
+  .note-box {{
+    padding: 0.70rem 0.90rem !important;
+    margin: 0.45rem 0 0.45rem 0 !important;
+  }}
+
   .perma-box {{ padding: 0.85rem 1.05rem !important; }}
   .perma-box p {{
     font-size: 0.98rem !important;
@@ -329,7 +354,7 @@ h1 {{
   }}
   .footer-thanks {{ margin-top: 0.55rem !important; }}
 
-  .page-header, .score-card, .desc-item, .intro-box {{
+  .page-header, .score-card, .desc-item, .intro-box, .note-box {{
     box-shadow: none !important;
   }}
 
@@ -357,14 +382,23 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
+
+# ✅ 修正（5. 感謝を書き出す：説明を明確化）
 tips = {
-    "P": ["感謝を書き出す", "今日の良かったことを振り返る"],
+    "P": ["感謝の気持ちをメモしてみる（感謝を書き出す）", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
     "R": ["感謝を伝える", "小さな親切をする"],
     "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
     "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
+
+# ✅ 追加（2,3の説明文：要求内容を反映）
+extras_explanations = {
+    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です。",
+    "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の結果です。",
+    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの結果です。",
+}
 
 # =========================
 # 換算（提示条件を厳密に反映）
@@ -378,11 +412,13 @@ perma_indices = {
     "M": [0, 8, 16],     # Q1, Q9, Q17
     "A": [1, 7, 15],     # Q2, Q8, Q16
 }
+
+# ✅ 修正：Negative emotion の表示名を変更（こころのつらさ → 気持ちの様子（いやな気持））
 extra_indices = {
-    "こころのつらさ": [6, 13, 19],      # Negative Emotion
-    "からだの調子":  [3, 12, 17],      # Physical Health
-    "ひとりぼっち感": [11],             # Loneliness
-    "全体的なしあわせ感": [22],         # Q23
+    "気持ちの様子（いやな気持）": [6, 13, 19],    # Negative Emotion (Q7, Q14, Q20)
+    "からだの調子":  [3, 12, 17],                   # Physical Health (Q4, Q13, Q18)
+    "ひとりぼっち感": [11],                          # Loneliness (Q12)
+    "全体的なしあわせ感": [22],                      # Q23
 }
 
 # =========================
@@ -402,7 +438,7 @@ def compute_results(row: pd.DataFrame):
     # PERMA（5領域）
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
 
-    # 追加項目（こころ/からだ/ひとりぼっち/しあわせ）
+    # 追加項目
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
 
     # 心の健康の総合得点（PERMA15項目 + 全体的なしあわせ感 の16項目平均）
@@ -492,7 +528,7 @@ def render_intro_box():
             <b>今の心の元気さ</b>を、0〜10点でわかりやすく見える化しています。
             <ul class="intro-list">
               <li><b>心の5つの元気さ</b>（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
-              <li><b>こころのつらさ</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
+              <li><b>気持ちの様子（いやな気持）</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
             </ul>
             <div class="intro-note">
               ※これは病気の診断ではありません。<b>今の自分の状態を知るための目安</b>としてご利用ください。
@@ -502,6 +538,19 @@ def render_intro_box():
         """,
         unsafe_allow_html=True
     )
+
+# ✅ 追加：説明ボックス（2,3の説明をページに反映）
+def render_extras_explain_boxes():
+    for title, text in extras_explanations.items():
+        st.markdown(
+            f"""
+            <div class="note-box">
+              <div class="nt">{title}とは？</div>
+              <div class="tx">{text}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # =========================
 # セッション（アップロードUIを消す）
@@ -578,7 +627,7 @@ st.markdown('<div class="section-header">1-2. こころ・からだの調子</di
 
 extras_display_order = [
     ("心の健康の総合得点", "心の健康の総合得点"),
-    ("こころのつらさ", "こころのつらさ"),
+    ("気持ちの様子（いやな気持）", "気持ちの様子（いやな気持）"),
     ("からだの調子", "からだの調子"),
     ("ひとりぼっち感", "ひとりぼっち感"),
     ("全体的なしあわせ感", "全体的なしあわせ感"),
@@ -591,19 +640,27 @@ for i, (key, label) in enumerate(extras_display_order):
     with col:
         render_meter_block(label, v, None)
 
+# ✅ 追加：Negative emotion / からだの調子 / ひとりぼっち感 の説明
+render_extras_explain_boxes()
+
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # 2枚目
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
-page_header("2. 強みとおすすめ行動", "満たされているところを大切にしつつ、これから伸ばせる要素を確認します。")
+
+# ✅ 修正（4. 強みとおすすめ行動：サブ説明を要求どおりに）
+page_header(
+    "2. 強みとおすすめ行動",
+    "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
+)
 
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
-    st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
     for k in strong_keys:
         st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
 
