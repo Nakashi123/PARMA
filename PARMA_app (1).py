@@ -54,9 +54,13 @@ html, body {{
   line-height:1.55;
 }}
 
+/* Streamlitのデフォルト余白を詰める */
 section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
 .block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
 div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
+div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
+div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
+div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
 
 .main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
@@ -184,6 +188,20 @@ h1 {{
   color: #111;
   line-height: 1.75;
 }}
+.intro-list {{
+  margin: 0.5rem 0 0.3rem 0;
+  padding-left: 1.3rem;
+}}
+.intro-list li {{
+  margin-bottom: 0.3rem;
+}}
+.intro-note {{
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #999;
+  color: #333;
+  font-size: 1.0rem;
+}}
 
 .mini-note {{
   background: #FFFFFF;
@@ -202,6 +220,12 @@ h1 {{
   font-size: 0.98rem;
   color: #222;
   line-height: 1.65;
+}}
+.mini-note ul {{
+  margin: 0.35rem 0 0.1rem 1.1rem;
+}}
+.mini-note li {{
+  margin: 0.14rem 0;
 }}
 
 .cite-box {{
@@ -239,14 +263,23 @@ h1 {{
   font-weight: 800;
 }}
 
-/* ========= 印刷 ========= */
+/* ===== 強制改ページ（コレが効く） ===== */
+.force-break {{
+  display: block;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}}
+
 @media print {{
   @page {{
     size: A4;
     margin: 8mm;
   }}
 
-  html, body {{ background: white !important; }}
+  html, body {{
+    background: white !important;
+  }}
 
   * {{
     -webkit-print-color-adjust: exact !important;
@@ -266,10 +299,13 @@ h1 {{
   .page-header {{
     padding: 0.55rem 0.80rem !important;
     margin: 0.35rem 0 0.35rem 0 !important;
-    box-shadow: none !important;
   }}
-  .page-header .title {{ font-size: 1.25rem !important; }}
-  .page-header .sub {{ font-size: 0.92rem !important; }}
+  .page-header .title {{
+    font-size: 1.25rem !important;
+  }}
+  .page-header .sub {{
+    font-size: 0.92rem !important;
+  }}
 
   .section-header {{
     font-size: 0.98rem !important;
@@ -281,9 +317,7 @@ h1 {{
   .score-card {{
     padding: 0.35rem 0.60rem !important;
     margin-bottom: 0.22rem !important;
-    box-shadow: none !important;
   }}
-
   .meter {{ height: 10px !important; }}
   .meter-score-text {{ font-size: 0.84rem !important; }}
   .meter-score-text .score-strong {{ font-size: 0.98rem !important; }}
@@ -291,12 +325,11 @@ h1 {{
   .mini-note {{
     padding: 0.45rem 0.65rem !important;
     margin: 0.30rem 0 0.30rem 0 !important;
-    box-shadow: none !important;
   }}
   .mini-note .cap {{ font-size: 0.88rem !important; }}
   .mini-note .txt {{ font-size: 0.88rem !important; line-height: 1.40 !important; }}
 
-  /* 2ページ目に収めるため、画像はかなり小さく */
+  /* 2ページ目に収めるため */
   img {{
     max-height: 60px !important;
     object-fit: contain !important;
@@ -314,7 +347,6 @@ h1 {{
   .cite-box {{
     padding: 0.45rem 0.65rem !important;
     font-size: 0.84rem !important;
-    box-shadow: none !important;
   }}
 
   .footer-box {{
@@ -322,12 +354,16 @@ h1 {{
     padding-top: 0.45rem !important;
     font-size: 0.84rem !important;
   }}
-  .footer-thanks {{ margin-top: 0.35rem !important; }}
+  .footer-thanks {{
+    margin-top: 0.35rem !important;
+  }}
 
-  .no-print {{ display: none !important; }}
+  .no-print {{
+    display: none !important;
+  }}
 
-  /* ★★ここが本命：指定箇所で必ず改ページ★★ */
-  .PB_BEFORE {{
+  /* ★ 強制改ページ：このdivが来たら必ず次ページ */
+  .force-break {{
     break-before: page !important;
     page-break-before: always !important;
   }}
@@ -352,6 +388,7 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
+
 tips = {
     "P": ["感謝の気持ちをメモしてみる（感謝を書き出す）", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -377,6 +414,7 @@ perma_indices = {
     "M": [0, 8, 16],
     "A": [1, 7, 15],
 }
+
 extra_indices = {
     "気持ちの様子（いやな気持）": [6, 13, 19],
     "からだの調子":  [3, 12, 17],
@@ -592,6 +630,10 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
+def FORCE_PAGE_BREAK():
+    # 印刷時に必ず改ページするための「空div」
+    st.markdown('<div class="force-break"></div>', unsafe_allow_html=True)
+
 # =========================
 # セッション
 # =========================
@@ -663,9 +705,11 @@ with col_chart:
 render_perma_howto_note()
 
 # =========================================================
-# ★ここから必ず2ページ目：1-2 見出しに PB_BEFORE を付与
+# ★ここで必ず改ページ：1-2 は2ページ目から開始
 # =========================================================
-st.markdown('<div class="section-header PB_BEFORE">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
+FORCE_PAGE_BREAK()
+
+st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
     "心の健康の総合得点",
@@ -689,7 +733,6 @@ for i, (key, label) in enumerate(grid_order):
 
 render_extras_meaning_note()
 
-# --- 2ページ目：2（強みとおすすめ）
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -724,11 +767,11 @@ if weak_keys:
         )
 
 # =========================================================
-# ★ここから必ず3ページ目：3.備考 見出しに PB_BEFORE を付与
+# ★ここで必ず改ページ：備考は3ページ目から開始
 # =========================================================
-st.markdown('<div class="PB_BEFORE"></div>', unsafe_allow_html=True)
-page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
+FORCE_PAGE_BREAK()
 
+page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 render_remarks_box()
 
 st.markdown(
