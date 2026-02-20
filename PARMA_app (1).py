@@ -429,9 +429,9 @@ tips = {
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 extras_explanations = {
-    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかの目安です。",
-    "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の目安です。",
-    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの目安です。",
+    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です。",
+    "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の結果です。",
+    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの結果です。",
 }
 
 # =========================
@@ -559,7 +559,7 @@ def render_perma_howto_note():
     st.markdown(
         f"""
         <div class="mini-note">
-          <div class="cap">※各指標の見方</div>
+          <div class="cap">各指標の見方</div>
           <div class="txt">
             <ul>
               <li><b>P（前向きな気持ち）</b>：{descriptions["P"]}</li>
@@ -575,16 +575,16 @@ def render_perma_howto_note():
     )
 
 def render_extras_meaning_note():
-    # ③：「・とは？」をやめて「様子：/調子：/ぼっち感：」形式に
+    # ③：形式を「項目名：説明」にする
     st.markdown(
         f"""
         <div class="mini-note">
-          <div class="cap">※各指標の意味</div>
+          <div class="cap">各指標の意味</div>
           <div class="txt">
             <ul>
-              <li><b>様子：</b>{extras_explanations["気持ちの様子（いやな気持）"]}</li>
-              <li><b>調子：</b>{extras_explanations["からだの調子"]}</li>
-              <li><b>ぼっち感：</b>{extras_explanations["ひとりぼっち感"]}</li>
+              <li><b>気持ちの様子（いやな気持）</b>：{extras_explanations["気持ちの様子（いやな気持）"]}</li>
+              <li><b>からだの調子</b>：{extras_explanations["からだの調子"]}</li>
+              <li><b>ひとりぼっち感</b>：{extras_explanations["ひとりぼっち感"]}</li>
             </ul>
           </div>
         </div>
@@ -594,56 +594,36 @@ def render_extras_meaning_note():
 
 def render_remarks_box():
     """
-    ① 高齢者向けに「必要な情報だけ」わかりやすく、短文・具体例・使い方を中心に。
-    ② 見出しは ①②③ にする（※をやめる）
+    3. 備考：高齢者向けに、必要な情報だけを短く・見やすく整理。
+    見出しは「①②③」にする。
+    ※「診断ではない」等は冒頭に集約しているので、ここでは重複しない。
     """
-    # まとめ：なにを見るか
+    # 概要
     st.markdown(
         f"""
         <div class="perma-box">
-          <p><span class="perma-highlight">備考（この結果の見方）</span></p>
+          <p><span class="perma-highlight">このチェックで見ていること</span></p>
           <p>
-            この用紙は、心の元気さを<b>5つの面（PERMA）</b>と、<b>こころ・からだの状態</b>で見える化したものです。
-            <br>点数は<b>0〜10点</b>で、まずは<b>高いところ（強み）</b>と<b>低いところ（整えたいところ）</b>を確認します。
+            この用紙は、心の元気さを <span class="perma-highlight">5つの面（PERMA）</span> で見る方法をもとにしています。<br>
+            5つの面をそれぞれ見ることで、「どこが保てているか」「どこを整えるとよさそうか」を考えやすくします。
           </p>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # ① どんな考え方？
+    # ① PERMAとは
     st.markdown(
-        f"""
+        """
         <div class="mini-note">
-          <div class="cap">① PERMAとは（心の元気さを5つで見る考え方）</div>
+          <div class="cap">① PERMA（5つの面）とは</div>
           <div class="txt">
             <ul>
-              <li><b>P</b>：前向きな気持ち（安心・うれしさ など）</li>
-              <li><b>E</b>：集中して取り組むこと（夢中になれる・時間を忘れるような没頭）</li>
-              <li><b>R</b>：人とのつながり（支え・安心できる関係）</li>
-              <li><b>M</b>：生きがいや目的（自分にとって大切なこと、役割、目標）</li>
-              <li><b>A</b>：達成感（できた実感。大きな成果だけでなく日々の「やれた」も含む）</li>
-            </ul>
-            <div style="color:#555; margin-top:6px;">
-              5つは全部そろって同じ高さである必要はなく、<b>人それぞれ</b>違ってよいと考えられています。
-            </div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # ② 追加の指標はどう見る？
-    st.markdown(
-        f"""
-        <div class="mini-note">
-          <div class="cap">② こころ・からだの指標（見方のポイント）</div>
-          <div class="txt">
-            <ul>
-              <li><b>心の健康の総合得点</b>：PERMA全体をまとめた目安です（まずここを確認します）。</li>
-              <li><b>気持ちの様子（いやな気持）</b>：不安・いらいら・落ち込みなどが<b>どのくらいあるか</b>の目安です。<b>低いほど良い</b>方向です。</li>
-              <li><b>からだの調子</b>：検査値ではなく、<b>自分が元気だと感じるか</b>の目安です。</li>
-              <li><b>ひとりぼっち感</b>：ひとりぼっちだと感じることが<b>どのくらいあるか</b>の目安です。<b>低いほど良い</b>方向です。</li>
+              <li><b>P</b>：前向きな気持ち（うれしさ・安心・満足など）</li>
+              <li><b>E</b>：集中して取り組むこと（夢中になって時間を忘れるような没頭＝フロー）</li>
+              <li><b>R</b>：人とのつながり（支えられている・大切にされている感覚）</li>
+              <li><b>M</b>：生きがいや目的（家族・地域・趣味・目標など「自分にとって大切なもの」）</li>
+              <li><b>A</b>：達成感（大きな成果だけでなく、毎日のやることをこなせた感覚も含みます）</li>
             </ul>
           </div>
         </div>
@@ -651,17 +631,16 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # ③ どう活かす？
+    # ② PERMA-Profilerについて
     st.markdown(
-        f"""
+        """
         <div class="mini-note">
-          <div class="cap">③ 結果の活かし方（おすすめ）</div>
+          <div class="cap">② この尺度（PERMA-Profiler）について</div>
           <div class="txt">
             <ul>
-              <li><b>高い項目</b>：今のあなたの強みです。続けられている工夫があるかもしれません。</li>
-              <li><b>低い項目</b>：今の体調や生活の中で整えたいポイントの目安です。無理のない範囲で小さく試します。</li>
-              <li>1回だけで決めず、気が向いたときに繰り返して<b>変化</b>（上がった/下がった）を見ると役立ちます。</li>
-              <li>もし「つらさが強い」「生活に支障がある」などが続く場合は、身近な人や専門職に相談する<b>きっかけ</b>にしてください。</li>
+              <li>研究では、PERMAを短い質問で測れるように <b>PERMA-Profiler</b> が開発されています。</li>
+              <li><b>PERMAの15問</b>（5つ×各3問）に、<b>追加の8問</b>（気持ちの様子／からだの調子／ひとりぼっち感／全体的なしあわせ感 など）を加えた、合計<b>23問</b>の形式です。</li>
+              <li>点数は<b>0〜10点</b>で、たとえば<b>7/10点</b>は「だいたい7割くらい」と考えると分かりやすいです。</li>
             </ul>
           </div>
         </div>
@@ -669,7 +648,25 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # 根拠（引用）
+    # ③ 結果の使い方
+    st.markdown(
+        """
+        <div class="mini-note">
+          <div class="cap">③ 結果の使い方（おすすめ）</div>
+          <div class="txt">
+            <ul>
+              <li><b>高いところ</b>：今の強み（保てている部分）</li>
+              <li><b>低いところ</b>：疲れや環境の影響が出ているかもしれない部分（整えるヒント）</li>
+              <li>1回で決めつけず、時々くり返して<b>変化</b>（上がった／下がった）を見ると役立ちます。</li>
+              <li>「つらさが強い」「生活が大変」などが続く場合は、身近な人や専門職に相談する<b>きっかけ</b>にもなります。</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 引用
     st.markdown(
         """
         <div class="cite-box">
@@ -753,7 +750,7 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-# 5要素の詳しい説明：「※各指標の見方」
+# 5要素の詳しい説明：「各指標の見方」
 render_perma_howto_note()
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
@@ -780,7 +777,7 @@ for i, (key, label) in enumerate(grid_order):
     with col:
         render_meter_block(label, v, extra_colors.get(key, None))
 
-# 説明は控えめに「各指標の意味」（表記修正済み）
+# 説明は控えめに「各指標の意味」
 render_extras_meaning_note()
 
 st.markdown("</div>", unsafe_allow_html=True)
