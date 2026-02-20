@@ -27,7 +27,7 @@ colors = {
     "A": "#F9AB00",
 }
 
-# ② こころ・からだの調子（追加指標）の配色（見やすく・用途が分かる系）
+# こころ・からだの調子（追加指標）の配色（見やすさ重視）
 extra_colors = {
     "心の健康の総合得点": "#4E73DF",          # 青：総合
     "気持ちの様子（いやな気持）": "#E74C3C",  # 赤：ネガティブ感情
@@ -163,9 +163,9 @@ h1 {{
   background:white;
 }}
 .perma-box p {{
-  font-size:1.06rem;
+  font-size:1.04rem;
   color:#222;
-  margin-bottom:0.85rem;
+  margin-bottom:0.75rem;
   line-height: 1.7;
 }}
 .perma-highlight {{
@@ -208,7 +208,7 @@ h1 {{
   font-size: 1.0rem;
 }}
 
-/* ===== ④ 控えめな補足（※各指標の意味／見方） ===== */
+/* ===== 控えめな補足（※各指標の意味／見方） ===== */
 .mini-note {{
   background: #FFFFFF;
   border: 1px solid #E6EAF5;
@@ -232,6 +232,25 @@ h1 {{
 }}
 .mini-note li {{
   margin: 0.14rem 0;
+}}
+
+/* ===== 追加：備考の「根拠（引用）」を控えめに見せる ===== */
+.cite-box {{
+  background: #FBFBFD;
+  border: 1px solid #E6EAF5;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.7rem;
+  color: #333;
+}}
+.cite-box .cap {{
+  font-weight: 900;
+  color: #1b2a4a;
+  margin-bottom: 0.25rem;
+}}
+.cite-box .ref {{
+  font-size: 0.95rem;
+  line-height: 1.6;
 }}
 
 /* ===== お問い合わせフッター ===== */
@@ -301,7 +320,7 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
-  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .mini-note,
+  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .mini-note, .cite-box,
   img, figure,
   div[data-testid="stHorizontalBlock"], div[data-testid="column"] {{
     break-inside: avoid !important;
@@ -353,6 +372,11 @@ h1 {{
     margin: 0.45rem 0 0.45rem 0 !important;
   }}
 
+  .cite-box {{
+    padding: 0.6rem 0.75rem !important;
+    margin-top: 0.55rem !important;
+  }}
+
   .perma-box {{ padding: 0.85rem 1.05rem !important; }}
   .perma-box p {{
     font-size: 0.98rem !important;
@@ -366,7 +390,7 @@ h1 {{
   }}
   .footer-thanks {{ margin-top: 0.55rem !important; }}
 
-  .page-header, .score-card, .intro-box, .mini-note {{
+  .page-header, .score-card, .intro-box, .mini-note, .cite-box {{
     box-shadow: none !important;
   }}
 
@@ -531,7 +555,7 @@ def render_intro_box():
     )
 
 def render_perma_howto_note():
-    # ⑦ 3-2をここへ移動：「※各指標の見方」
+    # 5要素の詳しい説明：「※各指標の見方」
     st.markdown(
         f"""
         <div class="mini-note">
@@ -551,7 +575,7 @@ def render_perma_howto_note():
     )
 
 def render_extras_meaning_note():
-    # ④ 「大項目」ではなく控えめに：※各指標の意味
+    # 説明は控えめに「※各指標の意味」
     st.markdown(
         f"""
         <div class="mini-note">
@@ -562,6 +586,91 @@ def render_extras_meaning_note():
               <li><b>からだの調子とは？</b> → {extras_explanations["からだの調子"]}</li>
               <li><b>ひとりぼっち感とは？</b> → {extras_explanations["ひとりぼっち感"]}</li>
             </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+def render_remarks_box():
+    """
+    3. 備考：Butler & Kern (2016)の本文から、高齢者にわかりやすい要約を作成。
+    ※「診断ではない」等の文言は冒頭に集約（ユーザー要望に合わせて重複を避ける）
+    """
+    st.markdown(
+        f"""
+        <div class="perma-box">
+          <p><span class="perma-highlight">このチェックで使っているもの</span></p>
+          <p>
+            この「心の健康チェック」は、ポジティブ心理学の考え方にもとづく
+            <span class="perma-highlight">PERMA（5つの柱）</span>を中心に、心の元気さを見える化する方法です。
+          </p>
+          <p>
+            PERMAは次の5つからできています：
+            <span class="perma-highlight">
+              前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・生きがいや目的（M）・達成感（A）
+            </span>
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="mini-note">
+          <div class="cap">※PERMA-Profiler（ペルマ・プロファイラー）について</div>
+          <div class="txt">
+            <ul>
+              <li>研究では、PERMAの5要素を短い質問で測れるように <b>PERMA-Profiler</b> という尺度が作られました。</li>
+              <li><b>15問（5要素×各3問）</b>でPERMAを測り、さらに<b>8つの追加項目</b>（全体的なしあわせ感、気持ちの様子、ひとりぼっち感、からだの調子 など）を足して、合計<b>23問</b>の形式になっています。</li>
+              <li>答えは<b>0〜10点</b>でつけます（例：7/10点＝「だいたい70%くらい」）。</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="mini-note">
+          <div class="cap">※結果の見せ方（「1つの点数」にまとめない理由）</div>
+          <div class="txt">
+            <ul>
+              <li>この尺度は、心の健康を<b>1つの点数だけで決めず</b>、<b>5要素それぞれの形（プロフィール）</b>として見る考え方が大切だとされています。</li>
+              <li>たとえば「人とのつながり（R）」が低めなら、人との関わり方や支えを増やす工夫が役立つかもしれません。</li>
+              <li>一方で、<b>理想の形は人それぞれ</b>で、生活や体調、環境によって合う形は変わると考えられています。</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="mini-note">
+          <div class="cap">※このチェックの活用のしかた（おすすめ）</div>
+          <div class="txt">
+            <ul>
+              <li><b>高いところ＝今の強み</b>、<b>低いところ＝これから整えたいところ</b>の目安として使えます。</li>
+              <li>1回だけで判断せず、気が向いたときに繰り返して、<b>変化（上がった/下がった）</b>を見るのが役立ちます。</li>
+              <li>もし「つらさが強い」「生活に支障がある」など気になることが続く場合は、身近な人や専門職に相談するきっかけとして使えます。</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="cite-box">
+          <div class="cap">引用（根拠）</div>
+          <div class="ref">
+            Butler, J., &amp; Kern, M. L. (2016). <i>The PERMA-Profiler: A brief multidimensional measure of flourishing</i>.
+            <i>International Journal of Wellbeing</i>, 6(3), 1–48. https://doi.org/10.5502/ijw.v6i3.526
           </div>
         </div>
         """,
@@ -617,6 +726,27 @@ if row.empty:
     st.session_state.ready = False
     st.rerun()
 
+# =========================
+# 計算
+# =========================
+def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
+    scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
+    return float(np.mean(scores)) if scores else np.nan
+
+def compute_results(row: pd.DataFrame):
+    cols = [c for c in row.columns if str(c).startswith("6_")]
+    cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
+    vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
+
+    perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
+    extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
+
+    perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
+    overall_wellbeing_indices = perma_15_indices + [22]
+    extras["心の健康の総合得点"] = compute_domain_avg(vals, overall_wellbeing_indices)
+
+    return perma, extras
+
 perma_scores, extras = compute_results(row)
 
 # =========================================================
@@ -638,12 +768,12 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-# ⑦ 5要素の詳しい説明をここへ移動
+# 5要素の詳しい説明：「※各指標の見方」
 render_perma_howto_note()
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-# ③ まず「心の健康の総合得点」を太く長いバーで表示
+# 総合得点を太く長いバーで最上段
 render_meter_block(
     "心の健康の総合得点",
     extras.get("心の健康の総合得点", np.nan),
@@ -651,8 +781,7 @@ render_meter_block(
     big=True
 )
 
-# ③ 下に4項目を2列で綺麗に配置
-# 指定：からだの調子、全体的なしあわせ感、気持ちの様子（いやな気持）、ひとりぼっち感
+# 下に4項目を2列で配置（指定順）
 grid_order = [
     ("からだの調子", "からだの調子"),
     ("全体的なしあわせ感", "全体的なしあわせ感"),
@@ -666,7 +795,7 @@ for i, (key, label) in enumerate(grid_order):
     with col:
         render_meter_block(label, v, extra_colors.get(key, None))
 
-# ④ 説明は控えめに「※各指標の意味」
+# 説明は控えめに「※各指標の意味」
 render_extras_meaning_note()
 
 st.markdown("</div>", unsafe_allow_html=True)
@@ -676,7 +805,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
-# ⑤ 見出し変更
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -714,33 +842,9 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
-st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
-st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
+# 追加・増補した備考（見やすいレイアウト＋最後に引用）
+render_remarks_box()
 
-# ⑥ 重複文（診断ではなく…等）を削除して、内容を簡潔化
-st.markdown(
-    f"""
-    <div class="perma-box">
-      <p>
-        このチェックは、ポジティブ心理学者 Martin Seligman が提唱した PERMAモデル に基づいて、
-        <span class="perma-highlight">心の健康や満たされている度合い</span>を測定するものです。
-      </p>
-      <p>
-        PERMAとは
-        <span class="perma-highlight">
-        前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・
-        生きがいや目的（M）・達成感（A）の5要素
-        </span>
-        で構成されており、
-        「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
-      </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-st.markdown("</div>", unsafe_allow_html=True)
-
-# ⑦ 旧3-2は削除（1-1に移動済み）
 st.markdown(
     """
     <div class="footer-box">
