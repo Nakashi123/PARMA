@@ -729,7 +729,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目
+# 1枚目（ここで 1-1 + 各指標の見方 までで終了）
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
@@ -749,6 +749,15 @@ with col_chart:
 
 render_perma_howto_note()
 
+# ★変更点：1ページ目をここで閉じる（＝1-2 を次ページ先頭へ）
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================================
+# 2枚目（1-2 をページ先頭に移動）
+# =========================================================
+st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
+
+# ★変更点：ここから 1-2 を開始（PDFで見出しだけ孤立しにくい）
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
@@ -776,9 +785,9 @@ render_extras_meaning_note()
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2枚目
+# 3枚目（旧2枚目：強み・おすすめ行動）
 # =========================================================
-st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
@@ -813,13 +822,12 @@ if weak_keys:
             use_container_width=True
         )
 
-st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目
+# 4枚目（旧3枚目：備考）
 # =========================================================
-st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-4'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
 render_remarks_box()
