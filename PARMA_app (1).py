@@ -38,12 +38,33 @@ theme = {
 # =========================
 st.markdown(f"""
 <style>
+/* ===============================
+   画面表示（Web）を詰める：ここが改善の本丸
+   =============================== */
 html, body {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-  line-height:1.9;
+
+  /* ★ ここが主犯：1.9 → 1.55に */
+  line-height:1.55;
 }}
+
+/* Streamlitのデフォルト余白（上下）を詰める：新旧両対応 */
+section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
+.block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
+
+/* ブロック間（縦のスカスカ）を詰める */
+div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
+
+/* Markdownの段落・リストの余白を詰める */
+div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
+div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
+div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
+
+/* ===============================
+   あなたの既存デザイン
+   =============================== */
 .main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
 h1 {{
@@ -118,6 +139,9 @@ h1 {{
   font-size:1.06rem;
   color:#222;
   margin-bottom:0.85rem;
+
+  /* ★ 説明文は少し読みやすい行間に */
+  line-height: 1.7;
 }}
 .perma-highlight {{
   color:{theme['accent']};
@@ -142,7 +166,9 @@ h1 {{
 .intro-text {{
   font-size: 1.05rem;
   color: #111;
-  line-height: 1.9;
+
+  /* ★ 説明文は読みやすさ優先で */
+  line-height: 1.75;
 }}
 .intro-list {{
   margin: 0.5rem 0 0.3rem 0;
@@ -176,7 +202,9 @@ h1 {{
 .note-box .tx {{
   color:#222;
   font-size: 1.0rem;
-  line-height: 1.8;
+
+  /* ★ 説明文は読みやすい行間 */
+  line-height: 1.7;
 }}
 
 /* ===== お問い合わせフッター ===== */
@@ -383,7 +411,6 @@ descriptions = {
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
 
-# ✅ 修正（5. 感謝を書き出す：説明を明確化）
 tips = {
     "P": ["感謝の気持ちをメモしてみる（感謝を書き出す）", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -393,7 +420,6 @@ tips = {
 }
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
-# ✅ 追加（2,3の説明文：要求内容を反映）
 extras_explanations = {
     "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です。",
     "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の結果です。",
@@ -413,7 +439,6 @@ perma_indices = {
     "A": [1, 7, 15],     # Q2, Q8, Q16
 }
 
-# ✅ 修正：Negative emotion の表示名を変更（こころのつらさ → 気持ちの様子（いやな気持））
 extra_indices = {
     "気持ちの様子（いやな気持）": [6, 13, 19],    # Negative Emotion (Q7, Q14, Q20)
     "からだの調子":  [3, 12, 17],                   # Physical Health (Q4, Q13, Q18)
@@ -429,19 +454,14 @@ def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
     return float(np.mean(scores)) if scores else np.nan
 
 def compute_results(row: pd.DataFrame):
-    # 6_1〜6_23 を数値順に並べる（列順の崩れ対策）
     cols = [c for c in row.columns if str(c).startswith("6_")]
     cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
 
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
 
-    # PERMA（5領域）
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
-
-    # 追加項目
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
 
-    # 心の健康の総合得点（PERMA15項目 + 全体的なしあわせ感 の16項目平均）
     perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
     overall_wellbeing_indices = perma_15_indices + [22]
     extras["心の健康の総合得点"] = compute_domain_avg(vals, overall_wellbeing_indices)
@@ -539,7 +559,6 @@ def render_intro_box():
         unsafe_allow_html=True
     )
 
-# ✅ 追加：説明ボックス（2,3の説明をページに反映）
 def render_extras_explain_boxes():
     for title, text in extras_explanations.items():
         st.markdown(
@@ -591,7 +610,6 @@ ui.empty()
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
 
-# ★ 冒頭に分かりやすい説明を追加
 render_intro_box()
 
 df = st.session_state.df
@@ -640,7 +658,6 @@ for i, (key, label) in enumerate(extras_display_order):
     with col:
         render_meter_block(label, v, None)
 
-# ✅ 追加：Negative emotion / からだの調子 / ひとりぼっち感 の説明
 render_extras_explain_boxes()
 
 st.markdown("</div>", unsafe_allow_html=True)
@@ -650,7 +667,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
-# ✅ 修正（4. 強みとおすすめ行動：サブ説明を要求どおりに）
 page_header(
     "2. 強みとおすすめ行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
