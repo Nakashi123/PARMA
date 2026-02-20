@@ -272,14 +272,18 @@ h1 {{
 }}
 
 /* ===== 印刷用 ===== */
-.keep-together {{}}
+.keep-together {{
+  /* 重要：ページ内で分割されにくくする */
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}}
 .force-page-break {{ display:none; }}
 
 @media print {{
 
   @page {{
     size: A4;
-    margin: 8mm;   /* 余白をさらに詰める */
+    margin: 8mm;
   }}
 
   html, body {{
@@ -300,16 +304,6 @@ h1 {{
     break-after: auto !important;
     page-break-after: auto !important;
   }}
-  .page-3 {{
-    break-before: page !important;
-    page-break-before: always !important;
-  }}
-  .force-page-break {{
-    display:block !important;
-    break-before: page !important;
-    page-break-before: always !important;
-    height: 0 !important;
-  }}
 
   /* 全体を上にシフト */
   body {{
@@ -323,81 +317,76 @@ h1 {{
   }}
 
   .page-header {{
-    padding: 0.6rem 0.85rem !important;
-    margin: 0.4rem 0 0.4rem 0 !important;
-  }}
-
-  .section-header {{
-    font-size: 1.0rem !important;
-    padding: 0.35rem 0.75rem !important;
-    margin-top: 0.45rem !important;
-    margin-bottom: 0.35rem !important;
-  }}
-
-  .score-card {{
-    padding: 0.4rem 0.65rem !important;
-    margin-bottom: 0.28rem !important;
-  }}
-
-  .meter {{ height: 11px !important; }}
-
-  .meter-score-text {{
-    font-size: 0.88rem !important;
-  }}
-
-  .meter-score-text .score-strong {{
-    font-size: 1.0rem !important;
-  }}
-
-  /* 各指標の見方を1ページに収めるため圧縮 */
-  .mini-note {{
-    padding: 0.5rem 0.7rem !important;
+    padding: 0.55rem 0.8rem !important;
     margin: 0.35rem 0 0.35rem 0 !important;
   }}
 
+  .section-header {{
+    font-size: 0.98rem !important;
+    padding: 0.30rem 0.70rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.30rem !important;
+  }}
+
+  .score-card {{
+    padding: 0.35rem 0.60rem !important;
+    margin-bottom: 0.22rem !important;
+  }}
+
+  .meter {{ height: 10px !important; }}
+
+  .meter-score-text {{
+    font-size: 0.84rem !important;
+  }}
+
+  .meter-score-text .score-strong {{
+    font-size: 0.98rem !important;
+  }}
+
+  /* 各指標の見方を圧縮 */
+  .mini-note {{
+    padding: 0.45rem 0.65rem !important;
+    margin: 0.30rem 0 0.30rem 0 !important;
+  }}
+
   .mini-note .cap {{
-    font-size: 0.9rem !important;
+    font-size: 0.88rem !important;
   }}
 
   .mini-note .txt {{
-    font-size: 0.9rem !important;
-    line-height: 1.45 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.40 !important;
   }}
 
-  .mini-note li {{
-    margin: 0.1rem 0 !important;
-  }}
-
-  /* 2-2 を2ページに収めるため画像縮小 */
+  /* 重要：2ページ目に収めるため画像をさらに縮小 */
   img {{
-    max-height: 140px !important;
+    max-height: 90px !important;
     object-fit: contain !important;
   }}
 
-  /* 備考を圧縮してページ数を減らす */
   .perma-box {{
-    padding: 0.7rem 0.9rem !important;
+    padding: 0.65rem 0.85rem !important;
   }}
 
   .perma-box p {{
-    font-size: 0.9rem !important;
-    line-height: 1.45 !important;
-    margin-bottom: 0.4rem !important;
+    font-size: 0.88rem !important;
+    line-height: 1.40 !important;
+    margin-bottom: 0.35rem !important;
   }}
 
   .cite-box {{
-    padding: 0.5rem 0.7rem !important;
-    font-size: 0.85rem !important;
+    padding: 0.45rem 0.65rem !important;
+    font-size: 0.84rem !important;
   }}
 
   .footer-box {{
-    margin-top: 0.8rem !important;
-    padding-top: 0.5rem !important;
-    font-size: 0.85rem !important;
+    margin-top: 0.7rem !important;
+    padding-top: 0.45rem !important;
+    font-size: 0.84rem !important;
   }}
 
   .footer-thanks {{
-    margin-top: 0.4rem !important;
+    margin-top: 0.35rem !important;
   }}
 
   .page-header, .score-card, .intro-box, .mini-note, .cite-box {{
@@ -567,7 +556,7 @@ def render_intro_box():
 def render_perma_howto_note():
     st.markdown(
         f"""
-        <div class="mini-note">
+        <div class="mini-note keep-together">
           <div class="cap">各指標の見方</div>
           <div class="txt">
             <ul>
@@ -586,7 +575,7 @@ def render_perma_howto_note():
 def render_extras_meaning_note():
     st.markdown(
         f"""
-        <div class="mini-note">
+        <div class="mini-note keep-together">
           <div class="cap">各指標の意味</div>
           <div class="txt">
             <ul>
@@ -603,7 +592,7 @@ def render_extras_meaning_note():
 def render_remarks_box():
     st.markdown(
         f"""
-        <div class="perma-box">
+        <div class="perma-box keep-together">
           <p><span class="perma-highlight">このチェックで見ていること</span></p>
           <p>
             この用紙は、心の元気さを <span class="perma-highlight">5つの面（PERMA）</span> で見る方法をもとにしています。<br>
@@ -616,7 +605,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note">
+        <div class="mini-note keep-together">
           <div class="cap">① PERMA（5つの面）とは</div>
           <div class="txt">
             <ul>
@@ -634,7 +623,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note">
+        <div class="mini-note keep-together">
           <div class="cap">② この尺度（PERMA-Profiler）について</div>
           <div class="txt">
             <ul>
@@ -650,7 +639,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note">
+        <div class="mini-note keep-together">
           <div class="cap">③ 結果の使い方（おすすめ）</div>
           <div class="txt">
             <ul>
@@ -667,7 +656,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="cite-box">
+        <div class="cite-box keep-together">
           <div class="cap">引用（根拠）</div>
           <div class="ref">
             Butler, J., &amp; Kern, M. L. (2016). <i>The PERMA-Profiler: A brief multidimensional measure of flourishing</i>.
@@ -729,7 +718,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目（ここで 1-1 + 各指標の見方 までで終了）
+# 1枚目：1-1 + 各指標の見方 まで
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
@@ -748,16 +737,14 @@ with col_chart:
     plot_hist(perma_scores)
 
 render_perma_howto_note()
-
-# ★変更点：1ページ目をここで閉じる（＝1-2 を次ページ先頭へ）
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2枚目（1-2 をページ先頭に移動）
+# 2枚目：1-2 + 2（強み＆行動例）を同一ページに収める
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
-# ★変更点：ここから 1-2 を開始（PDFで見出しだけ孤立しにくい）
+# --- 1-2 ---
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
@@ -782,13 +769,7 @@ for i, (key, label) in enumerate(grid_order):
 
 render_extras_meaning_note()
 
-st.markdown("</div>", unsafe_allow_html=True)
-
-# =========================================================
-# 3枚目（旧2枚目：強み・おすすめ行動）
-# =========================================================
-st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
-
+# --- 2 ---
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -797,8 +778,10 @@ page_header(
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
+# 2-1（強み）
 if strong_keys:
     st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
+    st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
     for k in strong_keys:
         render_meter_block(
             f"✔ {full_labels[k]}（{k}）",
@@ -806,9 +789,12 @@ if strong_keys:
             colors[k],
             big=False
         )
+    st.markdown("</div>", unsafe_allow_html=True)
 
+# 2-2（行動例）
 if weak_keys:
     st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
+    st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
     c1, c2 = st.columns([2, 1])
     with c1:
         for k in weak_keys:
@@ -821,20 +807,21 @@ if weak_keys:
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 4枚目（旧3枚目：備考）
+# 3枚目：備考（＋フッター）
 # =========================================================
-st.markdown("<div class='print-page page-4'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
 render_remarks_box()
 
 st.markdown(
     """
-    <div class="footer-box">
+    <div class="footer-box keep-together">
       <div class="footer-title">この評価結果に関するお問い合わせは以下まで</div>
       <div>
         〈お問い合わせ先〉〒 474-0037<br>
