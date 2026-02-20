@@ -57,9 +57,6 @@ html, body {{
 section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
 .block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
 div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
-div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
-div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
-div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
 
 .main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
@@ -187,20 +184,6 @@ h1 {{
   color: #111;
   line-height: 1.75;
 }}
-.intro-list {{
-  margin: 0.5rem 0 0.3rem 0;
-  padding-left: 1.3rem;
-}}
-.intro-list li {{
-  margin-bottom: 0.3rem;
-}}
-.intro-note {{
-  margin-top: 0.5rem;
-  padding-top: 0.4rem;
-  border-top: 1px dashed #999;
-  color: #333;
-  font-size: 1.0rem;
-}}
 
 .mini-note {{
   background: #FFFFFF;
@@ -219,12 +202,6 @@ h1 {{
   font-size: 0.98rem;
   color: #222;
   line-height: 1.65;
-}}
-.mini-note ul {{
-  margin: 0.35rem 0 0.1rem 1.1rem;
-}}
-.mini-note li {{
-  margin: 0.14rem 0;
 }}
 
 .cite-box {{
@@ -262,43 +239,18 @@ h1 {{
   font-weight: 800;
 }}
 
-/* ===== ここが肝：ブロック分割を抑止 ===== */
-.keep-together {{
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}}
-
-/* ===== 印刷用 ===== */
+/* ========= 印刷 ========= */
 @media print {{
-
   @page {{
     size: A4;
     margin: 8mm;
   }}
 
-  html, body {{
-    background: white !important;
-  }}
+  html, body {{ background: white !important; }}
 
   * {{
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }}
-
-  /* ページ制御 */
-  .print-page {{
-    break-after: page !important;
-    page-break-after: always !important;
-  }}
-  .print-page:last-child {{
-    break-after: auto !important;
-    page-break-after: auto !important;
-  }}
-
-  /* 3ページ目は必ず新しいページから開始 */
-  .page-3 {{
-    break-before: page !important;
-    page-break-before: always !important;
   }}
 
   body {{
@@ -314,14 +266,10 @@ h1 {{
   .page-header {{
     padding: 0.55rem 0.80rem !important;
     margin: 0.35rem 0 0.35rem 0 !important;
+    box-shadow: none !important;
   }}
-
-  .page-header .title {{
-    font-size: 1.25rem !important;
-  }}
-  .page-header .sub {{
-    font-size: 0.92rem !important;
-  }}
+  .page-header .title {{ font-size: 1.25rem !important; }}
+  .page-header .sub {{ font-size: 0.92rem !important; }}
 
   .section-header {{
     font-size: 0.98rem !important;
@@ -333,33 +281,24 @@ h1 {{
   .score-card {{
     padding: 0.35rem 0.60rem !important;
     margin-bottom: 0.22rem !important;
+    box-shadow: none !important;
   }}
 
   .meter {{ height: 10px !important; }}
-
-  .meter-score-text {{
-    font-size: 0.84rem !important;
-  }}
-
-  .meter-score-text .score-strong {{
-    font-size: 0.98rem !important;
-  }}
+  .meter-score-text {{ font-size: 0.84rem !important; }}
+  .meter-score-text .score-strong {{ font-size: 0.98rem !important; }}
 
   .mini-note {{
     padding: 0.45rem 0.65rem !important;
     margin: 0.30rem 0 0.30rem 0 !important;
+    box-shadow: none !important;
   }}
-  .mini-note .cap {{
-    font-size: 0.88rem !important;
-  }}
-  .mini-note .txt {{
-    font-size: 0.88rem !important;
-    line-height: 1.40 !important;
-  }}
+  .mini-note .cap {{ font-size: 0.88rem !important; }}
+  .mini-note .txt {{ font-size: 0.88rem !important; line-height: 1.40 !important; }}
 
-  /* 2ページ目に収めるため：画像さらに縮小 */
+  /* 2ページ目に収めるため、画像はかなり小さく */
   img {{
-    max-height: 70px !important;
+    max-height: 60px !important;
     object-fit: contain !important;
   }}
 
@@ -375,6 +314,7 @@ h1 {{
   .cite-box {{
     padding: 0.45rem 0.65rem !important;
     font-size: 0.84rem !important;
+    box-shadow: none !important;
   }}
 
   .footer-box {{
@@ -382,16 +322,14 @@ h1 {{
     padding-top: 0.45rem !important;
     font-size: 0.84rem !important;
   }}
-  .footer-thanks {{
-    margin-top: 0.35rem !important;
-  }}
+  .footer-thanks {{ margin-top: 0.35rem !important; }}
 
-  .page-header, .score-card, .intro-box, .mini-note, .cite-box {{
-    box-shadow: none !important;
-  }}
+  .no-print {{ display: none !important; }}
 
-  .no-print {{
-    display: none !important;
+  /* ★★ここが本命：指定箇所で必ず改ページ★★ */
+  .PB_BEFORE {{
+    break-before: page !important;
+    page-break-before: always !important;
   }}
 }}
 </style>
@@ -414,7 +352,6 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
-
 tips = {
     "P": ["感謝の気持ちをメモしてみる（感謝を書き出す）", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -484,7 +421,7 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None, bi
 
     st.markdown(
         f"""
-        <div class="score-card {big_class} keep-together">
+        <div class="score-card {big_class}">
           <div class="{title_class}">{title}</div>
           <div class="{meter_class}">
             <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
@@ -512,7 +449,7 @@ def plot_hist(perma_scores: dict):
 def page_header(title: str, sub: str):
     st.markdown(
         f"""
-        <div class="page-header keep-together">
+        <div class="page-header">
           <div class="title">{title}</div>
           <div class="sub">{sub}</div>
         </div>
@@ -523,7 +460,7 @@ def page_header(title: str, sub: str):
 def render_intro_box():
     st.markdown(
         """
-        <div class="intro-box keep-together">
+        <div class="intro-box">
           <div class="intro-title">はじめに（この用紙でわかること）</div>
           <div class="intro-text">
             この用紙は、<b>心の健康チェック</b>の結果です。<br>
@@ -544,7 +481,7 @@ def render_intro_box():
 def render_perma_howto_note():
     st.markdown(
         f"""
-        <div class="mini-note keep-together">
+        <div class="mini-note">
           <div class="cap">各指標の見方</div>
           <div class="txt">
             <ul>
@@ -563,7 +500,7 @@ def render_perma_howto_note():
 def render_extras_meaning_note():
     st.markdown(
         f"""
-        <div class="mini-note keep-together">
+        <div class="mini-note">
           <div class="cap">各指標の意味</div>
           <div class="txt">
             <ul>
@@ -580,7 +517,7 @@ def render_extras_meaning_note():
 def render_remarks_box():
     st.markdown(
         f"""
-        <div class="perma-box keep-together">
+        <div class="perma-box">
           <p><span class="perma-highlight">このチェックで見ていること</span></p>
           <p>
             この用紙は、心の元気さを <span class="perma-highlight">5つの面（PERMA）</span> で見る方法をもとにしています。<br>
@@ -593,7 +530,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note keep-together">
+        <div class="mini-note">
           <div class="cap">① PERMA（5つの面）とは</div>
           <div class="txt">
             <ul>
@@ -611,7 +548,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note keep-together">
+        <div class="mini-note">
           <div class="cap">② この尺度（PERMA-Profiler）について</div>
           <div class="txt">
             <ul>
@@ -627,7 +564,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="mini-note keep-together">
+        <div class="mini-note">
           <div class="cap">③ 結果の使い方（おすすめ）</div>
           <div class="txt">
             <ul>
@@ -644,7 +581,7 @@ def render_remarks_box():
 
     st.markdown(
         """
-        <div class="cite-box keep-together">
+        <div class="cite-box">
           <div class="cap">引用（根拠）</div>
           <div class="ref">
             Butler, J., &amp; Kern, M. L. (2016). <i>The PERMA-Profiler: A brief multidimensional measure of flourishing</i>.
@@ -708,8 +645,6 @@ perma_scores, extras = compute_results(row)
 # =========================================================
 # 1ページ目：はじめに〜各指標の見方まで
 # =========================================================
-st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
-
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
@@ -727,17 +662,10 @@ with col_chart:
 
 render_perma_howto_note()
 
-st.markdown("</div>", unsafe_allow_html=True)  # page-1 end
-
 # =========================================================
-# 2ページ目：1-2〜2-2（経験から学びを見つける まで）
-# ここを「丸ごと keep-together」して、見出しだけ孤立/侵入を防ぐ
+# ★ここから必ず2ページ目：1-2 見出しに PB_BEFORE を付与
 # =========================================================
-st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
-st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
-
-# --- 1-2 ---
-st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header PB_BEFORE">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
     "心の健康の総合得点",
@@ -761,7 +689,7 @@ for i, (key, label) in enumerate(grid_order):
 
 render_extras_meaning_note()
 
-# --- 2 ---
+# --- 2ページ目：2（強みとおすすめ）
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -795,21 +723,17 @@ if weak_keys:
             use_container_width=True
         )
 
-st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
-st.markdown("</div>", unsafe_allow_html=True)  # page-2 end
-
 # =========================================================
-# 3ページ目：備考〜フッター（必ず3ページ目に）
+# ★ここから必ず3ページ目：3.備考 見出しに PB_BEFORE を付与
 # =========================================================
-st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
-
+st.markdown('<div class="PB_BEFORE"></div>', unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
 render_remarks_box()
 
 st.markdown(
     """
-    <div class="footer-box keep-together">
+    <div class="footer-box">
       <div class="footer-title">この評価結果に関するお問い合わせは以下まで</div>
       <div>
         〈お問い合わせ先〉〒 474-0037<br>
@@ -824,5 +748,4 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
