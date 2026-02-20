@@ -125,7 +125,7 @@ h1 {{
 }}
 .meter-fill {{ height:100%; border-radius:999px; }}
 
-/* ① 点数部分を大きく＆太字で見やすく */
+/* 点数部分を大きく＆太字で見やすく */
 .meter-score-text {{
   font-size: 1.05rem;
   margin-top: 4px;
@@ -138,7 +138,7 @@ h1 {{
   color:#111;
 }}
 
-/* ③ 総合バー（太く長い） */
+/* 総合バー（太く長い） */
 .score-card.big {{
   padding: 0.75rem 1.0rem;
 }}
@@ -555,11 +555,10 @@ def render_intro_box():
     )
 
 def render_perma_howto_note():
-    # 5要素の詳しい説明：「※各指標の見方」
     st.markdown(
         f"""
         <div class="mini-note">
-          <div class="cap">各指標の意味</div>
+          <div class="cap">各指標の見方</div>
           <div class="txt">
             <ul>
               <li><b>P（前向きな気持ち）</b>：{descriptions["P"]}</li>
@@ -575,7 +574,6 @@ def render_perma_howto_note():
     )
 
 def render_extras_meaning_note():
-    # ③：形式を「項目名：説明」にする
     st.markdown(
         f"""
         <div class="mini-note">
@@ -593,12 +591,6 @@ def render_extras_meaning_note():
     )
 
 def render_remarks_box():
-    """
-    3. 備考：高齢者向けに、必要な情報だけを短く・見やすく整理。
-    見出しは「①②③」にする。
-    ※「診断ではない」等は冒頭に集約しているので、ここでは重複しない。
-    """
-    # 概要
     st.markdown(
         f"""
         <div class="perma-box">
@@ -612,7 +604,6 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # ① PERMAとは
     st.markdown(
         """
         <div class="mini-note">
@@ -631,7 +622,6 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # ② PERMA-Profilerについて
     st.markdown(
         """
         <div class="mini-note">
@@ -648,7 +638,6 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # ③ 結果の使い方
     st.markdown(
         """
         <div class="mini-note">
@@ -666,7 +655,6 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    # 引用
     st.markdown(
         """
         <div class="cite-box">
@@ -681,7 +669,7 @@ def render_remarks_box():
     )
 
 # =========================
-# セッション（アップロードUIを消す）
+# セッション
 # =========================
 if "ready" not in st.session_state:
     st.session_state.ready = False
@@ -718,7 +706,6 @@ ui.empty()
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 st.title("わらトレ　心の健康チェック")
-
 render_intro_box()
 
 df = st.session_state.df
@@ -750,12 +737,10 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
-# 5要素の詳しい説明：「各指標の見方」
 render_perma_howto_note()
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-# 総合得点を太く長いバーで最上段
 render_meter_block(
     "心の健康の総合得点",
     extras.get("心の健康の総合得点", np.nan),
@@ -763,7 +748,6 @@ render_meter_block(
     big=True
 )
 
-# 下に4項目を2列で配置（指定順）
 grid_order = [
     ("からだの調子", "からだの調子"),
     ("全体的なしあわせ感", "全体的なしあわせ感"),
@@ -777,7 +761,6 @@ for i, (key, label) in enumerate(grid_order):
     with col:
         render_meter_block(label, v, extra_colors.get(key, None))
 
-# 説明は控えめに「各指標の意味」
 render_extras_meaning_note()
 
 st.markdown("</div>", unsafe_allow_html=True)
@@ -795,10 +778,16 @@ page_header(
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
+# ★ 修正：2-1も meter表示で統一（点数を大きく）
 if strong_keys:
     st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
     for k in strong_keys:
-        st.write(f"✔ {full_labels[k]}（{k}）：{score_label(perma_scores[k])}")
+        render_meter_block(
+            f"✔ {full_labels[k]}（{k}）",
+            perma_scores.get(k, np.nan),
+            colors[k],
+            big=False
+        )
 
 if weak_keys:
     st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
@@ -824,7 +813,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
-# 追加・増補した備考（見やすいレイアウト＋最後に引用）
 render_remarks_box()
 
 st.markdown(
