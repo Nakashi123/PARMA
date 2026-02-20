@@ -27,13 +27,12 @@ colors = {
     "A": "#F9AB00",
 }
 
-# こころ・からだの調子（追加指標）の配色（見やすさ重視）
 extra_colors = {
-    "心の健康の総合得点": "#4E73DF",          # 青：総合
-    "気持ちの様子（いやな気持）": "#E74C3C",  # 赤：ネガティブ感情
-    "からだの調子": "#2ECC71",               # 緑：健康
-    "ひとりぼっち感": "#9B59B6",             # 紫：孤独
-    "全体的なしあわせ感": "#F1C40F",          # 黄：幸福感
+    "心の健康の総合得点": "#4E73DF",
+    "気持ちの様子（いやな気持）": "#E74C3C",
+    "からだの調子": "#2ECC71",
+    "ひとりぼっち感": "#9B59B6",
+    "全体的なしあわせ感": "#F1C40F",
 }
 
 theme = {
@@ -55,7 +54,6 @@ html, body {{
   line-height:1.55;
 }}
 
-/* Streamlitのデフォルト余白を詰める */
 section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
 .block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
 div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
@@ -125,7 +123,6 @@ h1 {{
 }}
 .meter-fill {{ height:100%; border-radius:999px; }}
 
-/* 点数部分を大きく＆太字で見やすく */
 .meter-score-text {{
   font-size: 1.05rem;
   margin-top: 4px;
@@ -138,23 +135,15 @@ h1 {{
   color:#111;
 }}
 
-/* 総合バー（太く長い） */
-.score-card.big {{
-  padding: 0.75rem 1.0rem;
-}}
-.meter.big {{
-  height: 22px;
-}}
-.meter-score-text.big .score-strong {{
-  font-size: 1.45rem;
-}}
+.score-card.big {{ padding: 0.75rem 1.0rem; }}
+.meter.big {{ height: 22px; }}
+.meter-score-text.big .score-strong {{ font-size: 1.45rem; }}
 .score-title.big {{
   font-size: 1.08rem;
   font-weight: 950;
   margin-bottom: 0.25rem;
 }}
 
-/* PERMA説明 */
 .perma-box {{
   border:3px solid {theme['accent']};
   border-radius:12px;
@@ -173,7 +162,6 @@ h1 {{
   font-weight:900;
 }}
 
-/* ===== 冒頭の「かんたん説明」ボックス ===== */
 .intro-box {{
   background: #F7FAFF;
   border: 3px solid {theme['accent']};
@@ -197,9 +185,7 @@ h1 {{
   margin: 0.5rem 0 0.3rem 0;
   padding-left: 1.3rem;
 }}
-.intro-list li {{
-  margin-bottom: 0.3rem;
-}}
+.intro-list li {{ margin-bottom: 0.3rem; }}
 .intro-note {{
   margin-top: 0.5rem;
   padding-top: 0.4rem;
@@ -208,7 +194,6 @@ h1 {{
   font-size: 1.0rem;
 }}
 
-/* ===== 控えめな補足（各指標の意味／見方） ===== */
 .mini-note {{
   background: #FFFFFF;
   border: 1px solid #E6EAF5;
@@ -227,14 +212,9 @@ h1 {{
   color: #222;
   line-height: 1.65;
 }}
-.mini-note ul {{
-  margin: 0.35rem 0 0.1rem 1.1rem;
-}}
-.mini-note li {{
-  margin: 0.14rem 0;
-}}
+.mini-note ul {{ margin: 0.35rem 0 0.1rem 1.1rem; }}
+.mini-note li {{ margin: 0.14rem 0; }}
 
-/* ===== 追加：備考の「根拠（引用）」を控えめに見せる ===== */
 .cite-box {{
   background: #FBFBFD;
   border: 1px solid #E6EAF5;
@@ -253,7 +233,6 @@ h1 {{
   line-height: 1.6;
 }}
 
-/* ===== お問い合わせフッター ===== */
 .footer-box {{
   border-top: 2px solid #DDD;
   margin-top: 1.6rem;
@@ -271,12 +250,11 @@ h1 {{
   font-weight: 800;
 }}
 
-/* ===== 印刷用 ===== */
 .keep-together {{
-  /* 重要：ページ内で分割されにくくする */
   break-inside: avoid !important;
   page-break-inside: avoid !important;
 }}
+
 .force-page-break {{ display:none; }}
 
 @media print {{
@@ -295,7 +273,7 @@ h1 {{
     print-color-adjust: exact !important;
   }}
 
-  /* ページ制御 */
+  /* 各ブロックをページ単位で確実に区切る */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -305,7 +283,24 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* 全体を上にシフト */
+  /* ★重要：page-2 と page-3 は必ず新しいページから開始 */
+  .page-2 {{
+    break-before: page !important;
+    page-break-before: always !important;
+  }}
+  .page-3 {{
+    break-before: page !important;
+    page-break-before: always !important;
+  }}
+
+  /* ★強制改ページを有効化 */
+  .force-page-break {{
+    display:block !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    height: 0 !important;
+  }}
+
   body {{
     margin-top: -4mm !important;
   }}
@@ -343,7 +338,6 @@ h1 {{
     font-size: 0.98rem !important;
   }}
 
-  /* 各指標の見方を圧縮 */
   .mini-note {{
     padding: 0.45rem 0.65rem !important;
     margin: 0.30rem 0 0.30rem 0 !important;
@@ -358,7 +352,6 @@ h1 {{
     line-height: 1.40 !important;
   }}
 
-  /* 重要：2ページ目に収めるため画像をさらに縮小 */
   img {{
     max-height: 90px !important;
     object-fit: contain !important;
@@ -437,18 +430,18 @@ extras_explanations = {
 # 換算
 # =========================
 perma_indices = {
-    "P": [4, 9, 21],     # Q5, Q10, Q22
-    "E": [2, 10, 20],    # Q3, Q11, Q21
-    "R": [5, 14, 18],    # Q6, Q15, Q19
-    "M": [0, 8, 16],     # Q1, Q9, Q17
-    "A": [1, 7, 15],     # Q2, Q8, Q16
+    "P": [4, 9, 21],
+    "E": [2, 10, 20],
+    "R": [5, 14, 18],
+    "M": [0, 8, 16],
+    "A": [1, 7, 15],
 }
 
 extra_indices = {
-    "気持ちの様子（いやな気持）": [6, 13, 19],    # Negative Emotion (Q7, Q14, Q20)
-    "からだの調子":  [3, 12, 17],                   # Physical Health (Q4, Q13, Q18)
-    "ひとりぼっち感": [11],                          # Loneliness (Q12)
-    "全体的なしあわせ感": [22],                      # Q23
+    "気持ちの様子（いやな気持）": [6, 13, 19],
+    "からだの調子":  [3, 12, 17],
+    "ひとりぼっち感": [11],
+    "全体的なしあわせ感": [22],
 }
 
 # =========================
@@ -472,14 +465,6 @@ def compute_results(row: pd.DataFrame):
 
     return perma, extras
 
-def score_label(v: float) -> str:
-    if np.isnan(v):
-        return "未回答"
-    return f"{v:.1f}/10点"
-
-# =========================
-# 表示関数
-# =========================
 def render_meter_block(title: str, score: float, color: Optional[str] = None, big: bool = False):
     if np.isnan(score):
         width = "0%"
@@ -718,7 +703,7 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目：1-1 + 各指標の見方 まで
+# 1枚目
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
@@ -740,11 +725,13 @@ render_perma_howto_note()
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2枚目：1-2 + 2（強み＆行動例）を同一ページに収める
+# 2枚目（★ここから必ず新ページ）
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
-# --- 1-2 ---
+# ★念押し：ここで強制改ページ（1-2見出しが1ページ目に残る問題を潰す）
+st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
+
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
@@ -769,7 +756,6 @@ for i, (key, label) in enumerate(grid_order):
 
 render_extras_meaning_note()
 
-# --- 2 ---
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -778,20 +764,13 @@ page_header(
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
-# 2-1（強み）
 if strong_keys:
     st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
     st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
     for k in strong_keys:
-        render_meter_block(
-            f"✔ {full_labels[k]}（{k}）",
-            perma_scores.get(k, np.nan),
-            colors[k],
-            big=False
-        )
+        render_meter_block(f"✔ {full_labels[k]}（{k}）", perma_scores.get(k, np.nan), colors[k], big=False)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# 2-2（行動例）
 if weak_keys:
     st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
     st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
@@ -812,8 +791,12 @@ if weak_keys:
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目：備考（＋フッター）
+# 3枚目（備考：★必ず新ページ）
 # =========================================================
+
+# ★念押し：備考見出しが2ページ目末尾に混ざるのを防ぐ
+st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
+
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
