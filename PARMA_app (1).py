@@ -26,6 +26,16 @@ colors = {
     "M": "#AECBFA",
     "A": "#F9AB00",
 }
+
+# ② こころ・からだの調子（追加指標）の配色（見やすく・用途が分かる系）
+extra_colors = {
+    "心の健康の総合得点": "#4E73DF",          # 青：総合
+    "気持ちの様子（いやな気持）": "#E74C3C",  # 赤：ネガティブ感情
+    "からだの調子": "#2ECC71",               # 緑：健康
+    "ひとりぼっち感": "#9B59B6",             # 紫：孤独
+    "全体的なしあわせ感": "#F1C40F",          # 黄：幸福感
+}
+
 theme = {
     "bg": "#FAFAFA",
     "accent": "#4E73DF",
@@ -38,33 +48,21 @@ theme = {
 # =========================
 st.markdown(f"""
 <style>
-/* ===============================
-   画面表示（Web）を詰める：ここが改善の本丸
-   =============================== */
 html, body {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-
-  /* ★ ここが主犯：1.9 → 1.55に */
   line-height:1.55;
 }}
 
-/* Streamlitのデフォルト余白（上下）を詰める：新旧両対応 */
+/* Streamlitのデフォルト余白を詰める */
 section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
 .block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
-
-/* ブロック間（縦のスカスカ）を詰める */
 div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
-
-/* Markdownの段落・リストの余白を詰める */
 div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
 div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
 div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
 
-/* ===============================
-   あなたの既存デザイン
-   =============================== */
 .main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
 h1 {{
@@ -126,8 +124,37 @@ h1 {{
   overflow:hidden;
 }}
 .meter-fill {{ height:100%; border-radius:999px; }}
-.meter-score-text {{ font-size:0.95rem; margin-top:2px; color:#444; }}
 
+/* ① 点数部分を大きく＆太字で見やすく */
+.meter-score-text {{
+  font-size: 1.05rem;
+  margin-top: 4px;
+  color:#333;
+}}
+.meter-score-text .score-strong {{
+  font-size: 1.28rem;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color:#111;
+}}
+
+/* ③ 総合バー（太く長い） */
+.score-card.big {{
+  padding: 0.75rem 1.0rem;
+}}
+.meter.big {{
+  height: 22px;
+}}
+.meter-score-text.big .score-strong {{
+  font-size: 1.45rem;
+}}
+.score-title.big {{
+  font-size: 1.08rem;
+  font-weight: 950;
+  margin-bottom: 0.25rem;
+}}
+
+/* PERMA説明 */
 .perma-box {{
   border:3px solid {theme['accent']};
   border-radius:12px;
@@ -139,8 +166,6 @@ h1 {{
   font-size:1.06rem;
   color:#222;
   margin-bottom:0.85rem;
-
-  /* ★ 説明文は少し読みやすい行間に */
   line-height: 1.7;
 }}
 .perma-highlight {{
@@ -148,7 +173,7 @@ h1 {{
   font-weight:900;
 }}
 
-/* ===== 冒頭の「かんたん説明」ボックス（強調版） ===== */
+/* ===== 冒頭の「かんたん説明」ボックス ===== */
 .intro-box {{
   background: #F7FAFF;
   border: 3px solid {theme['accent']};
@@ -166,8 +191,6 @@ h1 {{
 .intro-text {{
   font-size: 1.05rem;
   color: #111;
-
-  /* ★ 説明文は読みやすさ優先で */
   line-height: 1.75;
 }}
 .intro-list {{
@@ -185,26 +208,30 @@ h1 {{
   font-size: 1.0rem;
 }}
 
-/* ===== 追加：説明（短い解説）ボックス ===== */
-.note-box {{
+/* ===== ④ 控えめな補足（※各指標の意味／見方） ===== */
+.mini-note {{
   background: #FFFFFF;
-  border: 2px solid #E6EAF5;
-  border-left: 10px solid {theme['accent']};
-  border-radius: 14px;
-  padding: 0.9rem 1.05rem;
-  margin: 0.65rem 0 0.65rem 0;
+  border: 1px solid #E6EAF5;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.55rem 0 0.65rem 0;
 }}
-.note-box .nt {{
-  font-weight: 950;
-  margin-bottom: 0.15rem;
+.mini-note .cap {{
+  font-weight: 900;
   color: #1b2a4a;
+  font-size: 0.98rem;
+  margin-bottom: 0.25rem;
 }}
-.note-box .tx {{
-  color:#222;
-  font-size: 1.0rem;
-
-  /* ★ 説明文は読みやすい行間 */
-  line-height: 1.7;
+.mini-note .txt {{
+  font-size: 0.98rem;
+  color: #222;
+  line-height: 1.65;
+}}
+.mini-note ul {{
+  margin: 0.35rem 0 0.1rem 1.1rem;
+}}
+.mini-note li {{
+  margin: 0.14rem 0;
 }}
 
 /* ===== お問い合わせフッター ===== */
@@ -225,45 +252,7 @@ h1 {{
   font-weight: 800;
 }}
 
-/* ===== 3枚目の「5要素説明」を2列にするためのグリッド ===== */
-.desc-grid {{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}}
-.desc-item {{
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.55rem 0.85rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}}
-.desc-item .head {{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom: 0.15rem;
-}}
-.desc-item .chip {{
-  display:inline-block;
-  min-width: 28px;
-  text-align:center;
-  padding: 3px 8px;
-  border-radius: 10px;
-  color: white;
-  font-weight: 900;
-}}
-.desc-item .label {{ font-weight: 900; }}
-.desc-item .text {{
-  font-size: 0.98rem;
-  line-height: 1.65;
-  color:#222;
-}}
-
-@media (max-width: 680px) {{
-  .desc-grid {{ grid-template-columns: 1fr; }}
-}}
-
-/* ===== 見出し孤立防止（印刷時に効かせる） ===== */
+/* ===== 印刷用 ===== */
 .keep-together {{}}
 .force-page-break {{ display:none; }}
 
@@ -312,10 +301,9 @@ h1 {{
     page-break-inside: avoid !important;
   }}
 
-  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .note-box,
+  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .mini-note,
   img, figure,
-  div[data-testid="stHorizontalBlock"], div[data-testid="column"],
-  .desc-item {{
+  div[data-testid="stHorizontalBlock"], div[data-testid="column"] {{
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }}
@@ -350,6 +338,7 @@ h1 {{
   }}
   .meter {{ height: 12px !important; }}
   .meter-score-text {{ font-size: 0.92rem !important; }}
+  .meter-score-text .score-strong {{ font-size: 1.05rem !important; }}
 
   .intro-box {{
     padding: 0.75rem 0.95rem !important;
@@ -359,8 +348,8 @@ h1 {{
   .intro-text {{ font-size: 0.98rem !important; }}
   .intro-note {{ font-size: 0.95rem !important; }}
 
-  .note-box {{
-    padding: 0.70rem 0.90rem !important;
+  .mini-note {{
+    padding: 0.55rem 0.75rem !important;
     margin: 0.45rem 0 0.45rem 0 !important;
   }}
 
@@ -370,11 +359,6 @@ h1 {{
     margin-bottom: 0.55rem !important;
   }}
 
-  .desc-item .text {{
-    font-size: 0.94rem !important;
-    line-height: 1.55 !important;
-  }}
-
   .footer-box {{
     margin-top: 1.0rem !important;
     padding-top: 0.65rem !important;
@@ -382,7 +366,7 @@ h1 {{
   }}
   .footer-thanks {{ margin-top: 0.55rem !important; }}
 
-  .page-header, .score-card, .desc-item, .intro-box, .note-box {{
+  .page-header, .score-card, .intro-box, .mini-note {{
     box-shadow: none !important;
   }}
 
@@ -427,9 +411,7 @@ extras_explanations = {
 }
 
 # =========================
-# 換算（提示条件を厳密に反映）
-# Excel列：6_1〜6_23 を Q1〜Q23 とみなす
-# 0始まり index：Qn -> n-1
+# 換算
 # =========================
 perma_indices = {
     "P": [4, 9, 21],     # Q5, Q10, Q22
@@ -456,7 +438,6 @@ def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
 def compute_results(row: pd.DataFrame):
     cols = [c for c in row.columns if str(c).startswith("6_")]
     cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
-
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
 
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
@@ -476,23 +457,28 @@ def score_label(v: float) -> str:
 # =========================
 # 表示関数
 # =========================
-def render_meter_block(title: str, score: float, color: Optional[str] = None):
+def render_meter_block(title: str, score: float, color: Optional[str] = None, big: bool = False):
     if np.isnan(score):
         width = "0%"
-        score_text = "未回答"
+        score_html = "未回答"
     else:
         width = f"{score * 10:.0f}%"
-        score_text = f"{score:.1f}/10点"
+        score_html = f"<span class='score-strong'>{score:.1f}</span>/10点"
     bar_color = color if color is not None else "#999999"
+
+    big_class = "big" if big else ""
+    meter_class = "meter big" if big else "meter"
+    score_class = "meter-score-text big" if big else "meter-score-text"
+    title_class = "score-title big" if big else "score-title"
 
     st.markdown(
         f"""
-        <div class="score-card">
-          <div class="score-title">{title}</div>
-          <div class="meter">
+        <div class="score-card {big_class}">
+          <div class="{title_class}">{title}</div>
+          <div class="{meter_class}">
             <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
           </div>
-          <div class="meter-score-text">{score_text}</div>
+          <div class="{score_class}">{score_html}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -523,21 +509,6 @@ def page_header(title: str, sub: str):
         unsafe_allow_html=True
     )
 
-def render_desc_grid_html() -> str:
-    order = ["P", "E", "R", "M", "A"]
-    items = []
-    for k in order:
-        items.append(
-            f'<div class="desc-item">'
-            f'<div class="head">'
-            f'<span class="chip" style="background:{colors[k]};">{k}</span>'
-            f'<span class="label">{full_labels[k]}</span>'
-            f'</div>'
-            f'<div class="text">{descriptions[k]}</div>'
-            f'</div>'
-        )
-    return '<div class="desc-grid">' + "".join(items) + '</div>'
-
 def render_intro_box():
     st.markdown(
         """
@@ -548,7 +519,7 @@ def render_intro_box():
             <b>今の心の元気さ</b>を、0〜10点でわかりやすく見える化しています。
             <ul class="intro-list">
               <li><b>心の5つの元気さ</b>（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
-              <li><b>気持ちの様子（いやな気持）</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
+              <li><b>心の健康の総合得点</b>、<b>気持ちの様子（いやな気持）</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
             </ul>
             <div class="intro-note">
               ※これは病気の診断ではありません。<b>今の自分の状態を知るための目安</b>としてご利用ください。
@@ -559,17 +530,43 @@ def render_intro_box():
         unsafe_allow_html=True
     )
 
-def render_extras_explain_boxes():
-    for title, text in extras_explanations.items():
-        st.markdown(
-            f"""
-            <div class="note-box">
-              <div class="nt">{title}とは？</div>
-              <div class="tx">{text}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+def render_perma_howto_note():
+    # ⑦ 3-2をここへ移動：「※各指標の見方」
+    st.markdown(
+        f"""
+        <div class="mini-note">
+          <div class="cap">※各指標の見方</div>
+          <div class="txt">
+            <ul>
+              <li><b>P（前向きな気持ち）</b>：{descriptions["P"]}</li>
+              <li><b>E（集中して取り組むこと）</b>：{descriptions["E"]}</li>
+              <li><b>R（人とのつながり）</b>：{descriptions["R"]}</li>
+              <li><b>M（生きがいや目的）</b>：{descriptions["M"]}</li>
+              <li><b>A（達成感）</b>：{descriptions["A"]}</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+def render_extras_meaning_note():
+    # ④ 「大項目」ではなく控えめに：※各指標の意味
+    st.markdown(
+        f"""
+        <div class="mini-note">
+          <div class="cap">※各指標の意味</div>
+          <div class="txt">
+            <ul>
+              <li><b>気持ちの様子（いやな気持）とは？</b> → {extras_explanations["気持ちの様子（いやな気持）"]}</li>
+              <li><b>からだの調子とは？</b> → {extras_explanations["からだの調子"]}</li>
+              <li><b>ひとりぼっち感とは？</b> → {extras_explanations["ひとりぼっち感"]}</li>
+            </ul>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # =========================
 # セッション（アップロードUIを消す）
@@ -641,24 +638,36 @@ with col_meter:
 with col_chart:
     plot_hist(perma_scores)
 
+# ⑦ 5要素の詳しい説明をここへ移動
+render_perma_howto_note()
+
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-extras_display_order = [
-    ("心の健康の総合得点", "心の健康の総合得点"),
-    ("気持ちの様子（いやな気持）", "気持ちの様子（いやな気持）"),
+# ③ まず「心の健康の総合得点」を太く長いバーで表示
+render_meter_block(
+    "心の健康の総合得点",
+    extras.get("心の健康の総合得点", np.nan),
+    extra_colors["心の健康の総合得点"],
+    big=True
+)
+
+# ③ 下に4項目を2列で綺麗に配置
+# 指定：からだの調子、全体的なしあわせ感、気持ちの様子（いやな気持）、ひとりぼっち感
+grid_order = [
     ("からだの調子", "からだの調子"),
-    ("ひとりぼっち感", "ひとりぼっち感"),
     ("全体的なしあわせ感", "全体的なしあわせ感"),
+    ("気持ちの様子（いやな気持）", "気持ちの様子（いやな気持）"),
+    ("ひとりぼっち感", "ひとりぼっち感"),
 ]
-
-col_ex1, col_ex2 = st.columns(2)
-for i, (key, label) in enumerate(extras_display_order):
+cL, cR = st.columns(2)
+for i, (key, label) in enumerate(grid_order):
     v = extras.get(key, np.nan)
-    col = col_ex1 if i % 2 == 0 else col_ex2
+    col = cL if i % 2 == 0 else cR
     with col:
-        render_meter_block(label, v, None)
+        render_meter_block(label, v, extra_colors.get(key, None))
 
-render_extras_explain_boxes()
+# ④ 説明は控えめに「※各指標の意味」
+render_extras_meaning_note()
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -667,8 +676,9 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
 
+# ⑤ 見出し変更
 page_header(
-    "2. 強みとおすすめ行動",
+    "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
 )
 
@@ -706,6 +716,8 @@ page_header("3. 備考", "この評価に関する詳しい情報は以下の通
 
 st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">3-1. PERMAとは？</div>', unsafe_allow_html=True)
+
+# ⑥ 重複文（診断ではなく…等）を削除して、内容を簡潔化
 st.markdown(
     f"""
     <div class="perma-box">
@@ -722,20 +734,13 @@ st.markdown(
         で構成されており、
         「心が満たされ、前向きに生きられている状態」をとらえるための枠組みです。
       </p>
-      <p>
-        この結果は診断ではなく、「今の自分の状態を知る」「どうすれば自分らしく過ごせそうか」を
-        考えるための資料としてお使いください。
-      </p>
     </div>
     """,
     unsafe_allow_html=True
 )
 st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
-st.markdown('<div class="section-header">3-2. 5つの要素のくわしい説明</div>', unsafe_allow_html=True)
-st.markdown(render_desc_grid_html(), unsafe_allow_html=True)
-
+# ⑦ 旧3-2は削除（1-1に移動済み）
 st.markdown(
     """
     <div class="footer-box">
@@ -752,7 +757,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)  # print-page end
 st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
