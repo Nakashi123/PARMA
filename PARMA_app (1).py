@@ -276,10 +276,12 @@ h1 {{
 .force-page-break {{ display:none; }}
 
 @media print {{
+
   @page {{
     size: A4;
-    margin: 10mm;
+    margin: 8mm;   /* 余白をさらに詰める */
   }}
+
   html, body {{
     background: white !important;
   }}
@@ -289,6 +291,7 @@ h1 {{
     print-color-adjust: exact !important;
   }}
 
+  /* ページ制御 */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -297,12 +300,10 @@ h1 {{
     break-after: auto !important;
     page-break-after: auto !important;
   }}
-
   .page-3 {{
     break-before: page !important;
     page-break-before: always !important;
   }}
-
   .force-page-break {{
     display:block !important;
     break-before: page !important;
@@ -310,85 +311,94 @@ h1 {{
     height: 0 !important;
   }}
 
-  .section-header {{
-    break-after: avoid !important;
-    page-break-after: avoid !important;
-  }}
-
-  .keep-together {{
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }}
-
-  .page-header, .score-card, .perma-box, .footer-box, .intro-box, .mini-note, .cite-box,
-  img, figure,
-  div[data-testid="stHorizontalBlock"], div[data-testid="column"] {{
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+  /* 全体を上にシフト */
+  body {{
+    margin-top: -4mm !important;
   }}
 
   h1 {{
-    font-size: 1.65rem !important;
-    margin-top: 0.15rem !important;
-    margin-bottom: 0.2rem !important;
+    font-size: 1.55rem !important;
+    margin-top: 0.05rem !important;
+    margin-bottom: 0.15rem !important;
   }}
 
   .page-header {{
-    padding: 0.75rem 0.95rem !important;
-    margin: 0.55rem 0 0.55rem 0 !important;
-  }}
-  .page-header .title {{
-    font-size: 1.18rem !important;
-  }}
-  .page-header .sub {{
-    font-size: 0.96rem !important;
+    padding: 0.6rem 0.85rem !important;
+    margin: 0.4rem 0 0.4rem 0 !important;
   }}
 
   .section-header {{
-    font-size: 1.05rem !important;
-    padding: 0.45rem 0.85rem !important;
-    margin-top: 0.55rem !important;
-    margin-bottom: 0.45rem !important;
+    font-size: 1.0rem !important;
+    padding: 0.35rem 0.75rem !important;
+    margin-top: 0.45rem !important;
+    margin-bottom: 0.35rem !important;
   }}
 
   .score-card {{
-    padding: 0.45rem 0.75rem !important;
-    margin-bottom: 0.35rem !important;
+    padding: 0.4rem 0.65rem !important;
+    margin-bottom: 0.28rem !important;
   }}
-  .meter {{ height: 12px !important; }}
-  .meter-score-text {{ font-size: 0.92rem !important; }}
-  .meter-score-text .score-strong {{ font-size: 1.05rem !important; }}
 
-  .intro-box {{
-    padding: 0.75rem 0.95rem !important;
-    margin: 0.55rem 0 0.55rem 0 !important;
+  .meter {{ height: 11px !important; }}
+
+  .meter-score-text {{
+    font-size: 0.88rem !important;
   }}
-  .intro-title {{ font-size: 1.02rem !important; }}
-  .intro-text {{ font-size: 0.98rem !important; }}
-  .intro-note {{ font-size: 0.95rem !important; }}
 
+  .meter-score-text .score-strong {{
+    font-size: 1.0rem !important;
+  }}
+
+  /* 各指標の見方を1ページに収めるため圧縮 */
   .mini-note {{
-    padding: 0.55rem 0.75rem !important;
-    margin: 0.45rem 0 0.45rem 0 !important;
+    padding: 0.5rem 0.7rem !important;
+    margin: 0.35rem 0 0.35rem 0 !important;
+  }}
+
+  .mini-note .cap {{
+    font-size: 0.9rem !important;
+  }}
+
+  .mini-note .txt {{
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+  }}
+
+  .mini-note li {{
+    margin: 0.1rem 0 !important;
+  }}
+
+  /* 2-2 を2ページに収めるため画像縮小 */
+  img {{
+    max-height: 140px !important;
+    object-fit: contain !important;
+  }}
+
+  /* 備考を圧縮してページ数を減らす */
+  .perma-box {{
+    padding: 0.7rem 0.9rem !important;
+  }}
+
+  .perma-box p {{
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 0.4rem !important;
   }}
 
   .cite-box {{
-    padding: 0.6rem 0.75rem !important;
-    margin-top: 0.55rem !important;
-  }}
-
-  .perma-box {{ padding: 0.85rem 1.05rem !important; }}
-  .perma-box p {{
-    font-size: 0.98rem !important;
-    margin-bottom: 0.55rem !important;
+    padding: 0.5rem 0.7rem !important;
+    font-size: 0.85rem !important;
   }}
 
   .footer-box {{
-    margin-top: 1.0rem !important;
-    padding-top: 0.65rem !important;
-    font-size: 0.92rem !important;
+    margin-top: 0.8rem !important;
+    padding-top: 0.5rem !important;
+    font-size: 0.85rem !important;
   }}
-  .footer-thanks {{ margin-top: 0.55rem !important; }}
+
+  .footer-thanks {{
+    margin-top: 0.4rem !important;
+  }}
 
   .page-header, .score-card, .intro-box, .mini-note, .cite-box {{
     box-shadow: none !important;
@@ -429,9 +439,9 @@ tips = {
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 extras_explanations = {
-    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です（低いほど良い）。",
+    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です。",
     "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の結果です。",
-    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの結果です（低いほど良い）。",
+    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの結果です。",
 }
 
 # =========================
@@ -778,7 +788,6 @@ page_header(
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
-# ★ 修正：2-1も meter表示で統一（点数を大きく）
 if strong_keys:
     st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
     for k in strong_keys:
