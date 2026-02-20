@@ -559,7 +559,7 @@ def render_perma_howto_note():
     st.markdown(
         f"""
         <div class="mini-note">
-          <div class="cap">各指標の見方</div>
+          <div class="cap">各指標の意味</div>
           <div class="txt">
             <ul>
               <li><b>P（前向きな気持ち）</b>：{descriptions["P"]}</li>
