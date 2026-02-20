@@ -135,9 +135,15 @@ h1 {{
   color:#111;
 }}
 
-.score-card.big {{ padding: 0.75rem 1.0rem; }}
-.meter.big {{ height: 22px; }}
-.meter-score-text.big .score-strong {{ font-size: 1.45rem; }}
+.score-card.big {{
+  padding: 0.75rem 1.0rem;
+}}
+.meter.big {{
+  height: 22px;
+}}
+.meter-score-text.big .score-strong {{
+  font-size: 1.45rem;
+}}
 .score-title.big {{
   font-size: 1.08rem;
   font-weight: 950;
@@ -185,7 +191,9 @@ h1 {{
   margin: 0.5rem 0 0.3rem 0;
   padding-left: 1.3rem;
 }}
-.intro-list li {{ margin-bottom: 0.3rem; }}
+.intro-list li {{
+  margin-bottom: 0.3rem;
+}}
 .intro-note {{
   margin-top: 0.5rem;
   padding-top: 0.4rem;
@@ -212,8 +220,12 @@ h1 {{
   color: #222;
   line-height: 1.65;
 }}
-.mini-note ul {{ margin: 0.35rem 0 0.1rem 1.1rem; }}
-.mini-note li {{ margin: 0.14rem 0; }}
+.mini-note ul {{
+  margin: 0.35rem 0 0.1rem 1.1rem;
+}}
+.mini-note li {{
+  margin: 0.14rem 0;
+}}
 
 .cite-box {{
   background: #FBFBFD;
@@ -250,13 +262,13 @@ h1 {{
   font-weight: 800;
 }}
 
+/* ===== ここが肝：ブロック分割を抑止 ===== */
 .keep-together {{
   break-inside: avoid !important;
   page-break-inside: avoid !important;
 }}
 
-.force-page-break {{ display:none; }}
-
+/* ===== 印刷用 ===== */
 @media print {{
 
   @page {{
@@ -273,7 +285,7 @@ h1 {{
     print-color-adjust: exact !important;
   }}
 
-  /* 各ブロックをページ単位で確実に区切る */
+  /* ページ制御 */
   .print-page {{
     break-after: page !important;
     page-break-after: always !important;
@@ -283,22 +295,10 @@ h1 {{
     page-break-after: auto !important;
   }}
 
-  /* ★重要：page-2 と page-3 は必ず新しいページから開始 */
-  .page-2 {{
-    break-before: page !important;
-    page-break-before: always !important;
-  }}
+  /* 3ページ目は必ず新しいページから開始 */
   .page-3 {{
     break-before: page !important;
     page-break-before: always !important;
-  }}
-
-  /* ★強制改ページを有効化 */
-  .force-page-break {{
-    display:block !important;
-    break-before: page !important;
-    page-break-before: always !important;
-    height: 0 !important;
   }}
 
   body {{
@@ -312,8 +312,15 @@ h1 {{
   }}
 
   .page-header {{
-    padding: 0.55rem 0.8rem !important;
+    padding: 0.55rem 0.80rem !important;
     margin: 0.35rem 0 0.35rem 0 !important;
+  }}
+
+  .page-header .title {{
+    font-size: 1.25rem !important;
+  }}
+  .page-header .sub {{
+    font-size: 0.92rem !important;
   }}
 
   .section-header {{
@@ -342,25 +349,23 @@ h1 {{
     padding: 0.45rem 0.65rem !important;
     margin: 0.30rem 0 0.30rem 0 !important;
   }}
-
   .mini-note .cap {{
     font-size: 0.88rem !important;
   }}
-
   .mini-note .txt {{
     font-size: 0.88rem !important;
     line-height: 1.40 !important;
   }}
 
+  /* 2ページ目に収めるため：画像さらに縮小 */
   img {{
-    max-height: 90px !important;
+    max-height: 70px !important;
     object-fit: contain !important;
   }}
 
   .perma-box {{
     padding: 0.65rem 0.85rem !important;
   }}
-
   .perma-box p {{
     font-size: 0.88rem !important;
     line-height: 1.40 !important;
@@ -377,7 +382,6 @@ h1 {{
     padding-top: 0.45rem !important;
     font-size: 0.84rem !important;
   }}
-
   .footer-thanks {{
     margin-top: 0.35rem !important;
   }}
@@ -436,7 +440,6 @@ perma_indices = {
     "M": [0, 8, 16],
     "A": [1, 7, 15],
 }
-
 extra_indices = {
     "気持ちの様子（いやな気持）": [6, 13, 19],
     "からだの調子":  [3, 12, 17],
@@ -444,9 +447,6 @@ extra_indices = {
     "全体的なしあわせ感": [22],
 }
 
-# =========================
-# 計算関数
-# =========================
 def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
@@ -465,6 +465,9 @@ def compute_results(row: pd.DataFrame):
 
     return perma, extras
 
+# =========================
+# 表示関数
+# =========================
 def render_meter_block(title: str, score: float, color: Optional[str] = None, big: bool = False):
     if np.isnan(score):
         width = "0%"
@@ -481,7 +484,7 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None, bi
 
     st.markdown(
         f"""
-        <div class="score-card {big_class}">
+        <div class="score-card {big_class} keep-together">
           <div class="{title_class}">{title}</div>
           <div class="{meter_class}">
             <div class="meter-fill" style="width:{width}; background:{bar_color};"></div>
@@ -509,7 +512,7 @@ def plot_hist(perma_scores: dict):
 def page_header(title: str, sub: str):
     st.markdown(
         f"""
-        <div class="page-header">
+        <div class="page-header keep-together">
           <div class="title">{title}</div>
           <div class="sub">{sub}</div>
         </div>
@@ -520,7 +523,7 @@ def page_header(title: str, sub: str):
 def render_intro_box():
     st.markdown(
         """
-        <div class="intro-box">
+        <div class="intro-box keep-together">
           <div class="intro-title">はじめに（この用紙でわかること）</div>
           <div class="intro-text">
             この用紙は、<b>心の健康チェック</b>の結果です。<br>
@@ -703,9 +706,10 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目
+# 1ページ目：はじめに〜各指標の見方まで
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
+
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
@@ -722,16 +726,17 @@ with col_chart:
     plot_hist(perma_scores)
 
 render_perma_howto_note()
-st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)  # page-1 end
 
 # =========================================================
-# 2枚目（★ここから必ず新ページ）
+# 2ページ目：1-2〜2-2（経験から学びを見つける まで）
+# ここを「丸ごと keep-together」して、見出しだけ孤立/侵入を防ぐ
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
+st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
 
-# ★念押し：ここで強制改ページ（1-2見出しが1ページ目に残る問題を潰す）
-st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
-
+# --- 1-2 ---
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
 render_meter_block(
@@ -756,6 +761,7 @@ for i, (key, label) in enumerate(grid_order):
 
 render_extras_meaning_note()
 
+# --- 2 ---
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
     "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
@@ -766,14 +772,16 @@ strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
 if strong_keys:
     st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
-    st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
     for k in strong_keys:
-        render_meter_block(f"✔ {full_labels[k]}（{k}）", perma_scores.get(k, np.nan), colors[k], big=False)
-    st.markdown("</div>", unsafe_allow_html=True)
+        render_meter_block(
+            f"✔ {full_labels[k]}（{k}）",
+            perma_scores.get(k, np.nan),
+            colors[k],
+            big=False
+        )
 
 if weak_keys:
     st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
-    st.markdown("<div class='keep-together'>", unsafe_allow_html=True)
     c1, c2 = st.columns([2, 1])
     with c1:
         for k in weak_keys:
@@ -786,18 +794,15 @@ if weak_keys:
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
-    st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)  # keep-together end
+st.markdown("</div>", unsafe_allow_html=True)  # page-2 end
 
 # =========================================================
-# 3枚目（備考：★必ず新ページ）
+# 3ページ目：備考〜フッター（必ず3ページ目に）
 # =========================================================
-
-# ★念押し：備考見出しが2ページ目末尾に混ざるのを防ぐ
-st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
-
 st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
 render_remarks_box()
