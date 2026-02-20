@@ -619,7 +619,7 @@ def render_remarks_box():
     st.markdown(
         """
         <div class="mini-note">
-          <div class="cap">※PERMA-Profiler（ペルマ・プロファイラー）について</div>
+          <div class="cap">PERMA-Profiler（ペルマ・プロファイラー）について</div>
           <div class="txt">
             <ul>
               <li>研究では、PERMAの5要素を短い質問で測れるように <b>PERMA-Profiler</b> という尺度が作られました。</li>
@@ -635,7 +635,7 @@ def render_remarks_box():
     st.markdown(
         """
         <div class="mini-note">
-          <div class="cap">※結果の見せ方（「1つの点数」にまとめない理由）</div>
+          <div class="cap">結果の見せ方（「1つの点数」にまとめない理由）</div>
           <div class="txt">
             <ul>
               <li>この尺度は、心の健康を<b>1つの点数だけで決めず</b>、<b>5要素それぞれの形（プロフィール）</b>として見る考え方が大切だとされています。</li>
@@ -651,7 +651,7 @@ def render_remarks_box():
     st.markdown(
         """
         <div class="mini-note">
-          <div class="cap">※このチェックの活用のしかた（おすすめ）</div>
+          <div class="cap">このチェックの活用のしかた（おすすめ）</div>
           <div class="txt">
             <ul>
               <li><b>高いところ＝今の強み</b>、<b>低いところ＝これから整えたいところ</b>の目安として使えます。</li>
