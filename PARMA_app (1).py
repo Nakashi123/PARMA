@@ -208,7 +208,7 @@ h1 {{
   font-size: 1.0rem;
 }}
 
-/* ===== 控えめな補足（※各指標の意味／見方） ===== */
+/* ===== 控えめな補足（各指標の意味／見方） ===== */
 .mini-note {{
   background: #FFFFFF;
   border: 1px solid #E6EAF5;
@@ -429,9 +429,9 @@ tips = {
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 extras_explanations = {
-    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかにおける結果です。",
-    "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の結果です。",
-    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの結果です。",
+    "気持ちの様子（いやな気持）": "不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかの目安です。",
+    "からだの調子": "体の調子や元気さについて、ご本人が感じた程度の目安です。",
+    "ひとりぼっち感": "ひとりぼっちだと感じることがあるかの目安です。",
 }
 
 # =========================
@@ -575,16 +575,16 @@ def render_perma_howto_note():
     )
 
 def render_extras_meaning_note():
-    # 説明は控えめに「※各指標の意味」
+    # ③：「・とは？」をやめて「様子：/調子：/ぼっち感：」形式に
     st.markdown(
         f"""
         <div class="mini-note">
           <div class="cap">※各指標の意味</div>
           <div class="txt">
             <ul>
-              <li><b>気持ちの様子（いやな気持）とは？</b> → {extras_explanations["気持ちの様子（いやな気持）"]}</li>
-              <li><b>からだの調子とは？</b> → {extras_explanations["からだの調子"]}</li>
-              <li><b>ひとりぼっち感とは？</b> → {extras_explanations["ひとりぼっち感"]}</li>
+              <li><b>様子：</b>{extras_explanations["気持ちの様子（いやな気持）"]}</li>
+              <li><b>調子：</b>{extras_explanations["からだの調子"]}</li>
+              <li><b>ぼっち感：</b>{extras_explanations["ひとりぼっち感"]}</li>
             </ul>
           </div>
         </div>
@@ -594,37 +594,56 @@ def render_extras_meaning_note():
 
 def render_remarks_box():
     """
-    3. 備考：Butler & Kern (2016)の本文から、高齢者にわかりやすい要約を作成。
-    ※「診断ではない」等の文言は冒頭に集約（ユーザー要望に合わせて重複を避ける）
+    ① 高齢者向けに「必要な情報だけ」わかりやすく、短文・具体例・使い方を中心に。
+    ② 見出しは ①②③ にする（※をやめる）
     """
+    # まとめ：なにを見るか
     st.markdown(
         f"""
         <div class="perma-box">
-          <p><span class="perma-highlight">このチェックで使っているもの</span></p>
+          <p><span class="perma-highlight">備考（この結果の見方）</span></p>
           <p>
-            この「心の健康チェック」は、ポジティブ心理学の考え方にもとづく
-            <span class="perma-highlight">PERMA（5つの柱）</span>を中心に、心の元気さを見える化する方法です。
-          </p>
-          <p>
-            PERMAは次の5つからできています：
-            <span class="perma-highlight">
-              前向きな気持ち（P）・集中して取り組むこと（E）・人とのつながり（R）・生きがいや目的（M）・達成感（A）
-            </span>
+            この用紙は、心の元気さを<b>5つの面（PERMA）</b>と、<b>こころ・からだの状態</b>で見える化したものです。
+            <br>点数は<b>0〜10点</b>で、まずは<b>高いところ（強み）</b>と<b>低いところ（整えたいところ）</b>を確認します。
           </p>
         </div>
         """,
         unsafe_allow_html=True
     )
 
+    # ① どんな考え方？
     st.markdown(
-        """
+        f"""
         <div class="mini-note">
-          <div class="cap">※PERMA-Profiler（ペルマ・プロファイラー）について</div>
+          <div class="cap">① PERMAとは（心の元気さを5つで見る考え方）</div>
           <div class="txt">
             <ul>
-              <li>研究では、PERMAの5要素を短い質問で測れるように <b>PERMA-Profiler</b> という尺度が作られました。</li>
-              <li><b>15問（5要素×各3問）</b>でPERMAを測り、さらに<b>8つの追加項目</b>（全体的なしあわせ感、気持ちの様子、ひとりぼっち感、からだの調子 など）を足して、合計<b>23問</b>の形式になっています。</li>
-              <li>答えは<b>0〜10点</b>でつけます（例：7/10点＝「だいたい70%くらい」）。</li>
+              <li><b>P</b>：前向きな気持ち（安心・うれしさ など）</li>
+              <li><b>E</b>：集中して取り組むこと（夢中になれる・時間を忘れるような没頭）</li>
+              <li><b>R</b>：人とのつながり（支え・安心できる関係）</li>
+              <li><b>M</b>：生きがいや目的（自分にとって大切なこと、役割、目標）</li>
+              <li><b>A</b>：達成感（できた実感。大きな成果だけでなく日々の「やれた」も含む）</li>
+            </ul>
+            <div style="color:#555; margin-top:6px;">
+              5つは全部そろって同じ高さである必要はなく、<b>人それぞれ</b>違ってよいと考えられています。
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ② 追加の指標はどう見る？
+    st.markdown(
+        f"""
+        <div class="mini-note">
+          <div class="cap">② こころ・からだの指標（見方のポイント）</div>
+          <div class="txt">
+            <ul>
+              <li><b>心の健康の総合得点</b>：PERMA全体をまとめた目安です（まずここを確認します）。</li>
+              <li><b>気持ちの様子（いやな気持）</b>：不安・いらいら・落ち込みなどが<b>どのくらいあるか</b>の目安です。<b>低いほど良い</b>方向です。</li>
+              <li><b>からだの調子</b>：検査値ではなく、<b>自分が元気だと感じるか</b>の目安です。</li>
+              <li><b>ひとりぼっち感</b>：ひとりぼっちだと感じることが<b>どのくらいあるか</b>の目安です。<b>低いほど良い</b>方向です。</li>
             </ul>
           </div>
         </div>
@@ -632,15 +651,17 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
+    # ③ どう活かす？
     st.markdown(
-        """
+        f"""
         <div class="mini-note">
-          <div class="cap">※結果の見せ方（「1つの点数」にまとめない理由）</div>
+          <div class="cap">③ 結果の活かし方（おすすめ）</div>
           <div class="txt">
             <ul>
-              <li>この尺度は、心の健康を<b>1つの点数だけで決めず</b>、<b>5要素それぞれの形（プロフィール）</b>として見る考え方が大切だとされています。</li>
-              <li>たとえば「人とのつながり（R）」が低めなら、人との関わり方や支えを増やす工夫が役立つかもしれません。</li>
-              <li>一方で、<b>理想の形は人それぞれ</b>で、生活や体調、環境によって合う形は変わると考えられています。</li>
+              <li><b>高い項目</b>：今のあなたの強みです。続けられている工夫があるかもしれません。</li>
+              <li><b>低い項目</b>：今の体調や生活の中で整えたいポイントの目安です。無理のない範囲で小さく試します。</li>
+              <li>1回だけで決めず、気が向いたときに繰り返して<b>変化</b>（上がった/下がった）を見ると役立ちます。</li>
+              <li>もし「つらさが強い」「生活に支障がある」などが続く場合は、身近な人や専門職に相談する<b>きっかけ</b>にしてください。</li>
             </ul>
           </div>
         </div>
@@ -648,22 +669,7 @@ def render_remarks_box():
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        """
-        <div class="mini-note">
-          <div class="cap">※このチェックの活用のしかた（おすすめ）</div>
-          <div class="txt">
-            <ul>
-              <li><b>高いところ＝今の強み</b>、<b>低いところ＝これから整えたいところ</b>の目安として使えます。</li>
-              <li>1回だけで判断せず、気が向いたときに繰り返して、<b>変化（上がった/下がった）</b>を見るのが役立ちます。</li>
-              <li>もし「つらさが強い」「生活に支障がある」など気になることが続く場合は、身近な人や専門職に相談するきっかけとして使えます。</li>
-            </ul>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
+    # 根拠（引用）
     st.markdown(
         """
         <div class="cite-box">
@@ -726,27 +732,6 @@ if row.empty:
     st.session_state.ready = False
     st.rerun()
 
-# =========================
-# 計算
-# =========================
-def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
-    scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
-    return float(np.mean(scores)) if scores else np.nan
-
-def compute_results(row: pd.DataFrame):
-    cols = [c for c in row.columns if str(c).startswith("6_")]
-    cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
-    vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
-
-    perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
-    extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
-
-    perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
-    overall_wellbeing_indices = perma_15_indices + [22]
-    extras["心の健康の総合得点"] = compute_domain_avg(vals, overall_wellbeing_indices)
-
-    return perma, extras
-
 perma_scores, extras = compute_results(row)
 
 # =========================================================
@@ -795,7 +780,7 @@ for i, (key, label) in enumerate(grid_order):
     with col:
         render_meter_block(label, v, extra_colors.get(key, None))
 
-# 説明は控えめに「※各指標の意味」
+# 説明は控えめに「各指標の意味」（表記修正済み）
 render_extras_meaning_note()
 
 st.markdown("</div>", unsafe_allow_html=True)
