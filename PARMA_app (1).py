@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
-from typing import Optional
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Optional
 
 # =========================
 # 基本設定
@@ -152,30 +150,6 @@ html, body {{
   height:0;
 }}
 
-/* 追加：PERMA行 */
-.perma-row {{
-  background:white;
-  border-radius:12px;
-  padding:0.7rem 0.9rem;
-  margin-bottom:0.6rem;
-  border:1px solid #E6EAF5;
-}}
-
-.perma-chart-wrap {{
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  width:100%;
-}}
-
-.growth-illust-wrap {{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:100%;
-  padding-top:0.2rem;
-}}
-
 @media print {{
   @page {{ size:A4; margin:8mm; }}
 
@@ -210,9 +184,23 @@ descriptions = {
     "A": "達成感や成長を感じられる状態。",
 }
 
+required_domain_cols = ["P", "E", "R", "M", "A"]
+optional_extra_cols = [
+    "心の健康の総合得点",
+    "気持ちの様子（いやな気持）",
+    "からだの調子",
+    "ひとりぼっち感",
+    "全体的なしあわせ感",
+]
+
 # =========================
 # 計算関数
 # =========================
+def compute_domain_avg(vals, idx):
+    scores = [vals[i] for i in idx if i < len(vals)]
+    return float(np.mean(scores)) if scores else np.nan
+
+
 def safe_float(x, default=np.nan):
     try:
         return float(x)
@@ -220,19 +208,11 @@ def safe_float(x, default=np.nan):
         return default
 
 
-def compute_domain_avg(vals, idx):
-    scores = []
-    for i in idx:
-        if i < len(vals):
-            v = safe_float(vals[i], np.nan)
-            if not np.isnan(v):
-                scores.append(v)
-    return float(np.mean(scores)) if scores else np.nan
-
-
-def clamp_score(x, lo=0.0, hi=10.0):
-    x = safe_float(x, 0.0)
-    return max(lo, min(hi, x))
+def clamp_score(x, min_value=0.0, max_value=10.0):
+    x = safe_float(x, np.nan)
+    if np.isnan(x):
+        return np.nan
+    return max(min_value, min(max_value, x))
 
 # =========================
 # 強制改ページ
@@ -241,15 +221,15 @@ def FORCE_PAGE_BREAK():
     st.markdown('<div class="force-break"></div>', unsafe_allow_html=True)
 
 # =========================
-# 補助表示関数
+# 補助関数
 # =========================
 def page_header(title: str, subtitle: Optional[str] = None):
-    sub_html = f'<div class="sub">{subtitle}</div>' if subtitle else ""
+    subtitle_html = f'<div class="sub">{subtitle}</div>' if subtitle else ""
     st.markdown(
         f"""
         <div class="page-header">
           <div class="title">{title}</div>
-          {sub_html}
+          {subtitle_html}
         </div>
         """,
         unsafe_allow_html=True
@@ -260,7 +240,7 @@ def render_extras_meaning_note():
     st.markdown(
         """
         <div class="mini-note">
-          <b>補足の見かた</b><br>
+          <b>補足</b><br>
           「気持ちの様子（いやな気持）」は、点が高いほどその気持ちを感じやすい可能性があります。<br>
           「からだの調子」「全体的なしあわせ感」は、点が高いほどよい状態の目安です。<br>
           「ひとりぼっち感」は、点が高いほど孤独を感じやすい可能性があります。
@@ -275,7 +255,7 @@ def render_remarks_box():
         """
         <div class="mini-note">
           <b>備考</b><br>
-          この評価結果は、その時点でのこころの健康の様子を簡単に振り返るためのものです。<br>
+          この結果は、その時点でのこころの健康の様子を簡単に振り返るためのものです。<br>
           医学的な診断を行うものではありません。<br>
           気になる状態が続く場合には、かかりつけ医や専門職へご相談ください。
         </div>
@@ -284,99 +264,20 @@ def render_remarks_box():
     )
 
 
-def render_meter_card(title: str, score: float, color: str):
-    score = clamp_score(score)
-    width_percent = score * 10
-    st.markdown(
-        f"""
-        <div class="score-card">
-          <div style="font-weight:900; margin-bottom:0.35rem;">{title}</div>
-          <div class="meter">
-            <div class="meter-fill" style="width:{width_percent:.1f}%; background:{color};"></div>
-          </div>
-          <div class="meter-score-text"><span class="score-strong">{score:.1f}</span> / 10</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-def render_small_histogram(score: float, color: str):
-    score = clamp_score(score)
-    fig, ax = plt.subplots(figsize=(3.2, 1.55), dpi=180)
-    ax.barh([0], [10], color="#E9EEF8", height=0.42)
-    ax.barh([0], [score], color=color, height=0.42)
-
-    ax.set_xlim(0, 10)
-    ax.set_ylim(-0.6, 0.6)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-
-    tx = min(score + 0.18, 9.8)
-    ha = "left"
-    if score >= 9.2:
-        tx = score - 0.15
-        ha = "right"
-
-    ax.text(tx, 0, f"{score:.1f}", va="center", ha=ha, fontsize=10.5, fontweight="bold")
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("white")
-    plt.tight_layout(pad=0.35)
-    return fig
-
-
-def render_perma_item(key: str, score: float):
-    color = colors.get(key, theme["accent"])
-    left_col, right_col = st.columns([1.55, 1.0], gap="medium")
-
-    st.markdown('<div class="perma-row">', unsafe_allow_html=True)
-    with left_col:
-        st.markdown(
-            f"""
-            <div style="font-weight:900; font-size:1.05rem; color:{color};">
-              {key}：{full_labels.get(key, key)}
-            </div>
-            <div style="margin-top:0.28rem; line-height:1.7;">
-              {descriptions.get(key, "")}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with right_col:
-        st.markdown('<div class="perma-chart-wrap">', unsafe_allow_html=True)
-        fig = render_small_histogram(score, color)
-        st.pyplot(fig, use_container_width=False)
-        plt.close(fig)
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-def render_perma_summary_box(domain_scores):
-    valid_scores = [safe_float(domain_scores.get(k), np.nan) for k in ["P", "E", "R", "M", "A"]]
-    valid_scores = [v for v in valid_scores if not np.isnan(v)]
-    overall = float(np.mean(valid_scores)) if valid_scores else np.nan
-
-    st.markdown(
-        f"""
-        <div class="perma-box">
-          <div style="font-weight:900; margin-bottom:0.4rem;">PERMAの5つの要素</div>
-          P：前向きな気持ち / E：集中して取り組むこと / R：人とのつながり / M：生きがいや目的 / A：達成感
-          <div style="margin-top:0.55rem; font-weight:900;">
-            心の健康の総合得点：{overall:.1f} / 10
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+def get_strengths_and_growth(domain_scores: dict):
+    valid = [(k, safe_float(v, np.nan)) for k, v in domain_scores.items()]
+    valid = [(k, v) for k, v in valid if not np.isnan(v)]
+    if not valid:
+        return [], []
+    sorted_scores = sorted(valid, key=lambda x: x[1], reverse=True)
+    strengths = sorted_scores[:2]
+    growth = sorted_scores[-2:] if len(sorted_scores) >= 2 else sorted_scores
+    return strengths, growth
 
 
 def recommendation_text(key: str) -> str:
     recs = {
-        "P": "気分が少し上がる活動を、短時間でも日常に入れてみましょう。好きな音楽や散歩、ほっとする時間が助けになります。",
+        "P": "気分が少し上がる活動を、短時間でも日常に入れてみましょう。",
         "E": "夢中になれる作業や趣味を、無理のない範囲で続けてみましょう。",
         "R": "身近な人とのあいさつや短い会話でも、つながりを保つ助けになります。",
         "M": "自分にとって大切なことや、続けたい役割を振り返る時間を持つのがおすすめです。",
@@ -384,68 +285,100 @@ def recommendation_text(key: str) -> str:
     }
     return recs.get(key, "無理のない範囲で、日常の中の小さな行動を積み重ねていきましょう。")
 
+# =========================
+# グラフ表示
+# =========================
+def render_small_bar(score: float, color: str):
+    score = clamp_score(score)
+    if np.isnan(score):
+        st.write("データなし")
+        return
 
-def render_growth_illustration(image_path: Optional[str] = None, width_px: int = 120):
-    st.markdown('<div class="growth-illust-wrap">', unsafe_allow_html=True)
-    if image_path and os.path.exists(image_path):
-        st.image(image_path, width=width_px)
+    fig, ax = plt.subplots(figsize=(3.0, 0.55), dpi=180)
+    ax.barh([0], [10], color="#E9EEF8", height=0.42)
+    ax.barh([0], [score], color=color, height=0.42)
+    ax.set_xlim(0, 10)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.set_facecolor("white")
+    fig.patch.set_facecolor("white")
+    plt.tight_layout(pad=0.2)
+    st.pyplot(fig, use_container_width=False)
+    plt.close(fig)
+
+
+def render_meter_card(title: str, score: float, color: str):
+    score = clamp_score(score)
+    if np.isnan(score):
+        score_text = "データなし"
+        width_percent = 0
     else:
-        st.markdown(
-            f"""
-            <div style="
-                width:{width_px}px;
-                height:{width_px}px;
-                border-radius:16px;
-                background:#F4F7FD;
-                border:1px solid #E1E7F5;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:2rem;
-            ">🌱</div>
-            """,
-            unsafe_allow_html=True
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
+        score_text = f"{score:.1f} / 10"
+        width_percent = score * 10
 
-
-def get_strengths_and_growth(domain_scores):
-    pairs = [(k, safe_float(v, np.nan)) for k, v in domain_scores.items()]
-    pairs = [(k, v) for k, v in pairs if not np.isnan(v)]
-    pairs_sorted = sorted(pairs, key=lambda x: x[1], reverse=True)
-    strengths = pairs_sorted[:2]
-    growth = pairs_sorted[-2:] if len(pairs_sorted) >= 2 else pairs_sorted
-    return strengths, growth
+    st.markdown(
+        f"""
+        <div class="score-card">
+          <div style="font-weight:900; margin-bottom:0.35rem;">{title}</div>
+          <div class="meter">
+            <div class="meter-fill" style="width:{width_percent:.1f}%; background:{color};"></div>
+          </div>
+          <div class="meter-score-text"><span class="score-strong">{score_text}</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # =========================
-# 仮データ
-# ここは既存ロジックに置き換え可
+# Excel読込
 # =========================
-domain_scores = {
-    "P": 6.8,
-    "E": 7.2,
-    "R": 6.1,
-    "M": 6.9,
-    "A": 6.4,
-}
+def load_scores_from_excel(uploaded_file):
+    df = pd.read_excel(uploaded_file)
 
-extra_scores = {
-    "心の健康の総合得点": 6.7,
-    "気持ちの様子（いやな気持）": 3.4,
-    "からだの調子": 6.5,
-    "ひとりぼっち感": 2.9,
-    "全体的なしあわせ感": 7.1,
-}
+    if df.empty:
+        raise ValueError("Excelファイルが空です。")
+
+    missing = [c for c in required_domain_cols if c not in df.columns]
+    if missing:
+        raise ValueError(f"必要な列が不足しています: {', '.join(missing)}")
+
+    row = df.iloc[0]
+
+    domain_scores = {col: clamp_score(row[col]) for col in required_domain_cols}
+
+    extra_scores = {}
+    for col in optional_extra_cols:
+        if col in df.columns:
+            extra_scores[col] = clamp_score(row[col])
+
+    if "心の健康の総合得点" not in extra_scores:
+        valid = [v for v in domain_scores.values() if not np.isnan(v)]
+        extra_scores["心の健康の総合得点"] = float(np.mean(valid)) if valid else np.nan
+
+    return df, domain_scores, extra_scores
+
+# =========================
+# 画面
+# =========================
+st.title("わらトレ　心の健康チェック")
+
+uploaded_file = st.file_uploader("Excelファイルを添付してください", type=["xlsx", "xls"])
+
+if uploaded_file is None:
+    st.info("Excelファイルをアップロードすると結果が表示されます。")
+    st.stop()
+
+try:
+    df, domain_scores, extra_scores = load_scores_from_excel(uploaded_file)
+except Exception as e:
+    st.error(f"Excelの読み込みでエラーが出ました: {e}")
+    st.stop()
 
 strengths, growth = get_strengths_and_growth(domain_scores)
 
-# =========================
-# 表示部分
-# =========================
-
 # --- 1ページ目 ---
-st.title("わらトレ　心の健康チェック")
-
 page_header(
     "1. あなたの心の健康チェック結果",
     "PERMAの5つの要素と、こころ・からだの調子の目安をまとめています。"
@@ -453,24 +386,33 @@ page_header(
 
 st.markdown('<div class="section-header">1-1. 要素ごとに見た心の状態</div>', unsafe_allow_html=True)
 
-render_perma_summary_box(domain_scores)
-
-for k in ["P", "E", "R", "M", "A"]:
-    render_perma_item(k, domain_scores.get(k, np.nan))
+for key in ["P", "E", "R", "M", "A"]:
+    c1, c2 = st.columns([1.55, 1.0], gap="medium")
+    with c1:
+        st.markdown(
+            f"""
+            <div class="score-card">
+              <div style="font-weight:900; color:{colors.get(key, theme['accent'])};">
+                {key}：{full_labels[key]}
+              </div>
+              <div style="margin-top:0.25rem;">
+                {descriptions[key]}
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with c2:
+        render_small_bar(domain_scores.get(key, np.nan), colors.get(key, theme["accent"]))
 
 # --- 2ページ目開始 ---
 FORCE_PAGE_BREAK()
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-for label in [
-    "心の健康の総合得点",
-    "気持ちの様子（いやな気持）",
-    "からだの調子",
-    "ひとりぼっち感",
-    "全体的なしあわせ感",
-]:
-    render_meter_card(label, extra_scores.get(label, np.nan), extra_colors.get(label, theme["accent"]))
+for label in optional_extra_cols:
+    if label in extra_scores:
+        render_meter_card(label, extra_scores.get(label, np.nan), extra_colors.get(label, theme["accent"]))
 
 render_extras_meaning_note()
 
@@ -486,43 +428,51 @@ st.markdown("<div class='spacer-6'></div>", unsafe_allow_html=True)
 # --- 2-1 ---
 st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
 
-for key, score in strengths:
-    st.markdown(
-        f"""
-        <div class="score-card">
-          <div style="font-weight:900; color:{colors.get(key, theme['accent'])}; font-size:1.05rem;">
-            {key}：{full_labels.get(key, key)}（{score:.1f} / 10）
-          </div>
-          <div style="margin-top:0.35rem; line-height:1.7;">
-            {descriptions.get(key, "")}<br>
-            この要素は、今の生活の中で比較的保たれている強みとして考えられます。
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# --- 2-2 ---
-st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動ライン</div>', unsafe_allow_html=True)
-
-for key, score in growth:
-    c1, c2 = st.columns([1.45, 0.9], gap="medium")
-    with c1:
+if strengths:
+    for key, score in strengths:
         st.markdown(
             f"""
             <div class="score-card">
               <div style="font-weight:900; color:{colors.get(key, theme['accent'])}; font-size:1.05rem;">
                 {key}：{full_labels.get(key, key)}（{score:.1f} / 10）
               </div>
-              <div style="margin-top:0.35rem; line-height:1.75;">
-                {recommendation_text(key)}
+              <div style="margin-top:0.35rem; line-height:1.7;">
+                {descriptions.get(key, "")}
               </div>
             </div>
             """,
             unsafe_allow_html=True
         )
-    with c2:
-        render_growth_illustration(image_path=None, width_px=120)
+
+# --- 2-2 ---
+st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動ライン</div>', unsafe_allow_html=True)
+
+if growth:
+    for key, score in growth:
+        c1, c2 = st.columns([1.45, 0.9], gap="medium")
+        with c1:
+            st.markdown(
+                f"""
+                <div class="score-card">
+                  <div style="font-weight:900; color:{colors.get(key, theme['accent'])}; font-size:1.05rem;">
+                    {key}：{full_labels.get(key, key)}（{score:.1f} / 10）
+                  </div>
+                  <div style="margin-top:0.35rem; line-height:1.75;">
+                    {recommendation_text(key)}
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        with c2:
+            st.markdown(
+                """
+                <div class="score-card" style="text-align:center; font-size:2rem;">
+                  🌱
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 # --- 3ページ目開始 ---
 FORCE_PAGE_BREAK()
