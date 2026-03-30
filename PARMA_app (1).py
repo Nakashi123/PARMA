@@ -184,20 +184,11 @@ descriptions = {
     "A": "達成感や成長を感じられる状態。",
 }
 
-required_domain_cols = ["P", "E", "R", "M", "A"]
-optional_extra_cols = [
-    "心の健康の総合得点",
-    "気持ちの様子（いやな気持）",
-    "からだの調子",
-    "ひとりぼっち感",
-    "全体的なしあわせ感",
-]
-
 # =========================
 # 計算関数
 # =========================
 def compute_domain_avg(vals, idx):
-    scores = [vals[i] for i in idx if i < len(vals)]
+    scores = [vals[i] for i in idx if i < len(vals) and pd.notna(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
 
@@ -208,11 +199,11 @@ def safe_float(x, default=np.nan):
         return default
 
 
-def clamp_score(x, min_value=0.0, max_value=10.0):
+def clamp_score(x, lo=0.0, hi=10.0):
     x = safe_float(x, np.nan)
     if np.isnan(x):
         return np.nan
-    return max(min_value, min(max_value, x))
+    return max(lo, min(hi, x))
 
 # =========================
 # 強制改ページ
@@ -224,12 +215,12 @@ def FORCE_PAGE_BREAK():
 # 補助関数
 # =========================
 def page_header(title: str, subtitle: Optional[str] = None):
-    subtitle_html = f'<div class="sub">{subtitle}</div>' if subtitle else ""
+    sub_html = f'<div class="sub">{subtitle}</div>' if subtitle else ""
     st.markdown(
         f"""
         <div class="page-header">
           <div class="title">{title}</div>
-          {subtitle_html}
+          {sub_html}
         </div>
         """,
         unsafe_allow_html=True
@@ -332,7 +323,7 @@ def render_meter_card(title: str, score: float, color: str):
     )
 
 # =========================
-# Excel読込
+# Excel読込とPERMA計算
 # =========================
 def load_scores_from_excel(uploaded_file):
     df = pd.read_excel(uploaded_file)
@@ -340,24 +331,51 @@ def load_scores_from_excel(uploaded_file):
     if df.empty:
         raise ValueError("Excelファイルが空です。")
 
-    missing = [c for c in required_domain_cols if c not in df.columns]
+    required_cols = ["ID"] + [f"6_{i}" for i in range(1, 24)]
+    missing = [c for c in required_cols if c not in df.columns]
     if missing:
         raise ValueError(f"必要な列が不足しています: {', '.join(missing)}")
 
-    row = df.iloc[0]
+    return df
 
-    domain_scores = {col: clamp_score(row[col]) for col in required_domain_cols}
 
-    extra_scores = {}
-    for col in optional_extra_cols:
-        if col in df.columns:
-            extra_scores[col] = clamp_score(row[col])
+def calc_scores_from_row(row: pd.Series):
+    # PERMA 15項目
+    # P: 6_1,6_2,6_3
+    # E: 6_4,6_5,6_6
+    # R: 6_7,6_8,6_9
+    # M: 6_10,6_11,6_12
+    # A: 6_13,6_14,6_15
+    domain_scores = {
+        "P": compute_domain_avg([row[f"6_{i}"] for i in range(1, 24)], [0, 1, 2]),
+        "E": compute_domain_avg([row[f"6_{i}"] for i in range(1, 24)], [3, 4, 5]),
+        "R": compute_domain_avg([row[f"6_{i}"] for i in range(1, 24)], [6, 7, 8]),
+        "M": compute_domain_avg([row[f"6_{i}"] for i in range(1, 24)], [9, 10, 11]),
+        "A": compute_domain_avg([row[f"6_{i}"] for i in range(1, 24)], [12, 13, 14]),
+    }
 
-    if "心の健康の総合得点" not in extra_scores:
-        valid = [v for v in domain_scores.values() if not np.isnan(v)]
-        extra_scores["心の健康の総合得点"] = float(np.mean(valid)) if valid else np.nan
+    # 付加項目
+    # 6_16: 全体的なしあわせ感
+    # 6_17-6_19: いやな気持ち
+    # 6_20: ひとりぼっち感
+    # 6_21-6_23: からだの調子
+    overall_wellbeing = np.mean([domain_scores[k] for k in ["P", "E", "R", "M", "A"]] + [safe_float(row["6_16"])])
+    negative_emotion = np.mean([safe_float(row["6_17"]), safe_float(row["6_18"]), safe_float(row["6_19"])])
+    loneliness = safe_float(row["6_20"])
+    physical_health = np.mean([safe_float(row["6_21"]), safe_float(row["6_22"]), safe_float(row["6_23"])])
 
-    return df, domain_scores, extra_scores
+    extra_scores = {
+        "心の健康の総合得点": overall_wellbeing,
+        "気持ちの様子（いやな気持）": negative_emotion,
+        "からだの調子": physical_health,
+        "ひとりぼっち感": loneliness,
+        "全体的なしあわせ感": safe_float(row["6_16"]),
+    }
+
+    domain_scores = {k: clamp_score(v) for k, v in domain_scores.items()}
+    extra_scores = {k: clamp_score(v) for k, v in extra_scores.items()}
+
+    return domain_scores, extra_scores
 
 # =========================
 # 画面
@@ -371,11 +389,22 @@ if uploaded_file is None:
     st.stop()
 
 try:
-    df, domain_scores, extra_scores = load_scores_from_excel(uploaded_file)
+    df = load_scores_from_excel(uploaded_file)
 except Exception as e:
     st.error(f"Excelの読み込みでエラーが出ました: {e}")
     st.stop()
 
+# ID選択
+id_list = df["ID"].dropna().astype(str).tolist()
+selected_id = st.selectbox("結果を表示するIDを選んでください", id_list)
+
+selected_row = df[df["ID"].astype(str) == selected_id]
+if selected_row.empty:
+    st.error("選択したIDのデータが見つかりません。")
+    st.stop()
+
+row = selected_row.iloc[0]
+domain_scores, extra_scores = calc_scores_from_row(row)
 strengths, growth = get_strengths_and_growth(domain_scores)
 
 # --- 1ページ目 ---
@@ -410,9 +439,14 @@ FORCE_PAGE_BREAK()
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
-for label in optional_extra_cols:
-    if label in extra_scores:
-        render_meter_card(label, extra_scores.get(label, np.nan), extra_colors.get(label, theme["accent"]))
+for label in [
+    "心の健康の総合得点",
+    "気持ちの様子（いやな気持）",
+    "からだの調子",
+    "ひとりぼっち感",
+    "全体的なしあわせ感",
+]:
+    render_meter_card(label, extra_scores.get(label, np.nan), extra_colors.get(label, theme["accent"]))
 
 render_extras_meaning_note()
 
