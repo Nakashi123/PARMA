@@ -102,6 +102,32 @@ h1 {{
   color: #223;
 }}
 
+.name-box {{
+  border: 2px solid #D9E2F2;
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 0.7rem 1rem;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-top: 0.9rem;
+  margin-bottom: 0.9rem;
+}}
+.name-box-label {{
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #444;
+  margin-bottom: 0.25rem;
+}}
+.name-box-value {{
+  font-size: 1.35rem;
+  font-weight: 1000;
+  color: #111;
+  letter-spacing: 0.5px;
+}}
+
 .score-card {{
   background:white;
   border-radius:12px;
@@ -311,6 +337,21 @@ h1 {{
   .page-header {{
     padding: 0.6rem 0.85rem !important;
     margin: 0.4rem 0 0.4rem 0 !important;
+  }}
+
+  .name-box {{
+    min-height: 64px !important;
+    padding: 0.45rem 0.8rem !important;
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.4rem !important;
+    box-shadow: none !important;
+  }}
+  .name-box-label {{
+    font-size: 0.82rem !important;
+    margin-bottom: 0.12rem !important;
+  }}
+  .name-box-value {{
+    font-size: 1.1rem !important;
   }}
 
   .section-header {{
@@ -670,6 +711,8 @@ if "df" not in st.session_state:
     st.session_state.df = None
 if "sid" not in st.session_state:
     st.session_state.sid = None
+if "name" not in st.session_state:
+    st.session_state.name = ""
 
 ui = st.empty()
 
@@ -685,9 +728,11 @@ if not st.session_state.ready:
             df = pd.read_excel(uploaded)
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
             sid = st.selectbox("IDを選んでください", options=id_list)
+            name = st.text_input("名前を入力してください", value="")
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
+                st.session_state.name = name
                 st.session_state.ready = True
                 st.rerun()
     st.stop()
@@ -716,6 +761,23 @@ perma_scores, extras = compute_results(row)
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
+
+top_left, top_right = st.columns([3, 1.4])
+with top_left:
+    st.empty()
+with top_right:
+    display_name = st.session_state.get("name", "").strip()
+    if display_name == "":
+        display_name = "　　　　　"
+    st.markdown(
+        f"""
+        <div class="name-box">
+          <div class="name-box-label">お名前</div>
+          <div class="name-box-value">{display_name}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
 col_meter, col_chart = st.columns([2, 1])
