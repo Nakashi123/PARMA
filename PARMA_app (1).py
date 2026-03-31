@@ -43,7 +43,7 @@ theme = {
 }
 
 # =========================
-# CSS
+# CSS（画面用 + 印刷/PDF用）
 # =========================
 st.markdown(f"""
 <style>
@@ -54,226 +54,216 @@ html, body {{
   line-height:1.55;
 }}
 
-section.main > div {{ padding-top: 0.5rem; padding-bottom: 0.5rem; }}
-.block-container {{ padding-top: 0.55rem; padding-bottom: 0.8rem; }}
-div[data-testid="stVerticalBlock"] {{ gap: 0.5rem; }}
-div[data-testid="stMarkdownContainer"] p {{ margin: 0.18rem 0 0.28rem 0; }}
-div[data-testid="stMarkdownContainer"] ul {{ margin: 0.28rem 0 0.22rem 1.1rem; }}
-div[data-testid="stMarkdownContainer"] li {{ margin: 0.11rem 0; }}
+section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
+.block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
+div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
+div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
+div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
+div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
 
-.main-wrap {{
-  max-width: 900px;
-  margin: 0 auto;
-}}
+.main-wrap {{ max-width: 880px; margin: 0 auto; }}
 
-.title-row {{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:1rem;
-  margin:0.2rem 0 0.45rem 0;
-}}
-
-.main-title {{
-  font-size:1.95rem;
-  font-weight:950;
-  color:#1b2a4a;
-  line-height:1.2;
-}}
-
-.id-chip {{
-  flex-shrink:0;
-  background:#FFFFFF;
-  border:2px solid #D9E2F3;
-  border-radius:999px;
-  padding:0.32rem 0.82rem;
-  font-size:0.95rem;
-  font-weight:800;
-  color:#2A3B5F;
-  white-space:nowrap;
-}}
-
-.page-header {{
-  background: white;
-  border: 2px solid #E6EAF5;
-  border-left: 9px solid {theme['accent']};
-  border-radius: 14px;
-  padding: 0.78rem 1.0rem;
-  margin: 0.35rem 0 0.5rem 0;
-  box-shadow: 0 2px 7px rgba(0,0,0,0.05);
-}}
-.page-header .title {{
-  font-size: 1.22rem;
-  font-weight: 950;
-  color: #1b2a4a;
-  margin-bottom: 0.05rem;
-}}
-.page-header .sub {{
-  font-size: 0.98rem;
-  color: #223;
+h1 {{
+  text-align:center;
+  font-size:2rem;
+  font-weight:900;
+  margin-top:0.4rem;
+  margin-bottom:0.4rem;
 }}
 
 .section-header {{
   background:{theme['bar_bg']};
   font-weight:900;
-  font-size:1.08rem;
-  padding:.48rem .92rem;
-  border-left:7px solid {theme['accent']};
-  border-radius:9px;
-  margin-top:0.35rem;
-  margin-bottom:.48rem;
+  font-size:1.15rem;
+  padding:.55rem 1rem;
+  border-left:8px solid {theme['accent']};
+  border-radius:8px;
+  margin-top:0.9rem;
+  margin-bottom:.7rem;
+}}
+
+.page-header {{
+  background: white;
+  border: 2px solid #E6EAF5;
+  border-left: 10px solid {theme['accent']};
+  border-radius: 14px;
+  padding: 1.0rem 1.2rem;
+  margin: 0.9rem 0 0.9rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}}
+.page-header .title {{
+  font-size: 1.45rem;
+  font-weight: 950;
+  color: #1b2a4a;
+  margin-bottom: 0.15rem;
+}}
+.page-header .sub {{
+  font-size: 1.02rem;
+  color: #223;
 }}
 
 .score-card {{
   background:white;
   border-radius:12px;
-  padding:0.48rem 0.78rem;
-  margin-bottom:0.35rem;
+  padding:0.55rem 0.9rem;
+  margin-bottom:0.55rem;
   box-shadow:0 1px 3px rgba(0,0,0,0.06);
 }}
 .score-title {{
-  font-weight:850;
-  font-size:1.0rem;
-  margin-bottom:0.16rem;
+  font-weight:800;
+  margin-bottom:0.2rem;
 }}
 
 .meter {{
   background:#E0E0E0;
   border-radius:999px;
-  height:15px;
+  height:14px;
   width:100%;
   overflow:hidden;
 }}
-.meter-fill {{
-  height:100%;
-  border-radius:999px;
-}}
+.meter-fill {{ height:100%; border-radius:999px; }}
 
 .meter-score-text {{
-  font-size: 1.1rem;
-  margin-top: 5px;
+  font-size: 1.05rem;
+  margin-top: 4px;
   color:#333;
 }}
 .meter-score-text .score-strong {{
-  font-size: 1.58rem;
+  font-size: 1.28rem;
   font-weight: 1000;
   letter-spacing: 0.2px;
   color:#111;
 }}
 
 .score-card.big {{
-  padding: 0.6rem 0.86rem;
-}}
-.score-title.big {{
-  font-size: 1.04rem;
-  font-weight: 950;
-  margin-bottom: 0.18rem;
+  padding: 0.75rem 1.0rem;
 }}
 .meter.big {{
-  height: 20px;
-}}
-.meter-score-text.big {{
-  font-size: 1.16rem;
+  height: 22px;
 }}
 .meter-score-text.big .score-strong {{
-  font-size: 1.8rem;
+  font-size: 1.45rem;
 }}
-
-.mini-note {{
-  background: #FFFFFF;
-  border: 1px solid #E6EAF5;
-  border-radius: 12px;
-  padding: 0.58rem 0.78rem;
-  margin: 0.38rem 0 0.34rem 0;
-}}
-.mini-note .cap {{
-  font-weight: 900;
-  color: #1b2a4a;
-  font-size: 0.96rem;
-  margin-bottom: 0.2rem;
-}}
-.mini-note .txt {{
-  font-size: 0.96rem;
-  color: #222;
-  line-height: 1.56;
-}}
-.mini-note ul {{
-  margin: 0.22rem 0 0.04rem 1.05rem;
-}}
-.mini-note li {{
-  margin: 0.08rem 0;
+.score-title.big {{
+  font-size: 1.08rem;
+  font-weight: 950;
+  margin-bottom: 0.25rem;
 }}
 
 .perma-box {{
-  border:2px solid {theme['accent']};
+  border:3px solid {theme['accent']};
   border-radius:12px;
-  padding:0.8rem 0.98rem;
-  margin-top:0.3rem;
+  padding:1.05rem 1.25rem;
+  margin-top:0.5rem;
   background:white;
 }}
 .perma-box p {{
-  font-size:0.98rem;
+  font-size:1.04rem;
   color:#222;
-  margin-bottom:0.42rem;
-  line-height:1.58;
+  margin-bottom:0.75rem;
+  line-height: 1.7;
 }}
 .perma-highlight {{
   color:{theme['accent']};
   font-weight:900;
 }}
 
+.intro-box {{
+  background: #F7FAFF;
+  border: 3px solid {theme['accent']};
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  margin: 0.9rem 0 1.1rem 0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}}
+.intro-title {{
+  font-size: 1.20rem;
+  font-weight: 1000;
+  color: #1b2a4a;
+  margin-bottom: 0.45rem;
+}}
+.intro-text {{
+  font-size: 1.05rem;
+  color: #111;
+  line-height: 1.75;
+}}
+.intro-list {{
+  margin: 0.5rem 0 0.3rem 0;
+  padding-left: 1.3rem;
+}}
+.intro-list li {{
+  margin-bottom: 0.3rem;
+}}
+.intro-note {{
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #999;
+  color: #333;
+  font-size: 1.0rem;
+}}
+
+.mini-note {{
+  background: #FFFFFF;
+  border: 1px solid #E6EAF5;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.55rem 0 0.65rem 0;
+}}
+.mini-note .cap {{
+  font-weight: 900;
+  color: #1b2a4a;
+  font-size: 0.98rem;
+  margin-bottom: 0.25rem;
+}}
+.mini-note .txt {{
+  font-size: 0.98rem;
+  color: #222;
+  line-height: 1.65;
+}}
+.mini-note ul {{
+  margin: 0.35rem 0 0.1rem 1.1rem;
+}}
+.mini-note li {{
+  margin: 0.14rem 0;
+}}
+
 .cite-box {{
   background: #FBFBFD;
   border: 1px solid #E6EAF5;
-  border-radius: 11px;
-  padding: 0.58rem 0.78rem;
-  margin-top: 0.38rem;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.7rem;
   color: #333;
 }}
 .cite-box .cap {{
   font-weight: 900;
   color: #1b2a4a;
-  margin-bottom: 0.16rem;
+  margin-bottom: 0.25rem;
 }}
 .cite-box .ref {{
-  font-size: 0.91rem;
-  line-height: 1.48;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }}
 
 .footer-box {{
   border-top: 2px solid #DDD;
-  margin-top: 0.95rem;
-  padding-top: 0.68rem;
-  font-size: 0.93rem;
+  margin-top: 1.6rem;
+  padding-top: 1.0rem;
+  font-size: 0.98rem;
   color: #333;
-  line-height: 1.62;
+  line-height: 1.8;
 }}
 .footer-title {{
   font-weight: 900;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
 }}
 .footer-thanks {{
-  margin-top: 0.55rem;
+  margin-top: 0.85rem;
   font-weight: 800;
 }}
 
-.action-list p,
-.action-list li {{
-  font-size: 0.98rem;
-  line-height: 1.45;
-}}
-
-.tight-section {{
-  margin-top: 0.15rem;
-}}
-
-.page-2-image-wrap {{
-  padding-top: 0.1rem;
-}}
-
-.no-print {{
-  display:block;
-}}
+.keep-together {{}}
+.force-page-break {{ display:none; }}
 
 @media print {{
 
@@ -301,184 +291,104 @@ div[data-testid="stMarkdownContainer"] li {{ margin: 0.11rem 0; }}
     page-break-after: auto !important;
   }}
 
-  .main-wrap {{
-    max-width: none !important;
-  }}
-
-  .no-print {{
-    display:none !important;
+  .force-page-break {{
+    display:block !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    height: 0 !important;
   }}
 
   body {{
-    margin-top: -1mm !important;
+    margin-top: -4mm !important;
   }}
 
-  div[data-testid="stVerticalBlock"] {{
-    gap: 0.18rem !important;
-  }}
-
-  .title-row {{
-    margin: 0 0 0.22rem 0 !important;
-  }}
-
-  .main-title {{
-    font-size: 1.52rem !important;
-  }}
-
-  .id-chip {{
-    font-size: 0.8rem !important;
-    padding: 0.18rem 0.55rem !important;
-    border-width: 1.4px !important;
+  h1 {{
+    font-size: 1.55rem !important;
+    margin-top: 0.05rem !important;
+    margin-bottom: 0.15rem !important;
   }}
 
   .page-header {{
-    padding: 0.48rem 0.68rem !important;
-    margin: 0.18rem 0 0.25rem 0 !important;
-    box-shadow: none !important;
-  }}
-  .page-header .title {{
-    font-size: 1.01rem !important;
-    margin-bottom: 0 !important;
-  }}
-  .page-header .sub {{
-    font-size: 0.84rem !important;
-    line-height: 1.2 !important;
+    padding: 0.6rem 0.85rem !important;
+    margin: 0.4rem 0 0.4rem 0 !important;
   }}
 
   .section-header {{
-    font-size: 0.95rem !important;
-    padding: 0.27rem 0.62rem !important;
-    margin-top: 0.15rem !important;
-    margin-bottom: 0.22rem !important;
+    font-size: 1.0rem !important;
+    padding: 0.35rem 0.75rem !important;
+    margin-top: 0.45rem !important;
+    margin-bottom: 0.35rem !important;
   }}
 
   .score-card {{
-    padding: 0.27rem 0.48rem !important;
-    margin-bottom: 0.16rem !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
+    padding: 0.4rem 0.65rem !important;
+    margin-bottom: 0.28rem !important;
   }}
 
-  .score-title {{
-    font-size: 0.82rem !important;
-    margin-bottom: 0.07rem !important;
-  }}
-
-  .score-title.big {{
-    font-size: 0.86rem !important;
-  }}
-
-  .meter {{
-    height: 10px !important;
-  }}
-
-  .meter.big {{
-    height: 14px !important;
-  }}
+  .meter {{ height: 11px !important; }}
 
   .meter-score-text {{
-    font-size: 0.93rem !important;
-    margin-top: 1px !important;
+    font-size: 0.88rem !important;
   }}
 
   .meter-score-text .score-strong {{
-    font-size: 1.22rem !important;
-  }}
-
-  .meter-score-text.big {{
-    font-size: 0.98rem !important;
-  }}
-
-  .meter-score-text.big .score-strong {{
-    font-size: 1.34rem !important;
+    font-size: 1.0rem !important;
   }}
 
   .mini-note {{
-    padding: 0.34rem 0.5rem !important;
-    margin: 0.16rem 0 0.14rem 0 !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
+    padding: 0.5rem 0.7rem !important;
+    margin: 0.35rem 0 0.35rem 0 !important;
   }}
 
   .mini-note .cap {{
-    font-size: 0.82rem !important;
-    margin-bottom: 0.06rem !important;
+    font-size: 0.9rem !important;
   }}
 
   .mini-note .txt {{
-    font-size: 0.79rem !important;
-    line-height: 1.27 !important;
-  }}
-
-  .mini-note ul {{
-    margin: 0.1rem 0 0.02rem 0.92rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
   }}
 
   .mini-note li {{
-    margin: 0.03rem 0 !important;
-  }}
-
-  .perma-box {{
-    padding: 0.44rem 0.6rem !important;
-    margin-top: 0.14rem !important;
-  }}
-
-  .perma-box p {{
-    font-size: 0.82rem !important;
-    line-height: 1.34 !important;
-    margin-bottom: 0.18rem !important;
-  }}
-
-  .cite-box {{
-    padding: 0.36rem 0.5rem !important;
-    margin-top: 0.16rem !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-  }}
-
-  .cite-box .cap {{
-    font-size: 0.81rem !important;
-    margin-bottom: 0.06rem !important;
-  }}
-
-  .cite-box .ref {{
-    font-size: 0.75rem !important;
-    line-height: 1.24 !important;
-  }}
-
-  .footer-box {{
-    margin-top: 0.4rem !important;
-    padding-top: 0.3rem !important;
-    font-size: 0.77rem !important;
-    line-height: 1.34 !important;
-  }}
-
-  .footer-title {{
-    margin-bottom: 0.12rem !important;
-  }}
-
-  .footer-thanks {{
-    margin-top: 0.22rem !important;
-  }}
-
-  .action-list p,
-  .action-list li {{
-    font-size: 0.83rem !important;
-    line-height: 1.28 !important;
-  }}
-
-  .page-2-image-wrap {{
-    padding-top: 0 !important;
+    margin: 0.1rem 0 !important;
   }}
 
   img {{
-    max-height: 95px !important;
+    max-height: 140px !important;
     object-fit: contain !important;
   }}
 
-  div[data-testid="stImage"] img {{
-    max-height: 95px !important;
-    object-fit: contain !important;
+  .perma-box {{
+    padding: 0.7rem 0.9rem !important;
+  }}
+
+  .perma-box p {{
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 0.4rem !important;
+  }}
+
+  .cite-box {{
+    padding: 0.5rem 0.7rem !important;
+    font-size: 0.85rem !important;
+  }}
+
+  .footer-box {{
+    margin-top: 0.8rem !important;
+    padding-top: 0.5rem !important;
+    font-size: 0.85rem !important;
+  }}
+
+  .footer-thanks {{
+    margin-top: 0.4rem !important;
+  }}
+
+  .page-header, .score-card, .intro-box, .mini-note, .cite-box {{
+    box-shadow: none !important;
+  }}
+
+  .no-print {{
+    display: none !important;
   }}
 }}
 </style>
@@ -530,7 +440,7 @@ perma_indices = {
 
 extra_indices = {
     "気持ちの様子（いやな気持）": [6, 13, 19],
-    "からだの調子": [3, 12, 17],
+    "からだの調子":  [3, 12, 17],
     "ひとりぼっち感": [11],
     "全体的なしあわせ感": [22],
 }
@@ -556,20 +466,14 @@ def compute_results(row: pd.DataFrame):
 
     return perma, extras
 
+def score_label(v: float) -> str:
+    if np.isnan(v):
+        return "未回答"
+    return f"{v:.1f}/10点"
+
 # =========================
 # 表示関数
 # =========================
-def render_title_row_with_id(title: str, sid: str):
-    st.markdown(
-        f"""
-        <div class="title-row">
-          <div class="main-title">{title}</div>
-          <div class="id-chip">ID：{sid}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
 def render_meter_block(title: str, score: float, color: Optional[str] = None, big: bool = False):
     if np.isnan(score):
         width = "0%"
@@ -577,8 +481,8 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None, bi
     else:
         width = f"{score * 10:.0f}%"
         score_html = f"<span class='score-strong'>{score:.1f}</span>/10点"
-
     bar_color = color if color is not None else "#999999"
+
     big_class = "big" if big else ""
     meter_class = "meter big" if big else "meter"
     score_class = "meter-score-text big" if big else "meter-score-text"
@@ -600,19 +504,16 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None, bi
 def plot_hist(perma_scores: dict):
     labels = ["P", "E", "R", "M", "A"]
     values = [perma_scores.get(k, np.nan) for k in labels]
-    fig, ax = plt.subplots(figsize=(2.45, 1.9), dpi=160)
+    fig, ax = plt.subplots(figsize=(2.9, 2.25), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
-    ax.set_title("PERMA", fontsize=11, pad=3)
+    ax.set_title("PERMA", fontsize=12)
     for i, v in enumerate(values):
         if not np.isnan(v):
-            ax.text(i, v + 0.18, f"{v:.1f}", ha="center", va="bottom", fontsize=8)
-    for spine in ["top", "right", "left"]:
-        ax.spines[spine].set_visible(False)
-    ax.tick_params(axis='x', labelsize=8.5)
-    fig.tight_layout(pad=0.5)
-    st.pyplot(fig, use_container_width=False)
+            ax.text(i, v + 0.22, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+    fig.tight_layout()
+    st.pyplot(fig)
 
 def page_header(title: str, sub: str):
     st.markdown(
@@ -620,6 +521,27 @@ def page_header(title: str, sub: str):
         <div class="page-header">
           <div class="title">{title}</div>
           <div class="sub">{sub}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+def render_intro_box():
+    st.markdown(
+        """
+        <div class="intro-box">
+          <div class="intro-title">はじめに（この用紙でわかること）</div>
+          <div class="intro-text">
+            この用紙は、<b>心の健康チェック</b>の結果です。<br>
+            <b>今の心の元気さ</b>を、0〜10点でわかりやすく見える化しています。
+            <ul class="intro-list">
+              <li><b>心の5つの元気さ</b>（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
+              <li><b>心の健康の総合得点</b>、<b>気持ちの様子（いやな気持）</b>、<b>からだの調子</b>、<b>ひとりぼっち感</b>、<b>全体的なしあわせ感</b></li>
+            </ul>
+            <div class="intro-note">
+              ※これは病気の診断ではありません。<b>今の自分の状態を知るための目安</b>としてご利用ください。
+            </div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True
@@ -754,8 +676,7 @@ ui = st.empty()
 if not st.session_state.ready:
     with ui.container():
         st.markdown('<div class="main-wrap no-print">', unsafe_allow_html=True)
-        st.markdown('<div class="main-title" style="font-size:1.8rem;">わらトレ　心の健康チェック</div>', unsafe_allow_html=True)
-
+        st.title("わらトレ　心の健康チェック")
         uploaded = st.file_uploader(
             "Excelファイル（ID列＋6_1〜6_23 の列）をアップロードしてください",
             type="xlsx"
@@ -764,76 +685,60 @@ if not st.session_state.ready:
             df = pd.read_excel(uploaded)
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
             sid = st.selectbox("IDを選んでください", options=id_list)
-
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
-
-        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 ui.empty()
 
 # =========================
-# データ取得
+# 結果表示
 # =========================
+st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
+render_intro_box()
+
 df = st.session_state.df
 sid = st.session_state.sid
 row = df[df.iloc[:, 0].astype(str) == str(sid)]
-
 if row.empty:
     st.warning("選択されたIDが見つかりません。最初からやり直してください。")
     st.session_state.ready = False
     st.rerun()
 
 perma_scores, extras = compute_results(row)
-weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
-strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
-
-# =========================
-# 結果表示
-# =========================
-st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
 # =========================================================
-# 1ページ目
+# 1枚目：1-1 + 各指標の見方 まで
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
-
-render_title_row_with_id("わらトレ　心の健康チェック", str(sid))
-page_header("1. 結果（あなたの心の状態）", "心の5つの元気さを点数で確認します。")
+page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
-
-col_meter, col_chart = st.columns([2.25, 0.95])
-
+col_meter, col_chart = st.columns([2, 1])
 with col_meter:
-    c1, c2 = st.columns(2)
-    with c1:
+    col_left, col_right = st.columns(2)
+    with col_left:
         for k in ["P", "E", "R"]:
             render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
-    with c2:
+    with col_right:
         for k in ["M", "A"]:
             render_meter_block(f"{k}：{full_labels[k]}", perma_scores.get(k, np.nan), colors[k])
-
 with col_chart:
     plot_hist(perma_scores)
 
 render_perma_howto_note()
 
+# ★ ここで1ページ目を閉じる
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2ページ目
+# 2枚目：1-2 こころ・からだの調子 から必ず開始
 # =========================================================
 st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
-
-page_header(
-    "2. こころ・からだの調子と、おすすめの行動",
-    "こころ・からだの状態と、これから意識しやすい行動例をまとめています。"
-)
 
 st.markdown('<div class="section-header">1-2. こころ・からだの調子</div>', unsafe_allow_html=True)
 
@@ -844,56 +749,70 @@ render_meter_block(
     big=True
 )
 
-g1, g2 = st.columns(2)
 grid_order = [
     ("からだの調子", "からだの調子"),
     ("全体的なしあわせ感", "全体的なしあわせ感"),
     ("気持ちの様子（いやな気持）", "気持ちの様子（いやな気持）"),
     ("ひとりぼっち感", "ひとりぼっち感"),
 ]
+cL, cR = st.columns(2)
 for i, (key, label) in enumerate(grid_order):
     v = extras.get(key, np.nan)
-    with (g1 if i % 2 == 0 else g2):
+    col = cL if i % 2 == 0 else cR
+    with col:
         render_meter_block(label, v, extra_colors.get(key, None))
 
 render_extras_meaning_note()
 
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================================
+# 3枚目
+# =========================================================
+st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+
+page_header(
+    "2. あなたの結果に基づく、強みとおすすめな行動",
+    "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。"
+)
+
+weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
+strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
+
 if strong_keys:
-    st.markdown('<div class="section-header tight-section">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
-    s1, s2 = st.columns(2)
-    for i, k in enumerate(strong_keys):
-        with (s1 if i % 2 == 0 else s2):
-            render_meter_block(f"✔ {full_labels[k]}（{k}）", perma_scores.get(k, np.nan), colors[k])
+    st.markdown('<div class="section-header">2-1. 満たされている心の健康の要素（強み）</div>', unsafe_allow_html=True)
+    for k in strong_keys:
+        render_meter_block(
+            f"✔ {full_labels[k]}（{k}）",
+            perma_scores.get(k, np.nan),
+            colors[k],
+            big=False
+        )
 
 if weak_keys:
-    st.markdown('<div class="section-header tight-section">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
-    a1, a2 = st.columns([2.25, 0.95])
-
-    with a1:
-        st.markdown('<div class="action-list">', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns([2, 1])
+    with c1:
         for k in weak_keys:
             emoji = action_emojis.get(k, "💡")
-            st.markdown(f"**{emoji} {full_labels[k]}（{k}）**")
+            st.markdown(f"**{emoji} {full_labels[k]}（{k}）**", unsafe_allow_html=True)
             for t in tips[k]:
                 st.markdown(f"- {t}")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with a2:
-        st.markdown('<div class="page-2-image-wrap">', unsafe_allow_html=True)
+    with c2:
         st.image(
             "https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png",
             use_container_width=True
         )
-        st.markdown('</div>', unsafe_allow_html=True)
 
+st.markdown("<div class='force-page-break'></div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3ページ目
+# 4枚目
 # =========================================================
-st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-4'>", unsafe_allow_html=True)
+page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
 
-page_header("3. 備考", "この評価に関する詳しい情報です。")
 render_remarks_box()
 
 st.markdown(
@@ -913,5 +832,5 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)  # print-page end
+st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
