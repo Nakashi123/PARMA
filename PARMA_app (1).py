@@ -102,6 +102,25 @@ h1 {{
   color: #223;
 }}
 
+.first-page-topbar {{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.15rem;
+  margin-bottom: 0.25rem;
+}}
+.id-chip {{
+  display: inline-block;
+  background: #FFFFFF;
+  border: 1.5px solid #D9E2F3;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.88rem;
+  color: #2A3B5F;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}}
+
 .score-card {{
   background:white;
   border-radius:12px;
@@ -117,32 +136,35 @@ h1 {{
 .meter {{
   background:#E0E0E0;
   border-radius:999px;
-  height:14px;
+  height:16px;
   width:100%;
   overflow:hidden;
 }}
 .meter-fill {{ height:100%; border-radius:999px; }}
 
 .meter-score-text {{
-  font-size: 1.05rem;
-  margin-top: 4px;
+  font-size: 1.18rem;
+  margin-top: 6px;
   color:#333;
 }}
 .meter-score-text .score-strong {{
-  font-size: 1.28rem;
+  font-size: 1.65rem;
   font-weight: 1000;
   letter-spacing: 0.2px;
   color:#111;
 }}
 
 .score-card.big {{
-  padding: 0.75rem 1.0rem;
+  padding: 0.8rem 1.05rem;
 }}
 .meter.big {{
-  height: 22px;
+  height: 24px;
+}}
+.meter-score-text.big {{
+  font-size: 1.25rem;
 }}
 .meter-score-text.big .score-strong {{
-  font-size: 1.45rem;
+  font-size: 1.82rem;
 }}
 .score-title.big {{
   font-size: 1.08rem;
@@ -308,6 +330,16 @@ h1 {{
     margin-bottom: 0.15rem !important;
   }}
 
+  .first-page-topbar {{
+    margin-top: 0 !important;
+    margin-bottom: 0.15rem !important;
+  }}
+
+  .id-chip {{
+    font-size: 0.75rem !important;
+    padding: 0.18rem 0.55rem !important;
+  }}
+
   .page-header {{
     padding: 0.6rem 0.85rem !important;
     margin: 0.4rem 0 0.4rem 0 !important;
@@ -325,14 +357,23 @@ h1 {{
     margin-bottom: 0.28rem !important;
   }}
 
-  .meter {{ height: 11px !important; }}
+  .meter {{ height: 12px !important; }}
+  .meter.big {{ height: 18px !important; }}
 
   .meter-score-text {{
-    font-size: 0.88rem !important;
+    font-size: 1.02rem !important;
   }}
 
   .meter-score-text .score-strong {{
-    font-size: 1.0rem !important;
+    font-size: 1.28rem !important;
+  }}
+
+  .meter-score-text.big {{
+    font-size: 1.08rem !important;
+  }}
+
+  .meter-score-text.big .score-strong {{
+    font-size: 1.42rem !important;
   }}
 
   .mini-note {{
@@ -526,6 +567,16 @@ def page_header(title: str, sub: str):
         unsafe_allow_html=True
     )
 
+def render_id_top_right(sid: str):
+    st.markdown(
+        f"""
+        <div class="first-page-topbar">
+          <div class="id-chip">ID：{sid}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def render_intro_box():
     st.markdown(
         """
@@ -690,6 +741,7 @@ if not st.session_state.ready:
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 ui.empty()
@@ -715,6 +767,10 @@ perma_scores, extras = compute_results(row)
 # 1枚目：1-1 + 各指標の見方 まで
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
+
+# 右上にID表示
+render_id_top_right(str(sid))
+
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
@@ -732,7 +788,6 @@ with col_chart:
 
 render_perma_howto_note()
 
-# ★ ここで1ページ目を閉じる
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
