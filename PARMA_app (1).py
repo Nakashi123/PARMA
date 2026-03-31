@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -15,6 +16,11 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
     "font.size": 12,
 })
+
+# =========================
+# 画像パス
+# =========================
+ILLUST_PATH = "/mnt/data/64b4782b-49c8-4596-9e23-1599882462c1.png"
 
 # =========================
 # カラー設定
@@ -36,15 +42,13 @@ extra_colors = {
 }
 
 theme = {
-    "bg": "#F6F7FB",
+    "bg": "#F4F4F4",
     "accent": "#4E73DF",
     "text": "#222222",
-    "bar_bg": "#EEF2FB",
-    "soft_blue": "#DDE7FF",
-    "border": "#E3E7F1",
+    "border": "#D9DEE8",
     "card": "#FFFFFF",
-    "muted": "#666666",
     "track": "#D9D9D9",
+    "soft_header": "#EEF2FB",
 }
 
 # =========================
@@ -52,7 +56,7 @@ theme = {
 # =========================
 st.markdown(f"""
 <style>
-html, body, [class*="css"]  {{
+html, body, [class*="css"] {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
@@ -60,63 +64,58 @@ html, body, [class*="css"]  {{
 
 .block-container {{
   max-width: 900px;
-  padding-top: 1.0rem;
+  padding-top: 0.8rem;
   padding-bottom: 2rem;
-}}
-
-.main-wrap {{
-  max-width: 880px;
-  margin: 0 auto;
 }}
 
 .title-main {{
   text-align:center;
-  font-size:2.1rem;
+  font-size:2rem;
   font-weight:900;
-  margin-bottom:1.0rem;
-  letter-spacing:0.02em;
+  margin-bottom:0.9rem;
 }}
 
-.info-box {{
-  background:#F9FBFF;
+.intro-box {{
+  background:#F8FBFF;
   border:4px solid #5B84EA;
-  border-radius:20px;
-  padding:1.15rem 1.25rem 1.0rem 1.25rem;
-  margin-bottom:1rem;
+  border-radius:18px;
+  padding:1.15rem 1.25rem 1rem 1.25rem;
+  margin-bottom:0.95rem;
 }}
 
-.info-title {{
-  font-size:1.45rem;
+.intro-title {{
+  font-size:1.55rem;
   font-weight:900;
   margin-bottom:0.45rem;
 }}
 
-.info-text {{
+.intro-text {{
   font-size:1.02rem;
-  line-height:1.8;
+  line-height:1.85;
+  font-weight:700;
 }}
 
 .dashed-divider {{
   border-top:2px dashed #C9CEDB;
-  margin:0.6rem 0;
+  margin:0.65rem 0;
 }}
 
 .section-card {{
   background:white;
   border-radius:16px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
   border:1px solid {theme['border']};
   overflow:hidden;
-  margin-bottom:0.8rem;
+  margin-bottom:0.7rem;
 }}
 
 .section-head {{
   display:flex;
   align-items:center;
-  background:#F7F8FC;
-  padding:0.8rem 1rem;
+  background:#F8F8FB;
+  padding:0.8rem 1rem 0.45rem 1rem;
   font-weight:900;
-  font-size:1.65rem;
+  font-size:1.7rem;
 }}
 
 .section-head::before {{
@@ -130,56 +129,39 @@ html, body, [class*="css"]  {{
 }}
 
 .section-sub {{
-  padding:0 1rem 0.9rem 1rem;
+  padding:0 1rem 0.85rem 1rem;
   font-weight:700;
-  color:#333;
   font-size:1.02rem;
 }}
 
-.subsection-wrap {{
-  margin-top:0.55rem;
-  margin-bottom:0.55rem;
-}}
-
 .subsection-head {{
-  background:#EEF2FB;
+  background:{theme['soft_header']};
   border-radius:8px;
-  padding:0.5rem 0.9rem;
+  padding:0.48rem 0.9rem;
   font-weight:900;
-  font-size:1.3rem;
-  margin-bottom:0.65rem;
+  font-size:1.26rem;
+  margin-bottom:0.35rem;
 }}
 
-.card {{
+.metric-card {{
   background:white;
   border-radius:14px;
-  border:1px solid {theme['border']};
-  box-shadow:0 1px 2px rgba(0,0,0,0.04);
-  padding:0.8rem 0.9rem;
-  margin-bottom:0.6rem;
+  border:1px solid #ECEFF5;
+  box-shadow:0 1px 2px rgba(0,0,0,0.03);
+  padding:0.55rem 0.65rem 0.6rem 0.65rem;
+  margin-bottom:0.18rem;
 }}
 
-.score-title {{
-  font-size:1.25rem;
+.metric-title {{
+  font-size:1.18rem;
   font-weight:900;
-  margin-bottom:0.45rem;
-}}
-
-.score-inline {{
-  font-size:1.45rem;
-  font-weight:900;
-  line-height:1.0;
-}}
-
-.score-inline small {{
-  font-size:0.95rem;
-  font-weight:700;
-  color:#444;
+  margin-bottom:0.28rem;
+  line-height:1.35;
 }}
 
 .track {{
   width:100%;
-  height:14px;
+  height:11px;
   background:{theme['track']};
   border-radius:999px;
   overflow:hidden;
@@ -190,49 +172,57 @@ html, body, [class*="css"]  {{
   border-radius:999px;
 }}
 
+.score-text {{
+  margin-top:0.28rem;
+  font-size:1.05rem;
+  font-weight:900;
+}}
+
+.score-text small {{
+  font-size:0.88rem;
+  font-weight:700;
+  color:#444;
+}}
+
 .note-box {{
   background:white;
   border:1px solid {theme['border']};
   border-radius:14px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.04);
-  padding:0.9rem 1rem;
-  margin-top:0.5rem;
-  margin-bottom:0.75rem;
+  padding:0.8rem 0.95rem;
+  margin-top:0.2rem;
 }}
 
 .note-title {{
-  font-weight:900;
   font-size:1.12rem;
-  margin-bottom:0.35rem;
+  font-weight:900;
+  margin-bottom:0.25rem;
 }}
 
 .note-box ul {{
-  margin-top:0.25rem;
+  margin-top:0.2rem;
   margin-bottom:0;
-  padding-left:1.3rem;
+  padding-left:1.25rem;
 }}
 
 .note-box li {{
-  margin-bottom:0.28rem;
   line-height:1.7;
+  margin-bottom:0.2rem;
 }}
 
-.perma-mini-wrap {{
+.perma-chart-card {{
   background:white;
-  border:1px solid {theme['border']};
-  border-radius:6px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:0.2rem;
-  width:100%;
+  border:1px solid #ECEFF5;
+  border-radius:10px;
+  padding:0.28rem 0.3rem 0.1rem 0.3rem;
+  min-height:152px;
 }}
 
-.mini-perma-label {{
+.perma-chart-label {{
   text-align:center;
   font-size:0.68rem;
-  color:#555;
-  margin-bottom:0.1rem;
+  color:#666;
+  margin-bottom:0.05rem;
+  font-weight:700;
 }}
 
 .strength-check {{
@@ -270,8 +260,7 @@ html, body, [class*="css"]  {{
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding-top:0.6rem;
-  font-size:4.4rem;
+  padding-top:0.4rem;
 }}
 
 .footer-area {{
@@ -308,18 +297,15 @@ html, body, [class*="css"]  {{
 
 .spacer-6 {{ height:6px; }}
 .spacer-10 {{ height:10px; }}
-.spacer-14 {{ height:14px; }}
 
 @media print {{
   @page {{ size:A4; margin:8mm; }}
-
   .force-break {{
     break-before:page !important;
     page-break-before:always !important;
   }}
-
   img {{
-    max-height:72px !important;
+    max-height:120px !important;
   }}
 }}
 </style>
@@ -340,7 +326,7 @@ descriptions = {
     "P": "楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。",
     "E": "物事に没頭したり夢中になって取り組める状態を示します。",
     "R": "支え合えるつながりや信頼関係を感じられている状態です。",
-    "M": "人生に目的・人生に目的や価値を感じて生きている状態です。",
+    "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
 
@@ -384,7 +370,6 @@ def page_header(title: str, subtitle: Optional[str] = None):
 
 def section_subheader(text: str):
     st.markdown(f'<div class="subsection-head">{text}</div>', unsafe_allow_html=True)
-
 
 # =========================
 # Excel読込
@@ -434,9 +419,7 @@ def get_strengths_and_growth(domain_scores: dict):
     valid = [(k, v) for k, v in valid if not np.isnan(v)]
     if not valid:
         return [], []
-    sorted_scores = sorted(valid, key=lambda x: x[1], reverse=True)
-    strengths = sorted_scores[:2]
-    growth = sorted_scores[:2:-1]  # not used
+    strengths = sorted(valid, key=lambda x: x[1], reverse=True)[:2]
     lowest_two = sorted(valid, key=lambda x: x[1])[:2]
     return strengths, lowest_two
 
@@ -446,44 +429,69 @@ def get_strengths_and_growth(domain_scores: dict):
 def render_score_bar_only(score: float, color: str):
     score = clamp_score(score)
     width_percent = 0 if np.isnan(score) else score * 10
+    score_text = "データなし" if np.isnan(score) else f"{score:.1f}"
     st.markdown(
         f"""
         <div class="track">
           <div class="fill" style="width:{width_percent:.1f}%; background:{color};"></div>
         </div>
-        <div class="score-inline" style="margin-top:0.35rem;">{score:.1f}<small>/10点</small></div>
+        <div class="score-text">{score_text}<small>/10点</small></div>
         """,
         unsafe_allow_html=True
     )
 
 
-def render_mini_perma_chart(domain_scores: dict):
+def render_perma_chart_large(domain_scores: dict):
     order = ["P", "E", "R", "M", "A"]
     vals = [0 if np.isnan(domain_scores.get(k, np.nan)) else domain_scores.get(k, 0) for k in order]
     cols = [colors[k] for k in order]
 
-    fig, ax = plt.subplots(figsize=(2.3, 1.55), dpi=200)
+    # 元画像より少し大きめで見やすく
+    fig, ax = plt.subplots(figsize=(3.0, 2.25), dpi=220)
     x = np.arange(len(order))
     ax.bar(x, vals, color=cols, width=0.62)
     ax.set_ylim(0, 10)
     ax.set_xticks(x)
-    ax.set_xticklabels(order, fontsize=7)
+    ax.set_xticklabels(order, fontsize=8.5, fontweight="bold")
     ax.set_yticks([])
+
     for spine in ax.spines.values():
-        spine.set_color("#CCCCCC")
-        spine.set_linewidth(0.8)
+        spine.set_color("#CFCFCF")
+        spine.set_linewidth(0.9)
 
     for i, v in enumerate(vals):
-        ax.text(i, v + 0.18, f"{v:.0f}", ha="center", va="bottom", fontsize=6)
+        ax.text(i, v + 0.18, f"{v:.1f}", ha="center", va="bottom", fontsize=7.5)
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
-    plt.tight_layout(pad=0.4)
-    st.markdown('<div class="mini-perma-label">PERMA</div>', unsafe_allow_html=True)
-    st.markdown('<div class="perma-mini-wrap">', unsafe_allow_html=True)
+    plt.tight_layout(pad=0.35)
+
+    st.markdown('<div class="perma-chart-label">PERMA</div>', unsafe_allow_html=True)
+    st.markdown('<div class="perma-chart-card">', unsafe_allow_html=True)
     st.pyplot(fig, use_container_width=False)
     st.markdown('</div>', unsafe_allow_html=True)
     plt.close(fig)
+
+
+def render_intro_box():
+    st.markdown(
+        """
+        <div class="intro-box">
+          <div class="intro-title">はじめに（この用紙でわかること）</div>
+          <div class="intro-text">
+            この用紙は、心の健康チェックの結果です。<br>
+            今の心の元気さを、0〜10点でわかりやすく見える化しています。
+            <ul style="margin-top:0.35rem; margin-bottom:0.2rem;">
+              <li>心の5つの元気さ（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
+              <li>心の健康の総合得点、気持ちの様子（いやな気持）、からだの調子、ひとりぼっち感、全体的なしあわせ感</li>
+            </ul>
+            <div class="dashed-divider"></div>
+            ※これは病気の診断ではありません。今の自分の状態を知るための目安としてご利用ください。
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def render_note_box_page1():
@@ -523,9 +531,9 @@ def render_note_box_page2():
 def render_remarks_box():
     st.markdown(
         """
-        <div class="info-box" style="margin-top:0.2rem;">
-          <div class="info-title" style="font-size:1.15rem; color:#4E73DF;">このチェックで見ていること</div>
-          <div class="info-text">
+        <div class="intro-box" style="margin-top:0.2rem;">
+          <div class="intro-title" style="font-size:1.15rem; color:#4E73DF;">このチェックで見ていること</div>
+          <div class="intro-text" style="font-size:1rem; font-weight:700;">
             この用紙は、心の元気さを <b>5つの面（PERMA）</b> で見る方法をもとにしています。<br>
             5つの面をそれぞれ見ることで、「どこが保てているか」「どこを整えるとよさそうか」を考えやすくします。
           </div>
@@ -591,27 +599,6 @@ def render_remarks_box():
     )
 
 
-def render_intro_box():
-    st.markdown(
-        """
-        <div class="info-box">
-          <div class="info-title">はじめに（この用紙でわかること）</div>
-          <div class="info-text">
-            この用紙は、心の健康チェックの結果です。<br>
-            今の心の元気さを、0〜10点でわかりやすく見える化しています。
-            <ul style="margin-top:0.35rem; margin-bottom:0.2rem;">
-              <li>心の5つの元気さ（前向きな気持ち／集中して取り組むこと／人とのつながり／生きがいや目的／達成感）</li>
-              <li>心の健康の総合得点、気持ちの様子（いやな気持）、からだの調子、ひとりぼっち感、全体的なしあわせ感</li>
-            </ul>
-            <div class="dashed-divider"></div>
-            ※これは病気の診断ではありません。今の自分の状態を知るための目安としてご利用ください。
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
 def render_strengths(strengths):
     for key, score in strengths:
         st.markdown(
@@ -649,7 +636,7 @@ def recommendation_bullets(key: str):
 
 
 def render_growth(growth):
-    left, right = st.columns([1.55, 0.65], gap="medium")
+    left, right = st.columns([1.55, 0.85], gap="medium")
     with left:
         for key, score in growth:
             emoji = {"P": "😊", "M": "🌱", "E": "✨", "R": "🤝", "A": "🏆"}.get(key, "🌱")
@@ -665,7 +652,12 @@ def render_growth(growth):
                 unsafe_allow_html=True
             )
     with right:
-        st.markdown('<div class="illust-box">🙌</div>', unsafe_allow_html=True)
+        st.markdown('<div class="illust-box">', unsafe_allow_html=True)
+        if os.path.exists(ILLUST_PATH):
+            st.image(ILLUST_PATH, width=220)
+        else:
+            st.markdown("🙌", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # メイン
@@ -706,74 +698,71 @@ strengths, growth = get_strengths_and_growth(domain_scores)
 render_intro_box()
 
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
-
-st.markdown('<div class="subsection-wrap">', unsafe_allow_html=True)
 section_subheader("1-1. 要素ごとにみた心の状態")
 
-left_grid, right_grid = st.columns([2.2, 2.2], gap="small")
-with left_grid:
+# 画像の構成に近づける
+left_area, right_area = st.columns([1.75, 1.95], gap="small")
+
+with left_area:
     for key in ["P", "E", "R"]:
-        st.markdown(f'<div class="card"><div class="score-title">{key}：{full_labels[key]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">{key}：{full_labels[key]}</div>', unsafe_allow_html=True)
         render_score_bar_only(domain_scores.get(key, np.nan), colors[key])
         st.markdown('</div>', unsafe_allow_html=True)
 
-with right_grid:
-    top_left, top_right = st.columns([1.65, 1.0], gap="small")
+with right_area:
+    top_left, top_right = st.columns([1.4, 1.0], gap="small")
+
     with top_left:
-        st.markdown(f'<div class="card"><div class="score-title">M：{full_labels["M"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">M：{full_labels["M"]}</div>', unsafe_allow_html=True)
         render_score_bar_only(domain_scores.get("M", np.nan), colors["M"])
         st.markdown('</div>', unsafe_allow_html=True)
 
     with top_right:
-        st.markdown('<div class="card" style="padding:0.45rem 0.5rem;">', unsafe_allow_html=True)
-        render_mini_perma_chart(domain_scores)
-        st.markdown('</div>', unsafe_allow_html=True)
+        render_perma_chart_large(domain_scores)
 
-    st.markdown(f'<div class="card"><div class="score-title">A：{full_labels["A"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="metric-card"><div class="metric-title">A：{full_labels["A"]}</div>', unsafe_allow_html=True)
     render_score_bar_only(domain_scores.get("A", np.nan), colors["A"])
     st.markdown('</div>', unsafe_allow_html=True)
 
 render_note_box_page1()
-st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # 2ページ目
 # =========================
 FORCE_PAGE_BREAK()
 
-st.markdown('<div class="subsection-wrap">', unsafe_allow_html=True)
 section_subheader("1-2. こころ・からだの調子")
 
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="score-title">心の健康の総合得点</div>', unsafe_allow_html=True)
+st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+st.markdown('<div class="metric-title">心の健康の総合得点</div>', unsafe_allow_html=True)
 render_score_bar_only(extra_scores.get("心の健康の総合得点", np.nan), extra_colors["心の健康の総合得点"])
 st.markdown('</div>', unsafe_allow_html=True)
 
 col_a, col_b = st.columns(2, gap="small")
 with col_a:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="score-title">からだの調子</div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-title">からだの調子</div>', unsafe_allow_html=True)
     render_score_bar_only(extra_scores.get("からだの調子", np.nan), extra_colors["からだの調子"])
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="score-title">気持ちの様子（いやな気持）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-title">気持ちの様子（いやな気持）</div>', unsafe_allow_html=True)
     render_score_bar_only(extra_scores.get("気持ちの様子（いやな気持）", np.nan), extra_colors["気持ちの様子（いやな気持）"])
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_b:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="score-title">全体的なしあわせ感</div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-title">全体的なしあわせ感</div>', unsafe_allow_html=True)
     render_score_bar_only(extra_scores.get("全体的なしあわせ感", np.nan), extra_colors["全体的なしあわせ感"])
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="score-title">ひとりぼっち感</div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-title">ひとりぼっち感</div>', unsafe_allow_html=True)
     render_score_bar_only(extra_scores.get("ひとりぼっち感", np.nan), extra_colors["ひとりぼっち感"])
     st.markdown('</div>', unsafe_allow_html=True)
 
 render_note_box_page2()
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("<div class='spacer-10'></div>", unsafe_allow_html=True)
 
 page_header("2. あなたの結果に基づく、強みとおすすめな行動", "結果からみたご本人の強みと、日常生活でおすすめできることをまとめます。")
 
