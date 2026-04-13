@@ -51,17 +51,17 @@ html, body {{
   background-color:{theme['bg']};
   color:{theme['text']};
   font-family:"BIZ UDPGothic","Meiryo",sans-serif;
-  line-height:1.55;
+  line-height:1.6;
 }}
 
 section.main > div {{ padding-top: 1rem; padding-bottom: 1rem; }}
 .block-container {{ padding-top: 1rem; padding-bottom: 1rem; }}
-div[data-testid="stVerticalBlock"] {{ gap: 0.65rem; }}
-div[data-testid="stMarkdownContainer"] p {{ margin: 0.25rem 0 0.35rem 0; }}
-div[data-testid="stMarkdownContainer"] ul {{ margin: 0.35rem 0 0.35rem 1.2rem; }}
+div[data-testid="stVerticalBlock"] {{ gap: 0.7rem; }}
+div[data-testid="stMarkdownContainer"] p {{ margin: 0.28rem 0 0.38rem 0; }}
+div[data-testid="stMarkdownContainer"] ul {{ margin: 0.38rem 0 0.38rem 1.2rem; }}
 div[data-testid="stMarkdownContainer"] li {{ margin: 0.18rem 0; }}
 
-.main-wrap {{ max-width: 880px; margin: 0 auto; }}
+.main-wrap {{ max-width: 900px; margin: 0 auto; }}
 
 h1 {{
   text-align:center;
@@ -76,8 +76,8 @@ h1 {{
   justify-content:space-between;
   align-items:flex-start;
   gap: 1rem;
-  margin-top:0.4rem;
-  margin-bottom:0.7rem;
+  margin-top:0.45rem;
+  margin-bottom:0.8rem;
 }}
 
 .topline-left {{
@@ -85,16 +85,16 @@ h1 {{
 }}
 
 .name-box {{
-  width: 260px;
-  min-width: 260px;
+  width: 270px;
+  min-width: 270px;
   background:white;
   border:2px solid #D9E2F3;
   border-radius:12px;
-  padding:0.75rem 0.9rem;
+  padding:0.8rem 0.95rem;
   box-shadow:0 2px 8px rgba(0,0,0,0.05);
 }}
 .name-label {{
-  font-size:0.95rem;
+  font-size:0.98rem;
   font-weight:900;
   color:#1b2a4a;
   margin-bottom:0.35rem;
@@ -108,11 +108,11 @@ h1 {{
   background:{theme['bar_bg']};
   font-weight:900;
   font-size:1.15rem;
-  padding:.55rem 1rem;
+  padding:.58rem 1rem;
   border-left:8px solid {theme['accent']};
   border-radius:8px;
-  margin-top:0.9rem;
-  margin-bottom:.7rem;
+  margin-top:1rem;
+  margin-bottom:.75rem;
 }}
 
 .page-header {{
@@ -121,7 +121,7 @@ h1 {{
   border-left: 10px solid {theme['accent']};
   border-radius: 14px;
   padding: 1.0rem 1.2rem;
-  margin: 0.9rem 0 0.9rem 0;
+  margin: 0.85rem 0 0.95rem 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }}
 .page-header .title {{
@@ -133,18 +133,19 @@ h1 {{
 .page-header .sub {{
   font-size: 1.02rem;
   color: #223;
+  line-height: 1.55;
 }}
 
 .score-card {{
   background:white;
   border-radius:12px;
-  padding:0.55rem 0.9rem;
-  margin-bottom:0.55rem;
+  padding:0.62rem 0.95rem;
+  margin-bottom:0.58rem;
   box-shadow:0 1px 3px rgba(0,0,0,0.06);
 }}
 .score-title {{
   font-weight:800;
-  margin-bottom:0.2rem;
+  margin-bottom:0.24rem;
 }}
 
 .meter {{
@@ -157,25 +158,25 @@ h1 {{
 .meter-fill {{ height:100%; border-radius:999px; }}
 
 .meter-score-text {{
-  font-size: 1.05rem;
-  margin-top: 4px;
+  font-size: 1.02rem;
+  margin-top: 5px;
   color:#333;
 }}
 .meter-score-text .score-strong {{
-  font-size: 1.42rem;
+  font-size: 1.38rem;
   font-weight: 1000;
   letter-spacing: 0.2px;
   color:#111;
 }}
 
 .score-card.big {{
-  padding: 0.75rem 1.0rem;
+  padding: 0.8rem 1rem;
 }}
 .meter.big {{
   height: 20px;
 }}
 .meter-score-text.big .score-strong {{
-  font-size: 1.60rem;
+  font-size: 1.55rem;
 }}
 .score-title.big {{
   font-size: 1.08rem;
@@ -187,14 +188,14 @@ h1 {{
   border:3px solid {theme['accent']};
   border-radius:12px;
   padding:1.05rem 1.25rem;
-  margin-top:0.5rem;
+  margin-top:0.55rem;
   background:white;
 }}
 .perma-box p {{
   font-size:1.04rem;
   color:#222;
   margin-bottom:0.75rem;
-  line-height: 1.7;
+  line-height: 1.72;
 }}
 .perma-highlight {{
   color:{theme['accent']};
@@ -205,56 +206,56 @@ h1 {{
   background: #F7FAFF;
   border: 3px solid {theme['accent']};
   border-radius: 16px;
-  padding: 1.0rem 1.2rem;
+  padding: 1.08rem 1.25rem;
   margin: 0.35rem 0 0.95rem 0;
   box-shadow: 0 3px 10px rgba(0,0,0,0.08);
 }}
 .intro-title {{
-  font-size: 1.12rem;
+  font-size: 1.16rem;
   font-weight: 1000;
   color: #1b2a4a;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }}
 .intro-text {{
-  font-size: 1.0rem;
+  font-size: 1.02rem;
   color: #111;
-  line-height: 1.65;
+  line-height: 1.7;
 }}
 .intro-list {{
-  margin: 0.4rem 0 0.22rem 0;
+  margin: 0.45rem 0 0.28rem 0;
   padding-left: 1.3rem;
 }}
 .intro-list li {{
-  margin-bottom: 0.22rem;
+  margin-bottom: 0.24rem;
 }}
 .intro-note {{
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
+  margin-top: 0.38rem;
+  padding-top: 0.38rem;
   border-top: 1px dashed #999;
   color: #333;
-  font-size: 0.96rem;
+  font-size: 0.97rem;
 }}
 
 .mini-note {{
   background: #FFFFFF;
   border: 1px solid #E6EAF5;
   border-radius: 12px;
-  padding: 0.65rem 0.85rem;
-  margin: 0.55rem 0 0.65rem 0;
+  padding: 0.72rem 0.9rem;
+  margin: 0.62rem 0 0.72rem 0;
 }}
 .mini-note .cap {{
   font-weight: 900;
   color: #1b2a4a;
-  font-size: 0.98rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.0rem;
+  margin-bottom: 0.28rem;
 }}
 .mini-note .txt {{
-  font-size: 0.98rem;
+  font-size: 0.99rem;
   color: #222;
-  line-height: 1.65;
+  line-height: 1.68;
 }}
 .mini-note ul {{
-  margin: 0.35rem 0 0.1rem 1.1rem;
+  margin: 0.38rem 0 0.12rem 1.1rem;
 }}
 .mini-note li {{
   margin: 0.14rem 0;
@@ -264,23 +265,23 @@ h1 {{
   background: #FBFBFD;
   border: 1px solid #E6EAF5;
   border-radius: 12px;
-  padding: 0.75rem 0.9rem;
-  margin-top: 0.7rem;
+  padding: 0.8rem 0.95rem;
+  margin-top: 0.75rem;
   color: #333;
 }}
 .cite-box .cap {{
   font-weight: 900;
   color: #1b2a4a;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.28rem;
 }}
 .cite-box .ref {{
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.62;
 }}
 
 .footer-box {{
   border-top: 2px solid #DDD;
-  margin-top: 1.6rem;
+  margin-top: 1.5rem;
   padding-top: 1.0rem;
   font-size: 0.98rem;
   color: #333;
@@ -288,10 +289,10 @@ h1 {{
 }}
 .footer-title {{
   font-weight: 900;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.42rem;
 }}
 .footer-thanks {{
-  margin-top: 0.85rem;
+  margin-top: 0.88rem;
   font-weight: 800;
 }}
 
@@ -300,18 +301,20 @@ h1 {{
   page-break-inside: avoid;
 }}
 
-.section2-pack {{
+.print-page {{
   break-inside: avoid;
   page-break-inside: avoid;
 }}
 
-.force-page-break {{ display:none; }}
+.no-print {{
+  display: block;
+}}
 
 @media print {{
 
   @page {{
     size: A4;
-    margin: 10mm 9mm 10mm 9mm;
+    margin: 14mm 13mm 14mm 13mm;
   }}
 
   html, body {{
@@ -334,76 +337,76 @@ h1 {{
   }}
 
   body {{
-    margin-top: -1mm !important;
+    margin-top: 0 !important;
   }}
 
   h1 {{
-    font-size: 1.5rem !important;
-    margin-top: 0.05rem !important;
-    margin-bottom: 0.1rem !important;
+    font-size: 1.46rem !important;
+    margin-top: 0.02rem !important;
+    margin-bottom: 0.12rem !important;
   }}
 
   .topline {{
-    margin-top: 0.12rem !important;
-    margin-bottom: 0.3rem !important;
-    gap: 0.6rem !important;
-    align-items: flex-start !important;
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.55rem !important;
+    gap: 0.8rem !important;
   }}
 
   .name-box {{
-    width: 210px !important;
-    min-width: 210px !important;
-    padding: 0.42rem 0.6rem !important;
+    width: 215px !important;
+    min-width: 215px !important;
+    padding: 0.52rem 0.68rem !important;
     border-radius: 10px !important;
     box-shadow: none !important;
   }}
 
   .name-label {{
-    font-size: 0.82rem !important;
-    margin-bottom: 0.15rem !important;
+    font-size: 0.84rem !important;
+    margin-bottom: 0.18rem !important;
   }}
 
   .name-line {{
-    height: 1.45rem !important;
+    height: 1.55rem !important;
   }}
 
   .page-header {{
-    padding: 0.58rem 0.8rem !important;
-    margin: 0.38rem 0 0.42rem 0 !important;
+    padding: 0.68rem 0.88rem !important;
+    margin: 0.42rem 0 0.55rem 0 !important;
     box-shadow: none !important;
   }}
 
   .page-header .title {{
-    font-size: 1.18rem !important;
+    font-size: 1.14rem !important;
     margin-bottom: 0.08rem !important;
   }}
 
   .page-header .sub {{
-    font-size: 0.9rem !important;
-    line-height: 1.42 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.45 !important;
   }}
 
   .section-header {{
-    font-size: 0.97rem !important;
-    padding: 0.34rem 0.72rem !important;
+    font-size: 0.96rem !important;
+    padding: 0.36rem 0.72rem !important;
     border-left-width: 6px !important;
-    margin-top: 0.38rem !important;
-    margin-bottom: 0.28rem !important;
+    margin-top: 0.54rem !important;
+    margin-bottom: 0.36rem !important;
   }}
 
   .score-card {{
-    padding: 0.36rem 0.56rem !important;
-    margin-bottom: 0.2rem !important;
+    padding: 0.44rem 0.62rem !important;
+    margin-bottom: 0.24rem !important;
     box-shadow: none !important;
   }}
 
   .score-title {{
-    font-size: 0.9rem !important;
+    font-size: 0.88rem !important;
     margin-bottom: 0.12rem !important;
+    line-height: 1.3 !important;
   }}
 
   .score-title.big {{
-    font-size: 0.95rem !important;
+    font-size: 0.94rem !important;
     margin-bottom: 0.14rem !important;
   }}
 
@@ -412,7 +415,7 @@ h1 {{
   }}
 
   .meter.big {{
-    height: 14px !important;
+    height: 13px !important;
   }}
 
   .meter-score-text {{
@@ -422,33 +425,33 @@ h1 {{
   }}
 
   .meter-score-text .score-strong {{
-    font-size: 1.08rem !important;
+    font-size: 1.06rem !important;
   }}
 
   .meter-score-text.big .score-strong {{
-    font-size: 1.22rem !important;
+    font-size: 1.18rem !important;
   }}
 
   .intro-box {{
-    padding: 0.62rem 0.78rem !important;
-    margin: 0.16rem 0 0.4rem 0 !important;
+    padding: 0.76rem 0.9rem !important;
+    margin: 0.12rem 0 0.6rem 0 !important;
     border-width: 2px !important;
     border-radius: 12px !important;
     box-shadow: none !important;
   }}
 
   .intro-title {{
-    font-size: 0.95rem !important;
-    margin-bottom: 0.14rem !important;
+    font-size: 0.97rem !important;
+    margin-bottom: 0.16rem !important;
   }}
 
   .intro-text {{
-    font-size: 0.82rem !important;
-    line-height: 1.42 !important;
+    font-size: 0.84rem !important;
+    line-height: 1.48 !important;
   }}
 
   .intro-list {{
-    margin: 0.18rem 0 0.1rem 0 !important;
+    margin: 0.2rem 0 0.12rem 0 !important;
     padding-left: 1rem !important;
   }}
 
@@ -457,14 +460,14 @@ h1 {{
   }}
 
   .intro-note {{
-    margin-top: 0.15rem !important;
-    padding-top: 0.15rem !important;
-    font-size: 0.78rem !important;
+    margin-top: 0.16rem !important;
+    padding-top: 0.16rem !important;
+    font-size: 0.8rem !important;
   }}
 
   .mini-note {{
-    padding: 0.48rem 0.62rem !important;
-    margin: 0.26rem 0 0.28rem 0 !important;
+    padding: 0.56rem 0.7rem !important;
+    margin: 0.34rem 0 0.34rem 0 !important;
     border-radius: 10px !important;
     box-shadow: none !important;
   }}
@@ -475,12 +478,12 @@ h1 {{
   }}
 
   .mini-note .txt {{
-    font-size: 0.8rem !important;
-    line-height: 1.4 !important;
+    font-size: 0.79rem !important;
+    line-height: 1.42 !important;
   }}
 
   .mini-note ul {{
-    margin: 0.16rem 0 0.02rem 0.95rem !important;
+    margin: 0.16rem 0 0.04rem 0.95rem !important;
   }}
 
   .mini-note li {{
@@ -488,24 +491,24 @@ h1 {{
   }}
 
   img {{
-    max-height: 120px !important;
+    max-height: 135px !important;
     object-fit: contain !important;
   }}
 
   .perma-box {{
-    padding: 0.7rem 0.85rem !important;
-    margin-top: 0.28rem !important;
+    padding: 0.72rem 0.86rem !important;
+    margin-top: 0.34rem !important;
   }}
 
   .perma-box p {{
-    font-size: 0.86rem !important;
-    line-height: 1.45 !important;
+    font-size: 0.84rem !important;
+    line-height: 1.48 !important;
     margin-bottom: 0.26rem !important;
   }}
 
   .cite-box {{
-    padding: 0.5rem 0.65rem !important;
-    margin-top: 0.3rem !important;
+    padding: 0.56rem 0.72rem !important;
+    margin-top: 0.36rem !important;
     box-shadow: none !important;
   }}
 
@@ -515,23 +518,23 @@ h1 {{
   }}
 
   .cite-box .ref {{
-    font-size: 0.78rem !important;
-    line-height: 1.36 !important;
+    font-size: 0.77rem !important;
+    line-height: 1.4 !important;
   }}
 
   .footer-box {{
-    margin-top: 0.55rem !important;
-    padding-top: 0.4rem !important;
+    margin-top: 0.72rem !important;
+    padding-top: 0.46rem !important;
     font-size: 0.82rem !important;
-    line-height: 1.48 !important;
+    line-height: 1.5 !important;
   }}
 
   .footer-title {{
-    margin-bottom: 0.16rem !important;
+    margin-bottom: 0.18rem !important;
   }}
 
   .footer-thanks {{
-    margin-top: 0.24rem !important;
+    margin-top: 0.28rem !important;
   }}
 
   .no-print {{
@@ -655,7 +658,7 @@ def render_meter_block(title: str, score: float, color: Optional[str] = None, bi
 def plot_hist(perma_scores: dict):
     labels = ["P", "E", "R", "M", "A"]
     values = [perma_scores.get(k, np.nan) for k in labels]
-    fig, ax = plt.subplots(figsize=(2.9, 2.25), dpi=160)
+    fig, ax = plt.subplots(figsize=(3.15, 2.5), dpi=160)
     ax.bar(labels, values, color=[colors[k] for k in labels])
     ax.set_ylim(0, 10)
     ax.set_yticks([])
@@ -860,7 +863,6 @@ ui.empty()
 # 結果表示
 # =========================
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
-st.title("わらトレ　心の健康チェック")
 
 df = st.session_state.df
 sid = st.session_state.sid
@@ -873,9 +875,10 @@ if row.empty:
 perma_scores, extras = compute_results(row)
 
 # =========================================================
-# 1枚目：右上に氏名欄 + 1-2 の最後まで
+# 1枚目：表紙 + 氏名欄 + はじめに
 # =========================================================
 st.markdown("<div class='print-page page-1'>", unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
 
 st.markdown("<div class='topline'>", unsafe_allow_html=True)
 st.markdown("<div class='topline-left'></div>", unsafe_allow_html=True)
@@ -883,11 +886,19 @@ render_name_box()
 st.markdown("</div>", unsafe_allow_html=True)
 
 render_intro_box()
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================================
+# 2枚目：1. 結果（1-1 + 1-2）
+# =========================================================
+st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
 
 page_header("1. 結果（あなたの心の状態）", "心の5つの元気さと、こころ・からだの今の状態を点数で確認します。")
 
 st.markdown('<div class="section-header">1-1. 要素ごとにみた心の状態</div>', unsafe_allow_html=True)
-col_meter, col_chart = st.columns([2, 1])
+
+col_meter, col_chart = st.columns([2.1, 1.0])
 with col_meter:
     col_left, col_right = st.columns(2)
     with col_left:
@@ -924,14 +935,13 @@ for i, (key, label) in enumerate(grid_order):
         render_meter_block(label, v, extra_colors.get(key, None))
 
 render_extras_meaning_note()
-
 st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 2枚目：2 から 2-2 まで
+# 3枚目：2. 強みとおすすめ行動
 # =========================================================
-st.markdown("<div class='print-page page-2'>", unsafe_allow_html=True)
-st.markdown("<div class='section2-pack'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
 
 page_header(
     "2. あなたの結果に基づく、強みとおすすめな行動",
@@ -953,7 +963,7 @@ if strong_keys:
 
 if weak_keys:
     st.markdown('<div class="section-header">2-2. これから伸ばせる要素と具体的な行動例</div>', unsafe_allow_html=True)
-    c1, c2 = st.columns([2.15, 0.85])
+    c1, c2 = st.columns([2.0, 1.0])
     with c1:
         for k in weak_keys:
             emoji = action_emojis.get(k, "💡")
@@ -967,14 +977,14 @@ if weak_keys:
         )
 
 st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
-# 3枚目
+# 4枚目：3. 備考
 # =========================================================
-st.markdown("<div class='print-page page-3'>", unsafe_allow_html=True)
+st.markdown("<div class='print-page page-4'>", unsafe_allow_html=True)
+st.title("わらトレ　心の健康チェック")
+
 page_header("3. 備考", "この評価に関する詳しい情報は以下の通りです。")
-
 render_remarks_box()
 
 st.markdown(
@@ -994,5 +1004,5 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("</div>", unsafe_allow_html=True)  # print-page end
-st.markdown("</div>", unsafe_allow_html=True)  # main-wrap end
+st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
