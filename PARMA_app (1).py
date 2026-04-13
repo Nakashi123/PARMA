@@ -129,7 +129,7 @@ h1 {{
   color:#333;
 }}
 .meter-score-text .score-strong {{
-  font-size: 1.28rem;
+  font-size: 1.45rem;
   font-weight: 1000;
   letter-spacing: 0.2px;
   color:#111;
@@ -142,7 +142,7 @@ h1 {{
   height: 22px;
 }}
 .meter-score-text.big .score-strong {{
-  font-size: 1.45rem;
+  font-size: 1.65rem;
 }}
 .score-title.big {{
   font-size: 1.08rem;
@@ -332,7 +332,7 @@ h1 {{
   }}
 
   .meter-score-text .score-strong {{
-    font-size: 1.0rem !important;
+    font-size: 1.12rem !important;
   }}
 
   .mini-note {{
