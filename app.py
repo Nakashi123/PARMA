@@ -13,7 +13,9 @@ extra_colors = {
     "ひとりぼっち感": "#9B59B6",
     "全体的なしあわせ感": "#F1C40F",
 }
+
 full_labels = {"P": "前向きな気持ち", "E": "集中して取り組むこと", "R": "人とのつながり", "M": "生きがいや目的", "A": "達成感"}
+
 descriptions = {
     "P": "楽しい気持ちや安心感、感謝など前向きな感情の豊かさを示します。",
     "E": "物事に没頭したり夢中になって取り組める状態を示します。",
@@ -21,6 +23,7 @@ descriptions = {
     "M": "人生に目的や価値を感じて生きている状態です。",
     "A": "努力し、達成感や成長を感じられている状態です。",
 }
+
 tips = {
     "P": ["感謝の気持ちをメモしてみる", "今日の良かったことを振り返る"],
     "E": ["小さな挑戦を設定する", "得意なことを活かす"],
@@ -28,6 +31,7 @@ tips = {
     "M": ["大切にしている価値を書き出す", "経験から学びを見つける"],
     "A": ["小さな目標を作る", "失敗を学びと捉える"],
 }
+
 action_emojis = {"P": "😊", "E": "🧩", "R": "🤝", "M": "🌱", "A": "🏁"}
 
 perma_indices = {"P": [4, 9, 21], "E": [2, 10, 20], "R": [5, 14, 18], "M": [0, 8, 16], "A": [1, 7, 15]}
@@ -38,35 +42,44 @@ extra_indices = {
     "全体的なしあわせ感": [22],
 }
 
+
 def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
+
 def compute_results(row):
     cols = sorted([c for c in row.columns if str(c).startswith("6_")], key=lambda x: int(str(x).split("_")[1]))
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
+
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
+
     perma_15 = sorted({i for v in perma_indices.values() for i in v})
     extras["心の健康の総合得点"] = compute_domain_avg(vals, perma_15 + [22])
+
     return perma, extras
+
 
 def score_html(score):
     return "未回答" if np.isnan(score) else f"<strong>{score:.1f}</strong><span>/10点</span>"
+
 
 def meter_card(title, score, color, big=False):
     width = 0 if np.isnan(score) else max(0, min(score * 10, 100))
     cls = "score big" if big else "score"
     return f'<div class="card"><div class="card-title">{title}</div><div class="meter"><div class="meter-fill" style="width:{width:.0f}%; background:{color};"></div></div><div class="{cls}">{score_html(score)}</div></div>'
 
+
 def chart_html(perma_scores):
     items = ""
     for k in ["P", "E", "R", "M", "A"]:
         v = perma_scores.get(k, np.nan)
-        h = 0 if np.isnan(v) else v * 4.2
+        h = 0 if np.isnan(v) else v * 3.8
         label = "" if np.isnan(v) else f"{v:.1f}"
         items += f'<div class="chart-item"><div class="chart-score">{label}</div><div class="chart-bar" style="height:{h}mm; background:{colors[k]};"></div><div>{k}</div></div>'
     return f'<div class="chart-box"><div class="chart-title">PERMA</div><div class="bar-chart">{items}</div></div>'
+
 
 if "ready" not in st.session_state:
     st.session_state.ready = False
@@ -78,18 +91,22 @@ if "sid" not in st.session_state:
 if not st.session_state.ready:
     st.title("わらトレ　心の健康チェック")
     uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23 の列）をアップロードしてください", type="xlsx")
+
     if uploaded:
         df = pd.read_excel(uploaded)
         id_list = df.iloc[:, 0].dropna().astype(str).tolist()
+
         if not id_list:
             st.error("ID列に有効な値がありません。")
         else:
             sid = st.selectbox("IDを選んでください", options=id_list)
+
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
+
     st.stop()
 
 df = st.session_state.df
@@ -102,6 +119,7 @@ if row.empty:
     st.rerun()
 
 perma_scores, extras = compute_results(row)
+
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
@@ -113,6 +131,7 @@ action_html = ""
 for k in weak_keys:
     items = "".join([f"<li>{t}</li>" for t in tips[k]])
     action_html += f'<div class="action-title">{action_emojis[k]} {full_labels[k]}（{k}）</div><ul class="action-list">{items}</ul>'
+
 if not action_html:
     action_html = '<div class="note compact">今回は、5点以下の項目はありませんでした。</div>'
 
@@ -123,129 +142,151 @@ html, body, .stApp {
   color:#222;
   font-family:"BIZ UDPGothic","Meiryo","Noto Sans JP",sans-serif;
 }
+
 .block-container {
   max-width:none !important;
   padding:0 !important;
 }
+
 .report {
   width:210mm;
   margin:0 auto;
 }
+
 .page {
   width:210mm;
   height:297mm;
   box-sizing:border-box;
   background:white;
-  padding:8mm 9mm;
-  overflow:hidden;
+  padding:6mm 7mm;
   page-break-after:always;
   break-after:page;
   margin:0 auto 14px auto;
 }
+
 .page:last-child {
   page-break-after:auto;
   break-after:auto;
 }
+
 .header {
   display:grid;
-  grid-template-columns:46mm 1fr 46mm;
+  grid-template-columns:48mm 1fr 48mm;
   align-items:start;
-  margin-bottom:5mm;
+  margin-bottom:4mm;
 }
+
 .title {
   text-align:center;
   font-size:25px;
   font-weight:900;
   padding-top:5mm;
 }
+
 .name-box {
   border:2px solid #C9D4EE;
   border-radius:9px;
-  padding:8px 11px;
-  height:22mm;
+  padding:7px 10px;
+  height:21mm;
   box-sizing:border-box;
 }
+
 .name-label {
-  font-size:15px;
+  font-size:14px;
   font-weight:900;
 }
+
 .name-line {
-  height:10mm;
+  height:9mm;
   border-bottom:2px solid #8898bf;
 }
+
 .section {
   background:#EEF2FB;
   border-left:8px solid #4E73DF;
   border-radius:8px;
-  padding:7px 11px;
-  font-size:16px;
+  padding:6px 10px;
+  font-size:15.5px;
   font-weight:900;
-  margin:8px 0 6px 0;
+  margin:6px 0 5px 0;
 }
+
 .note {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:8px 11px;
-  font-size:14px;
-  line-height:1.48;
-  margin-bottom:6px;
+  padding:7px 10px;
+  font-size:13px;
+  line-height:1.28;
+  margin-bottom:5px;
 }
+
 .grid-main {
   display:grid;
-  grid-template-columns:1fr 50mm;
+  grid-template-columns:1fr 52mm;
   gap:8px;
 }
+
 .grid-2 {
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
 }
+
 .card {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:8px 10px;
-  margin-bottom:6px;
+  padding:6px 9px;
+  margin-bottom:5px;
 }
+
 .card-title {
-  font-size:14px;
+  font-size:13.2px;
   font-weight:900;
-  margin-bottom:4px;
+  margin-bottom:3px;
 }
+
 .meter {
-  height:11px;
+  height:10px;
   background:#E4E7ED;
   border-radius:999px;
   overflow:hidden;
 }
+
 .meter-fill {
   height:100%;
   border-radius:999px;
 }
+
 .score {
-  margin-top:4px;
-  font-size:12.5px;
+  margin-top:3px;
+  font-size:12px;
 }
+
 .score strong {
-  font-size:31px;
+  font-size:28px;
   font-weight:1000;
   line-height:1;
 }
+
 .score.big strong {
-  font-size:38px;
+  font-size:35px;
 }
+
 .chart-box {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:9px;
+  padding:8px;
   text-align:center;
 }
+
 .chart-title {
-  font-size:14px;
+  font-size:13px;
   font-weight:900;
   margin-bottom:3px;
 }
+
 .bar-chart {
-  height:49mm;
+  height:43mm;
   display:flex;
   align-items:end;
   justify-content:space-around;
@@ -253,108 +294,159 @@ html, body, .stApp {
   border-bottom:1px solid #999;
   padding:4px 4px 0 4px;
 }
+
 .chart-item {
   width:14%;
-  font-size:10.5px;
+  font-size:10px;
   text-align:center;
 }
+
 .chart-score {
-  font-size:10.5px;
+  font-size:10px;
   font-weight:700;
 }
+
 .chart-bar {
   width:100%;
   margin-bottom:2px;
 }
+
 .ul-note {
-  margin:3px 0 0 1.2em;
+  margin:2px 0 0 1.15em;
   padding:0;
 }
+
 .ul-note li {
-  margin:2px 0;
+  margin:1px 0;
 }
-.page2 {
-  padding:8mm 9mm;
+
+.page1 .note {
+  font-size:12.8px;
+  line-height:1.24;
 }
+
+.page1 .section {
+  font-size:15px;
+  padding:5px 10px;
+  margin:5px 0 4px 0;
+}
+
+.page1 .card {
+  padding:5px 8px;
+  margin-bottom:4px;
+}
+
+.page1 .card-title {
+  font-size:12.8px;
+}
+
+.page1 .score strong {
+  font-size:27px;
+}
+
+.page1 .score.big strong {
+  font-size:34px;
+}
+
+.page1 .bar-chart {
+  height:39mm;
+}
+
 .page2 .section {
-  margin:7px 0 6px 0;
+  margin:6px 0 5px 0;
   padding:6px 10px;
   font-size:15.5px;
 }
+
 .page2 .card {
   padding:7px 10px;
   margin-bottom:6px;
 }
+
 .page2 .card-title {
   font-size:14px;
 }
+
 .page2 .score strong {
   font-size:30px;
 }
+
 .action-layout {
   display:grid;
-  grid-template-columns:1fr 44mm;
+  grid-template-columns:1fr 45mm;
   gap:10px;
   align-items:start;
 }
+
 .action-title {
   font-size:18px;
   font-weight:900;
   margin:7px 0 2px 0;
 }
+
 .action-list {
   margin:0 0 6px 1.25em;
   padding:0;
   font-size:14px;
-  line-height:1.38;
+  line-height:1.34;
 }
+
 .illust {
   width:40mm;
   margin-top:8px;
 }
+
 .compact {
-  font-size:13px;
-  line-height:1.38;
-  padding:7px 10px;
-  margin-bottom:6px;
+  font-size:12.5px;
+  line-height:1.26;
+  padding:6px 9px;
+  margin-bottom:5px;
 }
+
 .perma-box {
   border:2px solid #4E73DF;
   border-radius:9px;
-  padding:8px 10px;
-  font-size:13px;
-  line-height:1.38;
-  margin-bottom:6px;
+  padding:7px 9px;
+  font-size:12.5px;
+  line-height:1.26;
+  margin-bottom:5px;
 }
+
 .perma-highlight {
   color:#4E73DF;
   font-weight:900;
 }
+
 .cite {
-  font-size:11px;
-  line-height:1.28;
+  font-size:10px;
+  line-height:1.18;
 }
+
 .footer {
   border-top:2px solid #ddd;
-  padding-top:5px;
-  margin-top:5px;
-  font-size:11px;
-  line-height:1.3;
+  padding-top:4px;
+  margin-top:4px;
+  font-size:10px;
+  line-height:1.2;
 }
+
 @media print {
   @page {
     size:A4 portrait;
     margin:0;
   }
+
   html, body, .stApp {
     background:white !important;
     margin:0 !important;
     padding:0 !important;
   }
+
   * {
     -webkit-print-color-adjust:exact !important;
     print-color-adjust:exact !important;
   }
+
   header, footer,
   [data-testid="stHeader"],
   [data-testid="stToolbar"],
@@ -362,21 +454,26 @@ html, body, .stApp {
   [data-testid="stStatusWidget"] {
     display:none !important;
   }
+
   .block-container {
     padding:0 !important;
     margin:0 !important;
   }
+
   .report {
     width:210mm !important;
     margin:0 !important;
   }
+
   .page {
     margin:0 !important;
     width:210mm !important;
     height:297mm !important;
+    box-sizing:border-box !important;
     page-break-after:always !important;
     break-after:page !important;
   }
+
   .page:last-child {
     page-break-after:auto !important;
     break-after:auto !important;
