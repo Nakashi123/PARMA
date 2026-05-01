@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -556,9 +557,11 @@ def plot_hist(perma_scores: dict):
     ax.set_ylim(0, 10)
     ax.set_yticks([])
     ax.set_title("PERMA", fontsize=10)
+
     for i, v in enumerate(values):
         if not np.isnan(v):
             ax.text(i, v + 0.18, f"{v:.1f}", ha="center", va="bottom", fontsize=8)
+
     fig.tight_layout(pad=0.4)
     st.pyplot(fig)
 
@@ -568,6 +571,19 @@ def render_name_box():
         <div class="name-box keep-together">
           <div class="name-label">氏名</div>
           <div class="name-line"></div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+def render_intro_box():
+    st.markdown(
+        """
+        <div class="simple-note keep-together">
+          <b>はじめに（この用紙でわかること）</b><br>
+          この用紙は、心の健康チェックの結果です。<br>
+          今の心の元気さを、0〜10点でわかりやすく確認できます。<br>
+          点数が高いところは「今の強み」、低いところは「これから整えるヒント」としてご覧ください。
         </div>
         """,
         unsafe_allow_html=True
@@ -604,19 +620,6 @@ def render_extras_meaning_note():
               <li><b>ひとりぼっち感</b>：{extras_explanations["ひとりぼっち感"]}</li>
             </ul>
           </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-def render_intro_box():
-    st.markdown(
-        """
-        <div class="simple-note keep-together">
-          <b>はじめに（この用紙でわかること）</b><br>
-          この用紙は、心の健康チェックの結果です。<br>
-          今の心の元気さを、0〜10点でわかりやすく確認できます。<br>
-          点数が高いところは「今の強み」、低いところは「これから整えるヒント」としてご覧ください。
         </div>
         """,
         unsafe_allow_html=True
@@ -705,13 +708,18 @@ def render_remarks_box():
 # =========================
 if "ready" not in st.session_state:
     st.session_state.ready = False
+
 if "df" not in st.session_state:
     st.session_state.df = None
+
 if "sid" not in st.session_state:
     st.session_state.sid = None
 
 ui = st.empty()
 
+# =========================
+# ファイルアップロード画面
+# =========================
 if not st.session_state.ready:
     with ui.container():
         st.markdown('<div class="main-wrap no-print">', unsafe_allow_html=True)
@@ -725,15 +733,20 @@ if not st.session_state.ready:
         if uploaded:
             df = pd.read_excel(uploaded)
             id_list = df.iloc[:, 0].dropna().astype(str).tolist()
-            sid = st.selectbox("IDを選んでください", options=id_list)
 
-            if st.button("このIDで結果を表示"):
-                st.session_state.df = df
-                st.session_state.sid = sid
-                st.session_state.ready = True
-                st.rerun()
+            if len(id_list) == 0:
+                st.error("ID列に有効な値がありません。")
+            else:
+                sid = st.selectbox("IDを選んでください", options=id_list)
+
+                if st.button("このIDで結果を表示"):
+                    st.session_state.df = df
+                    st.session_state.sid = sid
+                    st.session_state.ready = True
+                    st.rerun()
 
         st.markdown('</div>', unsafe_allow_html=True)
+
     st.stop()
 
 ui.empty()
@@ -884,6 +897,7 @@ if weak_keys:
         for k in weak_keys:
             emoji = action_emojis.get(k, "💡")
             st.markdown(f"### {emoji} {full_labels[k]}（{k}）")
+
             for t in tips[k]:
                 st.markdown(f"- {t}")
 
