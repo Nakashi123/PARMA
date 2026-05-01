@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 
-st.set_page_config(page_title="わらトレ 心の健康チェック", layout="centered")
+st.set_page_config(page_title="わらトレ 心の健康チェック", layout="wide")
 
-# =========================
-# カラー設定
-# =========================
 colors = {
     "P": "#F28B82",
     "E": "#FDD663",
@@ -71,314 +69,13 @@ extra_indices = {
     "全体的なしあわせ感": [22],
 }
 
-# =========================
-# CSS
-# =========================
-st.markdown("""
-<style>
-html, body {
-  font-family: "BIZ UDPGothic", "Meiryo", "Noto Sans JP", sans-serif;
-  background: #f6f7fb;
-}
 
-.block-container {
-  max-width: 920px;
-  padding-top: 1rem;
-}
-
-.report {
-  background: white;
-  color: #222;
-}
-
-.page {
-  width: 210mm;
-  height: 297mm;
-  box-sizing: border-box;
-  padding: 13mm 13mm 11mm 13mm;
-  background: white;
-  margin: 0 auto 18px auto;
-  overflow: hidden;
-  page-break-after: always;
-  break-after: page;
-}
-
-.page:last-child {
-  page-break-after: auto;
-  break-after: auto;
-}
-
-.header {
-  display: grid;
-  grid-template-columns: 48mm 1fr 48mm;
-  align-items: start;
-  margin-bottom: 5mm;
-}
-
-.title {
-  text-align: center;
-  font-size: 21px;
-  font-weight: 900;
-  padding-top: 6mm;
-  letter-spacing: 0.03em;
-}
-
-.name-box {
-  border: 2px solid #C9D4EE;
-  border-radius: 8px;
-  padding: 7px 10px;
-  height: 20mm;
-  box-sizing: border-box;
-}
-
-.name-label {
-  font-size: 13px;
-  font-weight: 900;
-  color: #1b2a4a;
-}
-
-.name-line {
-  height: 9mm;
-  border-bottom: 2px solid #8898bf;
-}
-
-.section {
-  background: #EEF2FB;
-  border-left: 7px solid #4E73DF;
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 15px;
-  font-weight: 900;
-  margin: 8px 0 6px 0;
-}
-
-.note {
-  border: 1px solid #E2E7F2;
-  border-radius: 8px;
-  padding: 8px 11px;
-  font-size: 13px;
-  line-height: 1.55;
-  margin-bottom: 7px;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-}
-
-.grid-main {
-  display: grid;
-  grid-template-columns: 1fr 50mm;
-  gap: 8px;
-  align-items: start;
-}
-
-.card {
-  border: 1px solid #E2E7F2;
-  border-radius: 8px;
-  padding: 7px 9px;
-  margin-bottom: 6px;
-}
-
-.card-title {
-  font-size: 13px;
-  font-weight: 900;
-  margin-bottom: 4px;
-}
-
-.meter {
-  height: 10px;
-  background: #E4E7ED;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.meter-fill {
-  height: 100%;
-  border-radius: 999px;
-}
-
-.score {
-  margin-top: 3px;
-  font-size: 12px;
-}
-
-.score strong {
-  font-size: 27px;
-  font-weight: 1000;
-  line-height: 1;
-}
-
-.score.big strong {
-  font-size: 34px;
-}
-
-.chart-box {
-  border: 1px solid #E2E7F2;
-  border-radius: 8px;
-  padding: 7px;
-  text-align: center;
-}
-
-.chart-title {
-  font-size: 12px;
-  font-weight: 900;
-  margin-bottom: 4px;
-}
-
-.bar-chart {
-  height: 43mm;
-  display: flex;
-  align-items: end;
-  justify-content: space-around;
-  border-left: 1px solid #999;
-  border-bottom: 1px solid #999;
-  padding: 5px 3px 0 3px;
-}
-
-.chart-item {
-  width: 13%;
-  text-align: center;
-  font-size: 10px;
-}
-
-.chart-bar {
-  width: 100%;
-  margin: 0 auto 2px auto;
-}
-
-.chart-score {
-  font-size: 9px;
-  margin-bottom: 1px;
-}
-
-.ul-note {
-  margin: 2px 0 0 1.1em;
-  padding: 0;
-}
-
-.ul-note li {
-  margin: 2px 0;
-}
-
-.action-layout {
-  display: grid;
-  grid-template-columns: 1fr 45mm;
-  gap: 10px;
-  align-items: start;
-}
-
-.action-title {
-  font-size: 18px;
-  font-weight: 900;
-  margin: 7px 0 2px 0;
-}
-
-.action-list {
-  margin: 0 0 5px 1.2em;
-  padding: 0;
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.illust {
-  width: 42mm;
-  margin-top: 10px;
-}
-
-.perma-box {
-  border: 2px solid #4E73DF;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 13px;
-  line-height: 1.55;
-  margin-bottom: 8px;
-}
-
-.perma-highlight {
-  color: #4E73DF;
-  font-weight: 900;
-}
-
-.cite {
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.footer {
-  border-top: 2px solid #ddd;
-  padding-top: 7px;
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.footer-title {
-  font-weight: 900;
-}
-
-.no-print {
-  display: block;
-}
-
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 0;
-  }
-
-  html, body {
-    background: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .no-print,
-  header,
-  footer,
-  [data-testid="stHeader"],
-  [data-testid="stToolbar"],
-  [data-testid="stDecoration"],
-  [data-testid="stStatusWidget"] {
-    display: none !important;
-  }
-
-  .block-container {
-    max-width: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .page {
-    margin: 0 !important;
-    width: 210mm !important;
-    height: 297mm !important;
-    page-break-after: always !important;
-    break-after: page !important;
-  }
-
-  .page:last-child {
-    page-break-after: auto !important;
-    break-after: auto !important;
-  }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# 計算関数
-# =========================
-def compute_domain_avg(vals: np.ndarray, idx: list[int]) -> float:
+def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
-def compute_results(row: pd.DataFrame):
+
+def compute_results(row):
     cols = [c for c in row.columns if str(c).startswith("6_")]
     cols = sorted(cols, key=lambda x: int(str(x).split("_")[1]))
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
@@ -386,44 +83,43 @@ def compute_results(row: pd.DataFrame):
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
 
-    perma_15_indices = sorted({i for idxs in perma_indices.values() for i in idxs})
-    overall_indices = perma_15_indices + [22]
-    extras["心の健康の総合得点"] = compute_domain_avg(vals, overall_indices)
+    perma_15 = sorted({i for v in perma_indices.values() for i in v})
+    extras["心の健康の総合得点"] = compute_domain_avg(vals, perma_15 + [22])
 
     return perma, extras
 
-# =========================
-# HTML部品
-# =========================
-def score_text(score):
+
+def score_html(score):
     if np.isnan(score):
         return "未回答"
-    return f"<strong>{score:.1f}</strong>/10点"
+    return f"<strong>{score:.1f}</strong><span>/10点</span>"
+
 
 def meter_card(title, score, color, big=False):
     width = 0 if np.isnan(score) else max(0, min(score * 10, 100))
-    big_class = " big" if big else ""
+    cls = "score big" if big else "score"
     return f"""
     <div class="card">
       <div class="card-title">{title}</div>
       <div class="meter">
         <div class="meter-fill" style="width:{width:.0f}%; background:{color};"></div>
       </div>
-      <div class="score{big_class}">{score_text(score)}</div>
+      <div class="{cls}">{score_html(score)}</div>
     </div>
     """
+
 
 def chart_html(perma_scores):
     items = ""
     for k in ["P", "E", "R", "M", "A"]:
         v = perma_scores.get(k, np.nan)
-        h = 0 if np.isnan(v) else v * 4.0
+        h = 0 if np.isnan(v) else v * 3.5
         label = "" if np.isnan(v) else f"{v:.1f}"
         items += f"""
         <div class="chart-item">
           <div class="chart-score">{label}</div>
           <div class="chart-bar" style="height:{h}mm; background:{colors[k]};"></div>
-          <div>{k}</div>
+          <div class="chart-label">{k}</div>
         </div>
         """
     return f"""
@@ -433,21 +129,7 @@ def chart_html(perma_scores):
     </div>
     """
 
-def header_html():
-    return """
-    <div class="header">
-      <div></div>
-      <div class="title">わらトレ　心の健康チェック</div>
-      <div class="name-box">
-        <div class="name-label">氏名</div>
-        <div class="name-line"></div>
-      </div>
-    </div>
-    """
 
-# =========================
-# セッション
-# =========================
 if "ready" not in st.session_state:
     st.session_state.ready = False
 if "df" not in st.session_state:
@@ -455,11 +137,7 @@ if "df" not in st.session_state:
 if "sid" not in st.session_state:
     st.session_state.sid = None
 
-# =========================
-# アップロード画面
-# =========================
 if not st.session_state.ready:
-    st.markdown('<div class="no-print">', unsafe_allow_html=True)
     st.title("わらトレ　心の健康チェック")
 
     uploaded = st.file_uploader(
@@ -482,31 +160,294 @@ if not st.session_state.ready:
                 st.session_state.ready = True
                 st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
-# =========================
-# データ取得
-# =========================
 df = st.session_state.df
 sid = st.session_state.sid
 row = df[df.iloc[:, 0].astype(str) == str(sid)]
 
 if row.empty:
-    st.warning("選択されたIDが見つかりません。最初からやり直してください。")
+    st.warning("選択されたIDが見つかりません。")
     st.session_state.ready = False
     st.rerun()
 
 perma_scores, extras = compute_results(row)
+
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
-# =========================
-# ページ1
-# =========================
-page1 = f"""
+strong_html = ""
+if strong_keys:
+    for k in strong_keys:
+        strong_html += meter_card(f"✓ {full_labels[k]}（{k}）", perma_scores[k], colors[k])
+else:
+    strong_html = '<div class="note">今回は、7点以上の項目はありませんでした。</div>'
+
+action_html = ""
+if weak_keys:
+    for k in weak_keys:
+        items = "".join([f"<li>{t}</li>" for t in tips[k]])
+        action_html += f"""
+        <div class="action-title">{action_emojis[k]} {full_labels[k]}（{k}）</div>
+        <ul class="action-list">{items}</ul>
+        """
+else:
+    action_html = '<div class="note">今回は、5点以下の項目はありませんでした。</div>'
+
+html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {{
+  margin:0;
+  background:#f5f6fa;
+  font-family:"BIZ UDPGothic","Meiryo","Noto Sans JP",sans-serif;
+  color:#222;
+}}
+
+.page {{
+  width:210mm;
+  height:297mm;
+  margin:0 auto 16px auto;
+  padding:12mm 13mm;
+  box-sizing:border-box;
+  background:white;
+  overflow:hidden;
+  page-break-after:always;
+}}
+
+.page:last-child {{
+  page-break-after:auto;
+}}
+
+.header {{
+  display:grid;
+  grid-template-columns:45mm 1fr 45mm;
+  align-items:start;
+  margin-bottom:6mm;
+}}
+
+.title {{
+  text-align:center;
+  font-size:22px;
+  font-weight:900;
+  padding-top:5mm;
+}}
+
+.name-box {{
+  border:2px solid #C9D4EE;
+  border-radius:8px;
+  padding:7px 10px;
+  height:20mm;
+  box-sizing:border-box;
+}}
+
+.name-label {{
+  font-size:13px;
+  font-weight:900;
+}}
+
+.name-line {{
+  height:9mm;
+  border-bottom:2px solid #8898bf;
+}}
+
+.section {{
+  background:#EEF2FB;
+  border-left:7px solid #4E73DF;
+  border-radius:7px;
+  padding:6px 10px;
+  font-size:15px;
+  font-weight:900;
+  margin:8px 0 6px 0;
+}}
+
+.note {{
+  border:1px solid #E2E7F2;
+  border-radius:8px;
+  padding:8px 11px;
+  font-size:13px;
+  line-height:1.55;
+  margin-bottom:7px;
+}}
+
+.grid-main {{
+  display:grid;
+  grid-template-columns:1fr 48mm;
+  gap:8px;
+}}
+
+.grid-2 {{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}}
+
+.card {{
+  border:1px solid #E2E7F2;
+  border-radius:8px;
+  padding:7px 9px;
+  margin-bottom:6px;
+}}
+
+.card-title {{
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:4px;
+}}
+
+.meter {{
+  height:10px;
+  background:#E4E7ED;
+  border-radius:999px;
+  overflow:hidden;
+}}
+
+.meter-fill {{
+  height:100%;
+  border-radius:999px;
+}}
+
+.score {{
+  margin-top:3px;
+  font-size:12px;
+}}
+
+.score strong {{
+  font-size:28px;
+  font-weight:1000;
+  line-height:1;
+}}
+
+.score.big strong {{
+  font-size:36px;
+}}
+
+.chart-box {{
+  border:1px solid #E2E7F2;
+  border-radius:8px;
+  padding:7px;
+  text-align:center;
+}}
+
+.chart-title {{
+  font-size:12px;
+  font-weight:900;
+  margin-bottom:4px;
+}}
+
+.bar-chart {{
+  height:42mm;
+  display:flex;
+  align-items:end;
+  justify-content:space-around;
+  border-left:1px solid #999;
+  border-bottom:1px solid #999;
+  padding:4px 3px 0 3px;
+}}
+
+.chart-item {{
+  width:14%;
+  font-size:10px;
+  text-align:center;
+}}
+
+.chart-bar {{
+  width:100%;
+  margin-bottom:2px;
+}}
+
+.ul-note {{
+  margin:3px 0 0 1.2em;
+  padding:0;
+}}
+
+.ul-note li {{
+  margin:2px 0;
+}}
+
+.action-layout {{
+  display:grid;
+  grid-template-columns:1fr 45mm;
+  gap:10px;
+}}
+
+.action-title {{
+  font-size:18px;
+  font-weight:900;
+  margin:8px 0 2px 0;
+}}
+
+.action-list {{
+  margin:0 0 6px 1.2em;
+  padding:0;
+  font-size:14px;
+  line-height:1.45;
+}}
+
+.illust {{
+  width:42mm;
+  margin-top:10px;
+}}
+
+.perma-box {{
+  border:2px solid #4E73DF;
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:13px;
+  line-height:1.55;
+  margin-bottom:8px;
+}}
+
+.perma-highlight {{
+  color:#4E73DF;
+  font-weight:900;
+}}
+
+.cite {{
+  font-size:11px;
+}}
+
+.footer {{
+  border-top:2px solid #ddd;
+  padding-top:7px;
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.45;
+}}
+
+@media print {{
+  @page {{
+    size:A4 portrait;
+    margin:0;
+  }}
+
+  body {{
+    background:white;
+  }}
+
+  .page {{
+    margin:0;
+    width:210mm;
+    height:297mm;
+  }}
+}}
+</style>
+</head>
+
+<body>
+
 <div class="page">
-  {header_html()}
+  <div class="header">
+    <div></div>
+    <div class="title">わらトレ　心の健康チェック</div>
+    <div class="name-box">
+      <div class="name-label">氏名</div>
+      <div class="name-line"></div>
+    </div>
+  </div>
 
   <div class="note">
     <b>はじめに（この用紙でわかること）</b><br>
@@ -544,7 +485,7 @@ page1 = f"""
 
   <div class="section">1-2. こころ・からだの調子</div>
 
-  {meter_card("心の健康の総合得点", extras.get("心の健康の総合得点", np.nan), extra_colors["心の健康の総合得点"], big=True)}
+  {meter_card("心の健康の総合得点", extras.get("心の健康の総合得点", np.nan), extra_colors["心の健康の総合得点"], True)}
 
   <div class="grid-2">
     <div>
@@ -566,38 +507,7 @@ page1 = f"""
     </ul>
   </div>
 </div>
-"""
 
-# =========================
-# ページ2
-# =========================
-strong_html = ""
-if strong_keys:
-    for k in strong_keys:
-        strong_html += meter_card(f"✓ {full_labels[k]}（{k}）", perma_scores.get(k, np.nan), colors[k], big=False)
-else:
-    strong_html = """
-    <div class="note">
-      今回は、7点以上の項目はありませんでした。どの項目も今後の変化を見る上で大切な手がかりになります。
-    </div>
-    """
-
-action_html = ""
-if weak_keys:
-    for k in weak_keys:
-        lis = "".join([f"<li>{t}</li>" for t in tips[k]])
-        action_html += f"""
-        <div class="action-title">{action_emojis.get(k, "💡")} {full_labels[k]}（{k}）</div>
-        <ul class="action-list">{lis}</ul>
-        """
-else:
-    action_html = """
-    <div class="note">
-      今回は、5点以下の項目はありませんでした。今の良い状態を保つことを意識してみてください。
-    </div>
-    """
-
-page2 = f"""
 <div class="page">
   <div class="section">2-1. 満たされている心の健康の要素（強み）</div>
   {strong_html}
@@ -617,12 +527,7 @@ page2 = f"""
     </div>
   </div>
 </div>
-"""
 
-# =========================
-# ページ3
-# =========================
-page3 = """
 <div class="page">
   <div class="section">3. 備考</div>
 
@@ -671,24 +576,16 @@ page3 = """
   </div>
 
   <div class="footer">
-    <div class="footer-title">この評価結果に関するお問い合わせは以下まで</div>
+    <b>この評価結果に関するお問い合わせは以下まで</b><br>
     〈お問い合わせ先〉〒 474-0037<br>
     愛知県大府市半月町三丁目294番地<br>
-    ☎ 0562-44-5551　研究代表者：李 相侖
-    <div style="font-weight:900; margin-top:4px;">この度は、ご協力ありがとうございました。</div>
+    ☎ 0562-44-5551　研究代表者：李 相侖<br>
+    <b>この度は、ご協力ありがとうございました。</b>
   </div>
 </div>
+
+</body>
+</html>
 """
 
-# =========================
-# 表示
-# =========================
-html = f"""
-<div class="report">
-  {page1}
-  {page2}
-  {page3}
-</div>
-"""
-
-st.markdown(html, unsafe_allow_html=True)
+components.html(html, height=3600, scrolling=False)
