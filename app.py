@@ -42,44 +42,35 @@ extra_indices = {
     "全体的なしあわせ感": [22],
 }
 
-
 def compute_domain_avg(vals, idx):
     scores = [vals[i] for i in idx if i < len(vals) and not np.isnan(vals[i])]
     return float(np.mean(scores)) if scores else np.nan
 
-
 def compute_results(row):
     cols = sorted([c for c in row.columns if str(c).startswith("6_")], key=lambda x: int(str(x).split("_")[1]))
     vals = pd.to_numeric(row[cols].values.flatten(), errors="coerce")
-
     perma = {k: compute_domain_avg(vals, v) for k, v in perma_indices.items()}
     extras = {k: compute_domain_avg(vals, v) for k, v in extra_indices.items()}
-
     perma_15 = sorted({i for v in perma_indices.values() for i in v})
     extras["心の健康の総合得点"] = compute_domain_avg(vals, perma_15 + [22])
-
     return perma, extras
-
 
 def score_html(score):
     return "未回答" if np.isnan(score) else f"<strong>{score:.1f}</strong><span>/10点</span>"
-
 
 def meter_card(title, score, color, big=False):
     width = 0 if np.isnan(score) else max(0, min(score * 10, 100))
     cls = "score big" if big else "score"
     return f'<div class="card"><div class="card-title">{title}</div><div class="meter"><div class="meter-fill" style="width:{width:.0f}%; background:{color};"></div></div><div class="{cls}">{score_html(score)}</div></div>'
 
-
 def chart_html(perma_scores):
     items = ""
     for k in ["P", "E", "R", "M", "A"]:
         v = perma_scores.get(k, np.nan)
-        h = 0 if np.isnan(v) else v * 3.8
+        h = 0 if np.isnan(v) else v * 4.2
         label = "" if np.isnan(v) else f"{v:.1f}"
         items += f'<div class="chart-item"><div class="chart-score">{label}</div><div class="chart-bar" style="height:{h}mm; background:{colors[k]};"></div><div>{k}</div></div>'
     return f'<div class="chart-box"><div class="chart-title">PERMA</div><div class="bar-chart">{items}</div></div>'
-
 
 if "ready" not in st.session_state:
     st.session_state.ready = False
@@ -91,22 +82,18 @@ if "sid" not in st.session_state:
 if not st.session_state.ready:
     st.title("わらトレ　心の健康チェック")
     uploaded = st.file_uploader("Excelファイル（ID列＋6_1〜6_23 の列）をアップロードしてください", type="xlsx")
-
     if uploaded:
         df = pd.read_excel(uploaded)
         id_list = df.iloc[:, 0].dropna().astype(str).tolist()
-
         if not id_list:
             st.error("ID列に有効な値がありません。")
         else:
             sid = st.selectbox("IDを選んでください", options=id_list)
-
             if st.button("このIDで結果を表示"):
                 st.session_state.df = df
                 st.session_state.sid = sid
                 st.session_state.ready = True
                 st.rerun()
-
     st.stop()
 
 df = st.session_state.df
@@ -119,7 +106,6 @@ if row.empty:
     st.rerun()
 
 perma_scores, extras = compute_results(row)
-
 weak_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v <= 5]
 strong_keys = [k for k, v in perma_scores.items() if not np.isnan(v) and v >= 7]
 
@@ -131,7 +117,6 @@ action_html = ""
 for k in weak_keys:
     items = "".join([f"<li>{t}</li>" for t in tips[k]])
     action_html += f'<div class="action-title">{action_emojis[k]} {full_labels[k]}（{k}）</div><ul class="action-list">{items}</ul>'
-
 if not action_html:
     action_html = '<div class="note compact">今回は、5点以下の項目はありませんでした。</div>'
 
@@ -142,151 +127,131 @@ html, body, .stApp {
   color:#222;
   font-family:"BIZ UDPGothic","Meiryo","Noto Sans JP",sans-serif;
 }
-
 .block-container {
   max-width:none !important;
   padding:0 !important;
 }
-
 .report {
   width:210mm;
   margin:0 auto;
 }
-
 .page {
   width:210mm;
   height:297mm;
   box-sizing:border-box;
   background:white;
-  padding:6mm 7mm;
+  padding:7mm 8mm;
   page-break-after:always;
   break-after:page;
   margin:0 auto 14px auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
 }
-
 .page:last-child {
   page-break-after:auto;
   break-after:auto;
 }
-
 .header {
   display:grid;
   grid-template-columns:48mm 1fr 48mm;
   align-items:start;
-  margin-bottom:4mm;
 }
-
 .title {
   text-align:center;
-  font-size:25px;
+  font-size:26px;
   font-weight:900;
   padding-top:5mm;
 }
-
 .name-box {
   border:2px solid #C9D4EE;
   border-radius:9px;
-  padding:7px 10px;
-  height:21mm;
+  padding:8px 11px;
+  height:22mm;
   box-sizing:border-box;
 }
-
 .name-label {
-  font-size:14px;
+  font-size:15px;
   font-weight:900;
 }
-
 .name-line {
-  height:9mm;
+  height:10mm;
   border-bottom:2px solid #8898bf;
 }
-
 .section {
   background:#EEF2FB;
   border-left:8px solid #4E73DF;
   border-radius:8px;
-  padding:6px 10px;
-  font-size:15.5px;
+  padding:7px 11px;
+  font-size:16px;
   font-weight:900;
-  margin:6px 0 5px 0;
 }
-
 .note {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:7px 10px;
-  font-size:13px;
-  line-height:1.28;
-  margin-bottom:5px;
+  padding:8px 11px;
+  font-size:13.8px;
+  line-height:1.34;
 }
-
 .grid-main {
   display:grid;
   grid-template-columns:1fr 52mm;
   gap:8px;
 }
-
 .grid-2 {
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
 }
-
 .card {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:6px 9px;
+  padding:7px 10px;
   margin-bottom:5px;
 }
-
-.card-title {
-  font-size:13.2px;
-  font-weight:900;
-  margin-bottom:3px;
+.card:last-child {
+  margin-bottom:0;
 }
-
+.card-title {
+  font-size:13.8px;
+  font-weight:900;
+  margin-bottom:4px;
+}
 .meter {
   height:10px;
   background:#E4E7ED;
   border-radius:999px;
   overflow:hidden;
 }
-
 .meter-fill {
   height:100%;
   border-radius:999px;
 }
-
 .score {
   margin-top:3px;
-  font-size:12px;
+  font-size:12.5px;
 }
-
 .score strong {
-  font-size:28px;
+  font-size:30px;
   font-weight:1000;
   line-height:1;
 }
-
 .score.big strong {
-  font-size:35px;
+  font-size:38px;
 }
-
 .chart-box {
   border:1px solid #E2E7F2;
   border-radius:9px;
-  padding:8px;
+  padding:9px;
   text-align:center;
 }
-
 .chart-title {
-  font-size:13px;
+  font-size:14px;
   font-weight:900;
   margin-bottom:3px;
 }
-
 .bar-chart {
-  height:43mm;
+  height:48mm;
   display:flex;
   align-items:end;
   justify-content:space-around;
@@ -294,159 +259,130 @@ html, body, .stApp {
   border-bottom:1px solid #999;
   padding:4px 4px 0 4px;
 }
-
 .chart-item {
   width:14%;
-  font-size:10px;
+  font-size:10.5px;
   text-align:center;
 }
-
 .chart-score {
-  font-size:10px;
+  font-size:10.5px;
   font-weight:700;
 }
-
 .chart-bar {
   width:100%;
   margin-bottom:2px;
 }
-
 .ul-note {
-  margin:2px 0 0 1.15em;
+  margin:3px 0 0 1.2em;
   padding:0;
 }
-
 .ul-note li {
   margin:1px 0;
 }
-
 .page1 .note {
-  font-size:12.8px;
-  line-height:1.24;
+  font-size:13.5px;
+  line-height:1.30;
 }
-
 .page1 .section {
-  font-size:15px;
-  padding:5px 10px;
-  margin:5px 0 4px 0;
-}
-
-.page1 .card {
-  padding:5px 8px;
-  margin-bottom:4px;
-}
-
-.page1 .card-title {
-  font-size:12.8px;
-}
-
-.page1 .score strong {
-  font-size:27px;
-}
-
-.page1 .score.big strong {
-  font-size:34px;
-}
-
-.page1 .bar-chart {
-  height:39mm;
-}
-
-.page2 .section {
-  margin:6px 0 5px 0;
-  padding:6px 10px;
   font-size:15.5px;
+  padding:6px 10px;
 }
-
-.page2 .card {
-  padding:7px 10px;
-  margin-bottom:6px;
-}
-
-.page2 .card-title {
-  font-size:14px;
-}
-
-.page2 .score strong {
-  font-size:30px;
-}
-
-.action-layout {
-  display:grid;
-  grid-template-columns:1fr 45mm;
-  gap:10px;
-  align-items:start;
-}
-
-.action-title {
-  font-size:18px;
-  font-weight:900;
-  margin:7px 0 2px 0;
-}
-
-.action-list {
-  margin:0 0 6px 1.25em;
-  padding:0;
-  font-size:14px;
-  line-height:1.34;
-}
-
-.illust {
-  width:40mm;
-  margin-top:8px;
-}
-
-.compact {
-  font-size:12.5px;
-  line-height:1.26;
+.page1 .card {
   padding:6px 9px;
   margin-bottom:5px;
 }
-
+.page1 .card-title {
+  font-size:13.2px;
+}
+.page1 .score strong {
+  font-size:28px;
+}
+.page1 .score.big strong {
+  font-size:36px;
+}
+.page1 .bar-chart {
+  height:42mm;
+}
+.page1 .chart-box {
+  padding:8px;
+}
+.page2 .section {
+  font-size:16px;
+  padding:7px 11px;
+}
+.page2 .card {
+  padding:8px 11px;
+  margin-bottom:7px;
+}
+.page2 .card-title {
+  font-size:14.5px;
+}
+.page2 .score strong {
+  font-size:31px;
+}
+.action-layout {
+  display:grid;
+  grid-template-columns:1fr 46mm;
+  gap:10px;
+  align-items:start;
+}
+.action-title {
+  font-size:18px;
+  font-weight:900;
+  margin:6px 0 2px 0;
+}
+.action-list {
+  margin:0 0 5px 1.25em;
+  padding:0;
+  font-size:14px;
+  line-height:1.32;
+}
+.illust {
+  width:41mm;
+  margin-top:8px;
+}
+.compact {
+  font-size:12.8px;
+  line-height:1.25;
+  padding:6px 9px;
+}
 .perma-box {
   border:2px solid #4E73DF;
   border-radius:9px;
   padding:7px 9px;
-  font-size:12.5px;
-  line-height:1.26;
-  margin-bottom:5px;
+  font-size:12.8px;
+  line-height:1.25;
 }
-
 .perma-highlight {
   color:#4E73DF;
   font-weight:900;
 }
-
 .cite {
   font-size:10px;
   line-height:1.18;
 }
-
 .footer {
   border-top:2px solid #ddd;
   padding-top:4px;
-  margin-top:4px;
   font-size:10px;
-  line-height:1.2;
+  line-height:1.18;
 }
-
 @media print {
   @page {
     size:A4 portrait;
     margin:0;
   }
-
   html, body, .stApp {
+    width:210mm !important;
+    height:auto !important;
     background:white !important;
     margin:0 !important;
     padding:0 !important;
   }
-
   * {
     -webkit-print-color-adjust:exact !important;
     print-color-adjust:exact !important;
   }
-
   header, footer,
   [data-testid="stHeader"],
   [data-testid="stToolbar"],
@@ -454,26 +390,26 @@ html, body, .stApp {
   [data-testid="stStatusWidget"] {
     display:none !important;
   }
-
   .block-container {
     padding:0 !important;
     margin:0 !important;
+    width:210mm !important;
+    max-width:210mm !important;
   }
-
   .report {
     width:210mm !important;
     margin:0 !important;
   }
-
   .page {
     margin:0 !important;
     width:210mm !important;
     height:297mm !important;
+    min-height:297mm !important;
+    max-height:297mm !important;
     box-sizing:border-box !important;
     page-break-after:always !important;
     break-after:page !important;
   }
-
   .page:last-child {
     page-break-after:auto !important;
     break-after:auto !important;
@@ -483,27 +419,14 @@ html, body, .stApp {
 """
 
 page1 = f"""<div class="page page1">
-<div class="header">
-<div></div>
-<div class="title">わらトレ　心の健康チェック</div>
-<div class="name-box"><div class="name-label">氏名</div><div class="name-line"></div></div>
-</div>
+<div class="header"><div></div><div class="title">わらトレ　心の健康チェック</div><div class="name-box"><div class="name-label">氏名</div><div class="name-line"></div></div></div>
 <div class="note"><b>はじめに（この用紙でわかること）</b><br>この用紙は、心の健康チェックの結果です。今の心の元気さを、0〜10点で確認できます。点数が高いところは「今の強み」、低いところは「これから整えるヒント」としてご覧ください。</div>
 <div class="section">1-1. 要素ごとにみた心の状態</div>
-<div class="grid-main">
-<div class="grid-2">
-<div>{meter_card("P：前向きな気持ち", perma_scores.get("P", np.nan), colors["P"])}{meter_card("E：集中して取り組むこと", perma_scores.get("E", np.nan), colors["E"])}{meter_card("R：人とのつながり", perma_scores.get("R", np.nan), colors["R"])}</div>
-<div>{meter_card("M：生きがいや目的", perma_scores.get("M", np.nan), colors["M"])}{meter_card("A：達成感", perma_scores.get("A", np.nan), colors["A"])}</div>
-</div>
-{chart_html(perma_scores)}
-</div>
+<div class="grid-main"><div class="grid-2"><div>{meter_card("P：前向きな気持ち", perma_scores.get("P", np.nan), colors["P"])}{meter_card("E：集中して取り組むこと", perma_scores.get("E", np.nan), colors["E"])}{meter_card("R：人とのつながり", perma_scores.get("R", np.nan), colors["R"])}</div><div>{meter_card("M：生きがいや目的", perma_scores.get("M", np.nan), colors["M"])}{meter_card("A：達成感", perma_scores.get("A", np.nan), colors["A"])}</div></div>{chart_html(perma_scores)}</div>
 <div class="note"><b>各指標の見方</b><ul class="ul-note"><li><b>P（前向きな気持ち）</b>：{descriptions["P"]}</li><li><b>E（集中して取り組むこと）</b>：{descriptions["E"]}</li><li><b>R（人とのつながり）</b>：{descriptions["R"]}</li><li><b>M（生きがいや目的）</b>：{descriptions["M"]}</li><li><b>A（達成感）</b>：{descriptions["A"]}</li></ul></div>
 <div class="section">1-2. こころ・からだの調子</div>
 {meter_card("心の健康の総合得点", extras.get("心の健康の総合得点", np.nan), extra_colors["心の健康の総合得点"], True)}
-<div class="grid-2">
-<div>{meter_card("からだの調子", extras.get("からだの調子", np.nan), extra_colors["からだの調子"])}{meter_card("気持ちの様子（いやな気持）", extras.get("気持ちの様子（いやな気持）", np.nan), extra_colors["気持ちの様子（いやな気持）"])}</div>
-<div>{meter_card("全体的なしあわせ感", extras.get("全体的なしあわせ感", np.nan), extra_colors["全体的なしあわせ感"])}{meter_card("ひとりぼっち感", extras.get("ひとりぼっち感", np.nan), extra_colors["ひとりぼっち感"])}</div>
-</div>
+<div class="grid-2"><div>{meter_card("からだの調子", extras.get("からだの調子", np.nan), extra_colors["からだの調子"])}{meter_card("気持ちの様子（いやな気持）", extras.get("気持ちの様子（いやな気持）", np.nan), extra_colors["気持ちの様子（いやな気持）"])}</div><div>{meter_card("全体的なしあわせ感", extras.get("全体的なしあわせ感", np.nan), extra_colors["全体的なしあわせ感"])}{meter_card("ひとりぼっち感", extras.get("ひとりぼっち感", np.nan), extra_colors["ひとりぼっち感"])}</div></div>
 <div class="note"><b>各指標の意味</b><ul class="ul-note"><li><b>気持ちの様子（いやな気持）</b>：不安になったり、気分が沈んだり、いらいらしたりすることがどのくらいあるかの結果です。</li><li><b>からだの調子</b>：体の調子や元気さについて、ご本人が感じた程度の結果です。</li><li><b>ひとりぼっち感</b>：ひとりぼっちだと感じることがあるかの結果です。</li></ul></div>
 </div>"""
 
@@ -511,10 +434,7 @@ page2 = f"""<div class="page page2">
 <div class="section">2-1. 満たされている心の健康の要素（強み）</div>
 {strong_html}
 <div class="section">2-2. これから伸ばせる要素と具体的な行動例</div>
-<div class="action-layout">
-<div><div class="note compact">点数が低めだったところは、悪い結果ではありません。<br>これから少しずつ整えていける「ヒント」として見てください。</div>{action_html}</div>
-<div><img class="illust" src="https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png"></div>
-</div>
+<div class="action-layout"><div><div class="note compact">点数が低めだったところは、悪い結果ではありません。<br>これから少しずつ整えていける「ヒント」として見てください。</div>{action_html}</div><div><img class="illust" src="https://eiyoushi-hutaba.com/wp-content/uploads/2025/01/%E5%85%83%E6%B0%97%E3%81%AA%E3%82%B7%E3%83%8B%E3%82%A2%E3%81%AE%E4%BA%8C%E4%BA%BA%E3%80%80%E9%81%8B%E5%8B%95%E7%89%88.png"></div></div>
 <div class="section">3. 備考</div>
 <div class="perma-box"><b><span class="perma-highlight">このチェックで見ていること</span></b><br>この用紙は、心の元気さを <span class="perma-highlight">5つの面（PERMA）</span> で見る方法をもとにしています。5つの面をそれぞれ見ることで、「どこが保てているか」「どこを整えるとよさそうか」を考えやすくします。</div>
 <div class="note compact"><b>① PERMA（5つの面）とは</b><ul class="ul-note"><li><b>P</b>：前向きな気持ち</li><li><b>E</b>：集中して取り組むこと</li><li><b>R</b>：人とのつながり</li><li><b>M</b>：生きがいや目的</li><li><b>A</b>：達成感</li></ul></div>
