@@ -63,7 +63,7 @@ def chart_html(perma_scores):
     items = ""
     for k in ["P", "E", "R", "M", "A"]:
         v = perma_scores.get(k, np.nan)
-        h = 0 if np.isnan(v) else v * 3.2
+        h = 0 if np.isnan(v) else v * 4.2
         label = "" if np.isnan(v) else f"{v:.1f}"
         items += f'<div class="chart-item"><div class="chart-score">{label}</div><div class="chart-bar" style="height:{h}mm; background:{colors[k]};"></div><div>{k}</div></div>'
     return f'<div class="chart-box"><div class="chart-title">PERMA</div><div class="bar-chart">{items}</div></div>'
@@ -136,7 +136,7 @@ html, body, .stApp {
   height:297mm;
   box-sizing:border-box;
   background:white;
-  padding:10mm 13mm;
+  padding:8mm 9mm;
   overflow:hidden;
   page-break-after:always;
   break-after:page;
@@ -148,71 +148,71 @@ html, body, .stApp {
 }
 .header {
   display:grid;
-  grid-template-columns:45mm 1fr 45mm;
+  grid-template-columns:46mm 1fr 46mm;
   align-items:start;
-  margin-bottom:4mm;
+  margin-bottom:5mm;
 }
 .title {
   text-align:center;
-  font-size:21px;
+  font-size:25px;
   font-weight:900;
   padding-top:5mm;
 }
 .name-box {
   border:2px solid #C9D4EE;
-  border-radius:8px;
-  padding:7px 10px;
-  height:19mm;
+  border-radius:9px;
+  padding:8px 11px;
+  height:22mm;
   box-sizing:border-box;
 }
 .name-label {
-  font-size:13px;
+  font-size:15px;
   font-weight:900;
 }
 .name-line {
-  height:8mm;
+  height:10mm;
   border-bottom:2px solid #8898bf;
 }
 .section {
   background:#EEF2FB;
-  border-left:7px solid #4E73DF;
-  border-radius:7px;
-  padding:5px 9px;
-  font-size:14px;
+  border-left:8px solid #4E73DF;
+  border-radius:8px;
+  padding:7px 11px;
+  font-size:16px;
   font-weight:900;
-  margin:6px 0 5px 0;
+  margin:8px 0 6px 0;
 }
 .note {
   border:1px solid #E2E7F2;
-  border-radius:8px;
-  padding:6px 9px;
-  font-size:12.2px;
-  line-height:1.42;
-  margin-bottom:5px;
+  border-radius:9px;
+  padding:8px 11px;
+  font-size:14px;
+  line-height:1.48;
+  margin-bottom:6px;
 }
 .grid-main {
   display:grid;
-  grid-template-columns:1fr 46mm;
-  gap:7px;
+  grid-template-columns:1fr 50mm;
+  gap:8px;
 }
 .grid-2 {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:7px;
+  gap:8px;
 }
 .card {
   border:1px solid #E2E7F2;
-  border-radius:8px;
-  padding:5px 7px;
-  margin-bottom:4px;
+  border-radius:9px;
+  padding:8px 10px;
+  margin-bottom:6px;
 }
 .card-title {
-  font-size:12.2px;
+  font-size:14px;
   font-weight:900;
-  margin-bottom:3px;
+  margin-bottom:4px;
 }
 .meter {
-  height:9px;
+  height:11px;
   background:#E4E7ED;
   border-radius:999px;
   overflow:hidden;
@@ -222,118 +222,124 @@ html, body, .stApp {
   border-radius:999px;
 }
 .score {
-  margin-top:2px;
-  font-size:11px;
+  margin-top:4px;
+  font-size:12.5px;
 }
 .score strong {
-  font-size:24px;
+  font-size:31px;
   font-weight:1000;
   line-height:1;
 }
 .score.big strong {
-  font-size:31px;
+  font-size:38px;
 }
 .chart-box {
   border:1px solid #E2E7F2;
-  border-radius:8px;
-  padding:7px;
+  border-radius:9px;
+  padding:9px;
   text-align:center;
 }
 .chart-title {
-  font-size:12px;
+  font-size:14px;
   font-weight:900;
+  margin-bottom:3px;
 }
 .bar-chart {
-  height:38mm;
+  height:49mm;
   display:flex;
   align-items:end;
   justify-content:space-around;
   border-left:1px solid #999;
   border-bottom:1px solid #999;
-  padding:3px 3px 0 3px;
+  padding:4px 4px 0 4px;
 }
 .chart-item {
   width:14%;
-  font-size:9.5px;
+  font-size:10.5px;
   text-align:center;
+}
+.chart-score {
+  font-size:10.5px;
+  font-weight:700;
 }
 .chart-bar {
   width:100%;
   margin-bottom:2px;
 }
 .ul-note {
-  margin:2px 0 0 1.15em;
+  margin:3px 0 0 1.2em;
   padding:0;
 }
 .ul-note li {
-  margin:1px 0;
+  margin:2px 0;
 }
 .page2 {
-  padding-top:10mm;
+  padding:8mm 9mm;
 }
 .page2 .section {
-  margin:5px 0 4px 0;
-  padding:4px 8px;
-  font-size:13.5px;
+  margin:7px 0 6px 0;
+  padding:6px 10px;
+  font-size:15.5px;
 }
 .page2 .card {
-  padding:4px 7px;
-  margin-bottom:4px;
+  padding:7px 10px;
+  margin-bottom:6px;
 }
 .page2 .card-title {
-  font-size:12px;
+  font-size:14px;
 }
 .page2 .score strong {
-  font-size:22px;
+  font-size:30px;
 }
 .action-layout {
   display:grid;
-  grid-template-columns:1fr 38mm;
-  gap:8px;
+  grid-template-columns:1fr 44mm;
+  gap:10px;
+  align-items:start;
 }
 .action-title {
-  font-size:14px;
+  font-size:18px;
   font-weight:900;
-  margin:4px 0 1px 0;
+  margin:7px 0 2px 0;
 }
 .action-list {
-  margin:0 0 3px 1.2em;
+  margin:0 0 6px 1.25em;
   padding:0;
-  font-size:11.5px;
-  line-height:1.23;
+  font-size:14px;
+  line-height:1.38;
 }
 .illust {
-  width:32mm;
-  margin-top:5px;
+  width:40mm;
+  margin-top:8px;
 }
 .compact {
-  font-size:11px;
-  line-height:1.28;
-  padding:5px 8px;
-  margin-bottom:4px;
+  font-size:13px;
+  line-height:1.38;
+  padding:7px 10px;
+  margin-bottom:6px;
 }
 .perma-box {
   border:2px solid #4E73DF;
-  border-radius:8px;
-  padding:6px 8px;
-  font-size:11px;
-  line-height:1.28;
-  margin-bottom:4px;
+  border-radius:9px;
+  padding:8px 10px;
+  font-size:13px;
+  line-height:1.38;
+  margin-bottom:6px;
 }
 .perma-highlight {
   color:#4E73DF;
   font-weight:900;
 }
 .cite {
-  font-size:9.2px;
-  line-height:1.2;
+  font-size:11px;
+  line-height:1.28;
 }
 .footer {
   border-top:2px solid #ddd;
-  padding-top:4px;
-  margin-top:4px;
-  font-size:9.2px;
-  line-height:1.22;
+  padding-top:5px;
+  margin-top:5px;
+  font-size:11px;
+  line-height:1.3;
 }
 @media print {
   @page {
